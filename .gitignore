@@ -1,0 +1,35 @@
+# Dependency directories
+
+node_modules/
+
+# Build output
+
+dist/
+build/
+
+# Logs
+
+\*.log
+
+# System files
+
+.DS_Store
+Thumbs.db
+
+# Environment and secrets
+
+.env
+_.env._
+
+# Editor and IDE settings
+
+.vscode/
+.idea/
+
+# Test coverage reports
+
+coverage/
+
+# Temporary files
+
+\*.tmp
