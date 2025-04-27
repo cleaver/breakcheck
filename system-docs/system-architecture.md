@@ -92,7 +92,7 @@ graph TD
 
 6. **CLI Interface**
    - **Tech**:
-     - Commander.js (https://github.com/tj/commander.js)
+     - yargs (https://github.com/yargs/yargs)
      - Ink (React CLI components)
    - **Responsibility**:
      - Configuration management

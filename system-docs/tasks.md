@@ -70,9 +70,9 @@
 - [ ] 6.7. Integrate with Snapshot Manager: Pass crawled PageSnapshot data to be saved.
 - [ ] 6.8. Write integration tests for crawling test sites (local static sites or mock servers).
 
-## **7. CLI Interface (Commander.js, Ink)**
+## **7. CLI Interface (yargs, Ink)**
 
-- [ ] 7.1. Integrate Commander.js for command parsing.
+- [ ] 7.1. Integrate yargs for command parsing.
 - [ ] 7.2. Define CLI commands: snapshot, compare, help (and potentially config).
 - [ ] 7.3. Implement argument/option parsing for URLs, snapshot names, rule files, output paths, etc.
 - [ ] 7.4. Implement the snapshot command logic:

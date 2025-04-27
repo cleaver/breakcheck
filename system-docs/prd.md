@@ -114,7 +114,7 @@ The tool shall support the following core workflow:
 - **FR-REP-05:** (Optional) The tool should offer an option to generate a structured report format (e.g., JSON) for machine processing.
 - **FR-REP-06:** (Optional) The tool should offer an option to generate an HTML-based visual diff report highlighting changes directly within the page structure.
 
-### 3.8 CLI Interface (Commander.js, Ink)
+### 3.8 CLI Interface (yargs, Ink)
 
 - **FR-CLI-01:** The tool must be executable from the command line.
 - **FR-CLI-02:** The CLI must provide commands for:
@@ -145,7 +145,7 @@ The tool shall support the following core workflow:
 The tool will adhere to the provided system architecture diagram and component descriptions:
 
 - **Components:** CLI Interface, Crawler, Snapshot Manager, DOM Processor, Diff Engine, Rules Engine.
-- **Technologies:** Typescript, Crawlee, Cheerio, xpath, fast-diff, html-differ, Chevrotain, Commander.js, Ink, zlib.
+- **Technologies:** Typescript, Crawlee, Cheerio, xpath, fast-diff, html-differ, Chevrotain, yargs, Ink, zlib.
 - **Data Flow:** As depicted in the diagram, initiated by the CLI, flowing through crawling, snapshotting, processing, diffing, guided by rules.
 - **Storage:** Local file system for snapshots and configuration.
 
