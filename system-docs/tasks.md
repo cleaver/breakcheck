@@ -72,8 +72,8 @@
 
 ## **7. CLI Interface (yargs, Ink)**
 
-- [ ] 7.1. Integrate yargs for command parsing.
-- [ ] 7.2. Define CLI commands: snapshot, compare, help (and potentially config).
+- [x] 7.1. Integrate yargs for command parsing.
+- [x] 7.2. Define CLI commands: snapshot, compare, help (and potentially config).
 - [ ] 7.3. Implement argument/option parsing for URLs, snapshot names, rule files, output paths, etc.
 - [ ] 7.4. Implement the snapshot command logic:
   - [ ] 7.4.1. Parse arguments.
