@@ -1,27 +1,29 @@
-# Product Requirements Document: Breakcheck
+# Product Requirements Document: Website Content Diff Tool (Breakcheck)
 
-Version: 1.0
+Version: 2.2
+Date: 2025-04-28
 
-Date: 2025-04-24
+_(Consolidates details from v1.0 into the v2.0 structure with the API Layer)_
+_(Edited 2.1 slightly to make 2.2 - CB)_
 
 ## 1. Introduction
 
 ### 1.1 Purpose
 
-This document outlines the requirements for a command-line interface (CLI) tool designed to assist developers and QA testers in verifying content-based websites after upgrades or significant changes (e.g., CMS updates, framework migrations, theme changes). The tool automates the process of comparing website states ("before" and "after" the change) to identify unexpected alterations in HTML content and structure, while allowing users to configure rules to ignore expected differences.
+This document outlines the requirements for a command-line interface (CLI) tool, **Breakcheck**, designed to assist developers and QA testers in verifying content-based websites after upgrades or significant changes (e.g., CMS updates, framework migrations, theme changes). The tool automates the process of comparing website states ("before" and "after" the change) to identify unexpected alterations in HTML content and structure, while allowing users to configure rules to ignore expected differences. **The core logic is encapsulated within distinct components and exposed via an internal API layer, which the CLI interacts with, paving the way for future interfaces like a web application.**
 
-### 1.2 Scope
+### **1.2 Scope**
 
-The initial version (v1.0) will focus on delivering a robust CLI application. It will include core functionalities: crawling, snapshotting, DOM processing based on configurable rules, content diffing, and reporting. Future versions may introduce a web-based user interface, visual diffing capabilities, and database integration.
+Version 2.1 focuses on delivering a robust CLI application interacting with a well-defined internal API layer. It includes core functionalities: crawling, snapshotting, DOM processing based on configurable rules, content diffing, and reporting, all orchestrated via the API. Future versions may introduce a web-based user interface leveraging this API and potentially expose the API over a network.
 
-### 1.3 Goals & Objectives
+### **1.3 Goals & Objectives**
 
 - **Goal:** Reduce the manual effort and improve the accuracy of regression testing for content-based websites undergoing upgrades or changes.
-- **Objective 1:** Provide a reliable mechanism to capture the state of a website (HTML content and structure) before and after a change.
-- **Objective 2:** Implement a flexible rules engine using a clear DSL (Domain Specific Language) to allow users to precisely define which parts of the HTML should be included, excluded, or transformed during comparison.
-- **Objective 3:** Develop an efficient diff engine capable of highlighting meaningful differences between the "before" and "after" states, ignoring configured exceptions.
-- **Objective 4:** Deliver a user-friendly CLI tool for configuring, executing, and reviewing the comparison process.
-- **Objective 5:** Design the core logic with modularity and extensibility in mind, facilitating future enhancements like a web UI or plugin system.
+- **Objective 1:** Provide a reliable mechanism (**via the API**) to capture the state of a website (HTML content and structure) before and after a change using a configurable crawler.
+- **Objective 2:** Implement a flexible rules engine using a clear DSL, configurable **via the API**, to allow users to precisely define which parts of the HTML should be included, excluded, or transformed during comparison.
+- **Objective 3:** Develop an efficient diff engine capable of highlighting meaningful differences between the "before" and "after" states (after rule application), ignoring configured exceptions.
+- **Objective 4:** Deliver a user-friendly CLI tool that interacts with the **Breakcheck API** for configuration, execution, and reviewing results.
+- **Objective 5:** Define and implement a clear **API Layer** that encapsulates the core logic, facilitating modularity, testability, and future interface development (e.g., Web UI).
 
 ### 1.4 Target Audience
 
@@ -35,167 +37,216 @@ The initial version (v1.0) will focus on delivering a robust CLI application. It
 ### 2.1 Persona: Frontend Developer (Maria)
 
 - **Needs:** Quickly verify that a CMS theme update hasn't broken layouts or altered static content unexpectedly across hundreds of pages. Needs to ignore dynamic elements like cache-busting query parameters or CSRF tokens.
-- **Scenario:** Maria is updating the core CMS and theme on a client's website. Before deploying the update to staging, she runs the tool to capture the "before" state. She configures rules to ignore CSS class changes related to the theme's utility classes and specific meta tags added by the CMS. After deploying the update, she runs the tool again to capture the "after" state and initiates the comparison. The tool reports unexpected changes in the footer text on three specific pages, which she investigates and fixes before proceeding.
+- **Scenario:** Maria uses the Breakcheck CLI tool. She runs breakcheck snapshot before --url .... The CLI calls the Breakcheck API's createSnapshot function. The API layer then invokes the Crawler component to scan the site and the Snapshot Manager to save the state. Later, she runs breakcheck compare before after --rules .... The CLI calls the API's runComparison function, passing snapshot identifiers and rules. The API retrieves snapshots, invokes the DOM Processor (applying rules parsed by the Rules Engine) and the Diff Engine. The API orchestrates the process, and the CLI displays the structured results returned by the API.
 
 ### 2.2 Persona: QA Engineer (David)
 
 - **Needs:** Perform comprehensive regression testing after a major framework upgrade. Needs a detailed report of all structural and content changes, filtering out noise from minified scripts or style changes.
-- **Scenario:** David is testing a website migration from an old framework to a new one. He uses the tool to compare the production site ("before") with the newly migrated site on a test server ("after"). He defines rules to exclude entire `<script>` and `<style>` blocks, ignore whitespace differences, and normalize specific attribute values (e.g., image paths). The diff report highlights structural changes in navigation menus and content differences in dynamically generated lists, allowing him to focus his manual testing efforts.
+- **Scenario:** David uses the CLI similarly, relying on it to interact with the underlying Breakcheck API to perform snapshots and comparisons based on his specified configurations and rules. He defines rules to exclude entire `<script>` and `<style>` blocks and normalize specific attribute values. The API returns the filtered diff results, which the CLI presents, allowing him to focus his manual testing efforts.
 
 ## 3. Functional Requirements
 
-### 3.1 Core Workflow
+### 3.1 Core Workflow (via API)
 
-The tool shall support the following core workflow:
+The tool, accessed initially via the CLI, shall support the following core workflow, orchestrated by the API Layer:
 
-1. **Initialization:** Configure the target site URL and rule set.
-2. **Snapshot "Before":** Initiate a crawl of the target site to capture the initial state.
+1. **Configuration:** Define target site URL, rule set, snapshot names via the client (CLI).
+2. **Snapshot "Before":** Client (CLI) requests snapshot creation via the API Layer. API Layer invokes Crawler (with specified config) and Snapshot Manager.
 3. _(Manual Step: User performs website upgrade/changes)_
-4. **Snapshot "After":** Initiate a second crawl of the target site to capture the final state.
-5. **Comparison:** Run the diff process using the "before" and "after" snapshots and the configured rules.
-6. **Reporting:** Present the comparison results to the user.
+4. **Snapshot "After":** Client (CLI) requests another snapshot creation via the API Layer.
+5. **Comparison:** Client (CLI) requests comparison via the API Layer, providing snapshot identifiers and rules (either as text/path or pre-parsed JSON). API Layer retrieves snapshots, invokes the Rules Engine (to parse DSL if needed), the DOM Processor (to apply rules), and the Diff Engine.
+6. **Reporting:** API Layer returns structured comparison results to the Client (CLI) for presentation.
 
 ### 3.2 Crawler Component (Crawlee)
 
-- **FR-CRAWL-01:** The tool must be able to recursively crawl a website starting from a given base URL.
+_(Invoked by the API Layer)_
+
+- **FR-CRAWL-01:** The crawler component must be able to recursively crawl a website starting from a given base URL, respecting configuration limits.
 - **FR-CRAWL-02:** The crawler must capture the full HTML content of each discovered page.
-- **FR-CRAWL-03:** The crawler must support fetching content via a headless browser to handle client-side rendered content.
+- **FR-CRAWL-03:** The crawler must support fetching content via a headless browser (e.g., Playwright via Crawlee) to handle client-side rendered content.
 - **FR-CRAWL-04:** The crawler must handle URL normalization (e.g., removing trailing slashes, handling case sensitivity based on config) to avoid duplicate page captures.
-- **FR-CRAWL-05:** The crawler must allow configuration options (e.g., max depth, URL include/exclude patterns, request concurrency, user-agent).
+- **FR-CRAWL-05:** The crawler must accept configuration options passed from the API Layer (e.g., max depth, URL include/exclude patterns, request concurrency, user-agent).
 - **FR-CRAWL-06:** The crawler must record the final URL (after redirects) and HTTP status code for each page.
-- **FR-CRAWL-07:** The crawler must handle common errors gracefully (e.g., timeouts, 4xx/5xx errors) and report them.
+- **FR-CRAWL-07:** The crawler must handle common errors gracefully (e.g., timeouts, 4xx/5xx errors) and report them back to the API Layer.
+- **FR-CRAWL-08:** The crawler shall return a collection of PageSnapshot data (URL, content, headers, status, etc.) for the crawled site.
 
 ### 3.3 Snapshot Manager (File System, zlib)
 
-- **FR-SNAP-01:** The tool must store snapshots of crawled site states ("before" and "after").
-- **FR-SNAP-02:** Each snapshot must contain the collection of captured pages (URL, HTML content, headers).
-- **FR-SNAP-03:** Snapshots must be stored efficiently on the local file system (e.g., compressed archive like ZIP containing JSON data).
-- **FR-SNAP-04:** Snapshots must include metadata: timestamp of crawl, base URL, crawl configuration used.
-- **FR-SNAP-05:** The tool shall allow users to specify names or identifiers for "before" and "after" snapshots.
-- **FR-SNAP-06:** (Optional) Implement content fingerprinting (e.g., SHA hash of HTML) for quick identification of unchanged pages.
+_(Invoked by the API Layer)_
+
+- **FR-SNAP-01:** The snapshot manager must store snapshots of crawled site states ("before" and "after") based on identifiers provided by the API Layer.
+- **FR-SNAP-02:** Each snapshot must contain the collection of captured pages (URL, HTML content, headers, etc.) received from the crawler.
+- **FR-SNAP-03:** Snapshots must be stored efficiently on the local file system (e.g., compressed archive like ZIP containing JSON data per page and metadata).
+- **FR-SNAP-04:** Snapshots must include metadata provided by the API Layer: timestamp of crawl, base URL, crawl configuration used.
+- **FR-SNAP-05:** The snapshot manager shall allow retrieval of specific snapshots by their identifier.
+- **FR-SNAP-06:** (Optional) Implement content fingerprinting (e.g., SHA hash of HTML) for quick identification of unchanged pages during snapshot creation or loading.
 
 ### 3.4 DOM Processor (Cheerio, xpath)
 
-- **FR-DOM-01:** The tool must parse the raw HTML content of each page into a traversable DOM structure.
-- **FR-DOM-02:** The DOM processor must apply normalization rules _before_ comparison (e.g., consistent whitespace handling, attribute order normalization - if feasible and desired).
-- **FR-DOM-03:** The DOM processor must apply user-defined rules (from the Rules Engine) to modify the DOM before comparison. This includes:
-  - Excluding specific elements or attributes based on CSS selectors or XPath expressions.
-  - Including only specific elements or attributes based on CSS selectors or XPath expressions.
-  - Transforming attribute values or element content based on defined patterns (e.g., regex replacement).
-- **FR-DOM-04:** Processing steps (normalization, rule application) should form a configurable pipeline.
+_(Invoked by the API Layer during comparison)_
+
+- **FR-DOM-01:** The DOM processor must parse the raw HTML content of a page into a traversable DOM structure (using Cheerio).
+- **FR-DOM-02:** The DOM processor must apply baseline normalization rules (e.g., consistent whitespace handling - if configured).
+- **FR-DOM-03:** The DOM processor must apply the user-defined rules (provided as parsed JSON by the API Layer, originating from the Rules Engine) to modify the DOM _before_ comparison. This includes element/attribute exclusion, inclusion, and transformation based on CSS/XPath selectors and regex.
+- **FR-DOM-04:** The DOM processor shall return the processed/modified DOM structure ready for diffing.
+- **FR-DOM-05:** Must support both CSS selectors (via Cheerio) and XPath expressions (via xpath library) for rule targeting.
 
 ### 3.5 Rules Engine & DSL (Chevrotain, JSON Schema)
 
-- **FR-RULE-01:** The tool must provide a DSL for users to define comparison rules.
-- **FR-RULE-02:** The DSL must support rules for:
-  - **Exclusion:** Specify elements/attributes to ignore during diffing (e.g., `exclude css:.dynamic-id`, `exclude xpath://script`).
-  - **Inclusion:** Specify elements/attributes that _must_ be included (implicitly excluding others if used). Focus comparison on specific parts (e.g., `include css:#main-content`).
-  - **Transformation:** Specify modifications to apply before diffing (e.g., `transform attr:href /version=\d+/ -> /version=XXX/`, `transform text css:.timestamp remove`).
-- **FR-RULE-03:** The DSL must support both CSS selectors and XPath expressions for targeting elements and attributes.
-- **FR-RULE-04:** Rule definitions shall be stored in a configuration file (e.g., JSON, YAML, or a custom format parsed by Chevrotain).
-- **FR-RULE-05:** The Rules Engine must parse and validate the rule definitions (using JSON Schema or similar).
-- **FR-RULE-06:** The Rules Engine must apply the parsed rules to the DOM structure provided by the DOM Processor.
-- **FR-RULE-07:** The engine should handle potential rule conflicts or overlaps predictably (e.g., order of application, specificity).
+_(Parsing invoked by API Layer, Application logic used by DOM Processor)_
+
+- **FR-RULE-01:** Provide a clear, documented DSL (Domain Specific Language) for users to define comparison rules (as specified in breakcheck_dsl_v2).
+- **FR-RULE-02:** The DSL must support rules for: include, exclude, remove_attr, rewrite_attr, rewrite_content.
+- **FR-RULE-03:** The DSL must support both CSS selectors and XPath expressions for targeting.
+- **FR-RULE-04:** Rule definitions shall be readable from configuration files (e.g., .breakcheckrc, .rules) or passed as text to the API.
+- **FR-RULE-05:** The Rules Engine (or API Layer) must parse the DSL text into the intermediate JSON format (as specified in breakcheck_json_spec_v1).
+- **FR-RULE-06:** The Rules Engine must validate the rule definitions against the defined structure (e.g., using JSON Schema or parser validation).
+- **FR-RULE-07:** The rule application logic (within the DOM Processor) must correctly interpret the parsed JSON rules (mode, selectors, actions, modifiers) to modify the DOM.
+- **FR-RULE-08:** The engine should handle rule order predictably (e.g., order of definition in the DSL/JSON array).
 
 ### 3.6 Diff Engine (fast-diff, html-differ)
 
-- **FR-DIFF-01:** The tool must compare the processed DOM structures of corresponding pages from the "before" and "after" snapshots.
-- **FR-DIFF-02:** The comparison must identify differences at both the structural level (elements added, removed, moved) and the content level (text changes, attribute value changes).
-- **FR-DIFF-03:** The Diff Engine must utilize the processed DOMs (after normalization and rule application) for comparison.
-- **FR-DIFF-04:** The Diff Engine must classify changes based on whether they were covered by exclusion/transformation rules (expected) or not (unexpected). Only unexpected changes should be highlighted in the primary report.
-- **FR-DIFF-05:** The output of the diff process for each page pair should clearly list the identified differences (e.g., type of change, selector/XPath of affected element, before/after content snippets).
+_(Invoked by the API Layer)_
+
+- **FR-DIFF-01:** The diff engine must compare two processed DOM structures (output from the DOM Processor for a corresponding 'before' and 'after' page).
+- **FR-DIFF-02:** The comparison must identify differences at both the structural level (elements/attributes added, removed, modified - using e.g., html-differ) and the content level (text changes within elements - using e.g., fast-diff).
+- **FR-DIFF-03:** The Diff Engine must operate on the DOMs _after_ normalization and rule application have occurred.
+- **FR-DIFF-04:** The Diff Engine must produce a structured DiffResult object detailing the identified differences (type, location/selector, before/after snippets).
+- **FR-DIFF-05:** The Diff Engine itself doesn't classify expected/unexpected; that filtering happens during DOM processing based on rules. It reports all differences found between the _processed_ DOMs.
 
 ### 3.7 Reporting
 
-- **FR-REP-01:** The tool must generate a summary report after the comparison, indicating the number of pages compared, pages with differences, and pages without differences.
-- **FR-REP-02:** The report must list the specific unexpected differences found, grouped by page URL.
-- **FR-REP-03:** For each difference, the report must provide context (e.g., selector/XPath, type of change, snippet of before/after).
-- **FR-REP-04:** The primary report output format shall be human-readable text suitable for the console.
-- **FR-REP-05:** (Optional) The tool should offer an option to generate a structured report format (e.g., JSON) for machine processing.
-- **FR-REP-06:** (Optional) The tool should offer an option to generate an HTML-based visual diff report highlighting changes directly within the page structure.
+- **FR-REP-01:** The **API Layer** must aggregate DiffResult objects from the Diff Engine and return a structured summary report object (number of pages compared, pages with differences, etc.).
+- **FR-REP-02:** The **API Layer** must return structured data detailing the specific differences found, grouped by page URL (based on the aggregated DiffResult objects).
+- **FR-REP-03:** For each difference, the returned data must provide context (selector/XPath, type of change, before/after snippets).
+- **FR-REP-04:** The **CLI** must format the structured data received from the API into human-readable console output.
+- **FR-REP-05:** The **API Layer** should return the comparison result as structured data (e.g., JSON). The **CLI** will handle writing this to a file if requested (--output).
+- **FR-REP-06:** (Optional) The **API Layer** could generate HTML diff report data. The **CLI** would handle saving this.
 
 ### 3.8 CLI Interface (yargs, Ink)
 
-- **FR-CLI-01:** The tool must be executable from the command line.
-- **FR-CLI-02:** The CLI must provide commands for:
-  - `snapshot <name> --url <baseUrl> [--config <configFile>]`: Take a snapshot.
-  - `compare <beforeSnapshot> <afterSnapshot> [--rules <rulesFile>] [--output <reportFile>]`: Compare two snapshots.
-  - `config`: Manage configuration settings (optional).
-  - `help`: Display usage instructions.
-- **FR-CLI-03:** The CLI must accept arguments and options for configuration (base URL, rule file path, snapshot names, output paths, crawler settings).
-- **FR-CLI-04:** The CLI must provide clear feedback during execution, including progress indicators for crawling and comparison (potentially using Ink for richer UI).
-- **FR-CLI-05:** The CLI must report errors clearly (e.g., invalid configuration, crawl failures, file system errors).
-- **FR-CLI-06:** The CLI shall not require a database connection or user login for its core functionality.
+- **FR-CLI-01:** The tool must be executable from the command line (breakcheck).
+- **FR-CLI-02:** The CLI must provide commands (snapshot, compare, help, etc.).
+- **FR-CLI-03:** The CLI must accept arguments and options for configuration (base URL, snapshot names, rule file path, output paths, crawler settings).
+- **FR-CLI-04:** The CLI must **call the appropriate Breakcheck API functions** (e.g., createSnapshot, runComparison) to initiate actions.
+- **FR-CLI-05:** The CLI must read configuration (e.g., rule file content) and pass necessary data structures or paths to the API Layer.
+- **FR-CLI-06:** The CLI must receive structured results (or status updates/progress) from the API Layer.
+- **FR-CLI-07:** The CLI must present results and errors received from the API Layer clearly to the user (using console output, potentially enhanced by Ink for progress/formatting).
+- **FR-CLI-08:** The CLI shall not require a database connection or user login.
+
+### **3.9 API Layer**
+
+- **FR-API-01:** The API Layer must expose well-defined functions/methods for core operations:
+  - createSnapshot(config: SnapshotConfig): `Promise<SnapshotResult>`
+  - runComparison(config: ComparisonConfig): `Promise<ComparisonResult>`
+  - (Potentially others: listSnapshots, getSnapshotDetails, validateRules)
+- **FR-API-02:** The API Layer must accept configuration objects defining parameters for snapshots (URL, crawl settings) and comparisons (snapshot IDs/names, rules content or path or parsed JSON).
+- **FR-API-03:** The API Layer must orchestrate the necessary calls to the Core Engine components (Crawler, Snapshot Manager, Rules Engine Parser, DOM Processor, Diff Engine) to fulfill requests.
+- **FR-API-04:** The API Layer must handle parsing of the Rules DSL (if rules are passed as raw text) into the intermediate JSON format, invoking the Rules Engine parser.
+- **FR-API-05:** The API Layer must return structured data representing the results of operations (e.g., snapshot metadata, comparison summary and detailed diffs).
+- **FR-API-06:** The API Layer must implement robust error handling (catching errors from core components) and return meaningful error objects/codes to the client (CLI).
+- **FR-API-07:** For v2.1, the API Layer will be implemented as an internal Typescript interface/module within the same codebase as the CLI.
 
 ## 4. Non-Functional Requirements
 
-- **NFR-PERF-01:** Crawling should be reasonably fast; leverage parallel requests where appropriate (configurable concurrency).
-- **NFR-PERF-02:** DOM processing and diffing should be efficient, handling potentially large HTML documents without excessive memory consumption or processing time. Consider worker threads for parallel processing of pages.
+- **NFR-PERF-01:** Crawling should be reasonably fast; leverage parallel requests (configurable concurrency).
+- **NFR-PERF-02:** DOM processing and diffing should be efficient, handling potentially large HTML documents without excessive memory consumption or processing time.
+- **NFR-API-PERF-01:** The internal API call overhead should be minimal.
 - **NFR-SCALE-01:** The tool should handle websites with a moderate number of pages (e.g., thousands) within reasonable timeframes.
-- **NFR-USE-01:** The CLI interface must be intuitive and well-documented (`--help` output).
+- **NFR-USE-01:** The CLI interface must be intuitive and well-documented (--help output).
 - **NFR-USE-02:** The Rules DSL syntax must be clear, well-documented, and relatively easy for technical users to learn. Error messages during rule parsing must be informative.
+- **NFR-API-USE-01:** The internal API (Typescript interfaces/functions) must be well-defined and documented for internal use by the CLI or future clients.
 - **NFR-MAINT-01:** The codebase must be written in Typescript, following best practices for code organization, readability, and type safety.
-- **NFR-MAINT-02:** The architecture must be modular, aligning with the components outlined (Crawler, Snapshot Manager, DOM Processor, etc.), to facilitate maintenance and future development.
-- **NFR-EXT-01:** Design with extensibility in mind (e.g., plugin system for rules, adapters for CMS-specific normalization, strategy pattern for diff algorithms) as outlined in the architecture.
-- **NFR-SEC-01:** Handle user-provided configurations (like URLs, file paths) safely. Avoid command injection or insecure file access. (Note: As a local CLI tool, the initial security scope is limited compared to a web service).
+- **NFR-MAINT-02:** The architecture must be modular, aligning with the components outlined (Interface, API Layer, Core Components), to facilitate maintenance and future development. The API layer enforces this separation.
+- **NFR-API-TEST-01:** The API Layer must have dedicated integration tests, mocking the underlying core components where appropriate, and testing interactions with real components.
+- **NFR-EXT-01:** Design with extensibility in mind (e.g., plugin system for rules, adapters for CMS-specific normalization, strategy pattern for diff algorithms) potentially exposed via the API layer.
+- **NFR-SEC-01:** Handle user-provided configurations (like URLs, file paths) safely within the CLI and API layer. Avoid command injection or insecure file access.
+- **NFR-API-SEC-01:** (Future) If the API becomes network-accessible, appropriate security measures (authentication, authorization, input validation, rate limiting) must be implemented.
 - **NFR-REL-01:** The tool should be reliable and produce consistent comparison results for the same inputs and rules.
 
 ## 5. System Architecture
 
-The tool will adhere to the provided system architecture diagram and component descriptions:
+- **Updated Diagram Concept:**
 
-- **Components:** CLI Interface, Crawler, Snapshot Manager, DOM Processor, Diff Engine, Rules Engine.
+```mermaid
+%% System Architecture
+graph TD
+   A[CLI Interface] --> B(API Layer)
+   C[Web Interface--Future] --> B
+   B --> D[Core Engine Facade / Orchestrator]
+%% API Layer orchestrates Core Components
+   D --> E[Crawler]
+   D --> F[Snapshot Manager]
+   D --> G[DOM Processor]
+   D --> H[Diff Engine]
+   D --> I[Rules Engine Parser]
+%% Parsing DSL
+   F --> J[(File System)]
+   I --> K[Rules DSL / JSON]
+   G --> L[Rule Application Logic]
+%% Applying parsed rules
+   K --> L
+```
+
+- **Components:**
+  - **Interface:** CLI (v2.1), Web UI (Future). Responsible for user interaction, input gathering, calling the API Layer, and presenting results.
+  - **API Layer:** Acts as the primary entry point for clients. Validates requests, orchestrates calls to the Core Engine components, invokes DSL parsing, handles errors, formats responses. Implemented internally in v2.1.
+  - **Core Engine Components:**
+    - **Crawler:** Discovers and fetches pages.
+    - **Snapshot Manager:** Saves and retrieves website states.
+    - **Rules Engine Parser:** Parses DSL text into intermediate JSON.
+    - **DOM Processor:** Parses HTML, applies normalization and parsed rules.
+    - **Diff Engine:** Compares two processed DOMs.
+  - _(The "Core Engine Facade" might be implicitly part of the API Layer's implementation)_
 - **Technologies:** Typescript, Crawlee, Cheerio, xpath, fast-diff, html-differ, Chevrotain, yargs, Ink, zlib.
-- **Data Flow:** As depicted in the diagram, initiated by the CLI, flowing through crawling, snapshotting, processing, diffing, guided by rules.
-- **Storage:** Local file system for snapshots and configuration.
-
-_(Refer to the provided System Architecture document for detailed component responsibilities, technologies, APIs, and considerations)._
+- **Data Flow:** Interface -> API Layer -> (Rules Parser ->) Crawler/SnapshotMgr/DOMProcessor/DiffEngine -> File System/Results -> API Layer -> Interface.
 
 ## 6. Data Management
 
 - **DM-01:** Snapshots will be stored on the local file system in a user-specified or default location.
-- **DM-02:** Snapshot format will likely be a compressed archive (e.g., ZIP) containing structured data (e.g., JSON files per page) and metadata.
-- **DM-03:** Rule configurations will be stored in separate files (e.g., `.sitediffrc`, `rules.yaml`, `rules.json`) managed by the user.
-- **DM-04:** No database is required for the initial CLI version.
+- **DM-02:** Snapshot format will be a compressed archive (e.g., ZIP) containing structured data (e.g., JSON files per page) and metadata.
+- **DM-03:** Rule configurations will be stored in separate files (e.g., .breakcheckrc) managed by the user, read by the CLI/API.
+- **DM-04:** No database is required for v2.1.
 
 ## 7. Testing Strategy
 
-- **TS-01:** Adopt a Test-Driven Development (TDD) approach where feasible, writing tests before or alongside feature implementation.
-- **TS-02:** **Unit Tests:** Each core component (Crawler adapter, Snapshot Manager, DOM Processor, Rules Engine, Diff Engine) must have comprehensive unit tests covering its public API and internal logic. Mock dependencies extensively. Use frameworks like Jest or Vitest.
-- **TS-03:** **Integration Tests:** Test the interaction between components (e.g., DOM Processor applying rules parsed by the Rules Engine, Diff Engine comparing processed DOMs). Test the full processing pipeline for a single page.
-- **TS-04:** **End-to-End (E2E) Tests:** Create tests that simulate the full CLI workflow: running commands (`snapshot`, `compare`), using sample websites (potentially local static sites), applying rule files, and verifying the final report output against expected results.
-- **TS-05:** **Rule DSL Tests:** Specific tests for the DSL parser (Chevrotain) to ensure correct parsing and validation of various rule syntaxes.
-- **TS-06:** **Crawler Tests:** Test crawler configuration options (depth limits, exclusions) using mock HTTP servers or controlled test websites.
+- **TS-01:** Adopt a Test-Driven Development (TDD) approach where feasible.
+- **TS-02:** **Unit Tests:** For individual functions/classes within Core Components (Crawler adapters, Snapshot Manager logic, DOM processing utils, Diffing utils, Rules Parser) AND the API Layer's internal logic (e.g., request validation, orchestration logic - mocking core components).
+- **TS-03:** **Integration Tests:**
+  - Test interactions _between_ Core Components (e.g., DOM Processor using parsed rules).
+  - Test the **API Layer's interaction with the real Core Components** for key flows (createSnapshot, runComparison).
+  - Test the **CLI's interaction with the (mocked or real) API Layer**.
+- **TS-04:** **End-to-End (E2E) Tests:** Simulate full CLI workflow (breakcheck snapshot ..., breakcheck compare ...) using sample websites and rule files, verifying final console output or generated reports. This implicitly tests the entire stack including the API layer.
+- **TS-05:** **Rule DSL Tests:** Specific tests for the DSL parser (Chevrotain) verifying correct JSON output and error handling for various syntaxes.
+- **TS-06:** **Crawler Tests:** Test crawler configuration options using mock HTTP servers or controlled test websites.
 
 ## 8. Future Considerations
 
-- **FC-01:** **Web Interface:** Develop a web-based UI for managing projects, configuring crawls, defining rules (potentially with visual helpers), triggering comparisons, and viewing results interactively.
-- **FC-02:** **Database Integration:** Utilize a database (e.g., PostgreSQL, SQLite) for storing snapshot data, rule sets, comparison results, and user accounts (for the web UI).
-- **FC-03:** **Visual Diff Tools:** Integrate or develop visual diffing capabilities to show side-by-side renderings of pages with differences highlighted.
-- **FC-04:** **Plugin System:** Formalize the plugin architecture for custom rule types, normalizers, or report formats.
-- **FC-05:** **API / CI/CD Integration:** Provide a stable API or integration points for running comparisons as part of automated CI/CD pipelines.
-- **FC-06:** **Screenshot Comparison:** Add optional screenshot comparison capabilities (visual regression testing) alongside HTML diffing.
+- **FC-01:** **Web Interface:** Develop a web UI that directly consumes the **Breakcheck API**.
+- **FC-02:** **Network API:** Expose the internal API Layer over a network (e.g., REST, JSON-RPC) for remote access or integration with other tools. Requires adding authentication/authorization.
+- **FC-03:** **Visual Diff Tools:** Integrate or develop visual diffing capabilities (screenshot comparison or side-by-side rendering) potentially triggered and managed via the API.
+- **FC-04:** **Plugin System:** Formalize a plugin architecture (e.g., for custom rule actions, reporters, snapshot storage) potentially managed via the API.
+- **FC-05:** **API / CI/CD Integration:** Provide clear documentation and potentially client libraries for using the (future network) API in automated CI/CD pipelines.
+- **FC-06:** **Screenshot Comparison:** Add optional screenshot capture during crawl and comparison capabilities (visual regression testing).
 
-## 9. Out of Scope (for v1.0)
+## 9. Out of Scope (for v2.1)
 
 - Web-based user interface.
+- Network-accessible API (the API is internal only).
 - Database storage for snapshots or results.
-- User authentication or multi-user support.
-- Visual diffing (screenshot comparison or side-by-side HTML rendering with highlights).
-- Real-time collaboration features.
-- Direct integration with specific CMS platforms beyond generic crawling.
-- Assertion library for defining expected states (focus is on finding _unexpected_ changes).
+- User authentication or multi-user support for the API.
+- Visual diffing (screenshot comparison or side-by-side rendering).
 
 ## 10. Glossary
 
-- **Snapshot:** A representation of the website's state at a specific point in time, containing crawled URLs and their corresponding HTML content.
-- **Crawler:** The component responsible for discovering and fetching pages from the target website.
-- **DOM (Document Object Model):** A structured representation of an HTML document.
-- **Diff Engine:** The component responsible for comparing two states (DOMs) and identifying differences.
-- **Rules Engine:** The component responsible for parsing and applying user-defined rules to modify or filter the DOM before comparison.
-- **DSL (Domain Specific Language):** A specialized language created for a specific purpose (in this case, defining comparison rules).
-- **CSS Selector:** A pattern used to select specific HTML elements based on their tag name, ID, class, attributes, etc.
-- **XPath (XML Path Language):** A query language for selecting nodes from an XML or HTML document.
-- **Normalization:** The process of transforming data into a standard format (e.g., removing insignificant whitespace, standardizing attribute quotes).
-- **Transformation:** The process of modifying specific parts of the content based on rules (e.g., rewriting URLs, removing dynamic values).
+- **API Layer:** The software interface that exposes Breakcheck's core functionalities (snapshotting, comparison) and orchestrates the underlying components. Acts as an intermediary between clients (like the CLI) and the core engine.
+- **Core Engine Components:** The collection of specialized modules performing the main tasks (Crawling, Snapshot Management, Rule Parsing, DOM Processing, Diffing, etc.), invoked via the API Layer.
+- **Snapshot:** A representation of the website's state at a specific point in time, containing crawled URLs and their corresponding HTML content, stored by the Snapshot Manager.
+- **DOM (Document Object Model):** A structured representation of an HTML document used for processing.
+- **DSL (Domain Specific Language):** The specialized language used in Breakcheck rule files (.breakcheckrc) to define comparison behavior.
+- **Rules Engine:** The combination of the DSL Parser and the Rule Application Logic within the DOM Processor.
+- **CSS Selector:** A pattern used to select specific HTML elements.
+- **XPath (XML Path Language):** A query language for selecting nodes from an HTML document.
+- **Normalization:** Transforming data into a standard format before processing or comparison.
+- **Transformation:** Modifying specific parts of the content based on rules.
 - **CLI:** Command-Line Interface.
