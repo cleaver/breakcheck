@@ -70,7 +70,7 @@ F \--\> J\[(File System / Snapshot Storage)\]
    - **Tech**: Chevrotain (DSL parser), JSON Schema (validation)
    - **Responsibility**: Parsing the Rules DSL text into a structured format (e.g., JSON) for use by the DOM Processor. _Invoked by the API Layer when rules are provided as text._ The _application_ of parsed rules happens within the DOM Processor.
 6. **CLI Interface**
-   - **Tech**: yargs ([https://github.com/yargs/yargs](https://github.com/yargs/yargs)), Ink (React CLI components)
+   - **Tech**: Commander.js, [interactive-commander](https://github.com/fardjad/node-interactive-commander), Ink (React CLI components)
    - **Responsibility**: User interaction, command parsing, configuration gathering, **calling the API Layer**, presenting results received from the API Layer.
 7. **API Layer** (New/Explicit Component)
    - **Tech**: Typescript interfaces/modules (Internal for v2.1)

@@ -1,3 +1,4 @@
+<TASKS>
 # **Breakcheck Developer Task Checklist (v2 - API Layer)**
 
 ## **1. Project Setup & Core Structures**
@@ -95,10 +96,10 @@
 - [ ] 7.4. Implement robust error handling throughout the API layer (catching errors from components, returning structured errors).
 - [ ] 7.5. Write integration tests for the API layer functions (createSnapshot, runComparison), mocking core components initially, then testing interactions with real components.
 
-## **8. CLI Interface (yargs, Ink)**
+## **8. CLI Interface (Commander.js, interactive-commander, Ink)**
 
-- [x] 8.1. Integrate yargs for command parsing.
-- [x] 8.2. Define CLI commands: snapshot, compare, help (and potentially config, list-snapshots).
+- [ ] 8.1. Integrate Commander.js and interactive-commander for command parsing.
+- [ ] 8.2. Define CLI commands: snapshot, compare, help (and potentially config, list-snapshots).
 - [ ] 8.3. Implement argument/option parsing for URLs, snapshot names, rule files/text, output paths, crawl settings overrides, etc.
 - [ ] 8.4. Implement the snapshot command logic:
   - [ ] 8.4.1. Parse arguments into a SnapshotConfig object.
@@ -126,3 +127,5 @@
 - [ ] 9.3. Refine error messages and user feedback (both from API Layer and CLI presentation).
 - [ ] 9.4. Perform final testing and bug fixing across all layers.
 - [ ] 9.5. Prepare for initial release (e.g., packaging for npm).
+
+</TASKS>

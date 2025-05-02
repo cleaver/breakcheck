@@ -1,6 +1,7 @@
+<PRD>
 # Product Requirements Document: Website Content Diff Tool (Breakcheck)
 
-Version: 2.2
+Version: 2.3
 Date: 2025-04-28
 
 _(Consolidates details from v1.0 into the v2.0 structure with the API Layer)_
@@ -123,7 +124,7 @@ _(Invoked by the API Layer)_
 - **FR-REP-05:** The **API Layer** should return the comparison result as structured data (e.g., JSON). The **CLI** will handle writing this to a file if requested (--output).
 - **FR-REP-06:** (Optional) The **API Layer** could generate HTML diff report data. The **CLI** would handle saving this.
 
-### 3.8 CLI Interface (yargs, Ink)
+### 3.8 CLI Interface (Commander.js, interactive-commander, Ink)
 
 - **FR-CLI-01:** The tool must be executable from the command line (breakcheck).
 - **FR-CLI-02:** The CLI must provide commands (snapshot, compare, help, etc.).
@@ -198,7 +199,7 @@ graph TD
     - **DOM Processor:** Parses HTML, applies normalization and parsed rules.
     - **Diff Engine:** Compares two processed DOMs.
   - _(The "Core Engine Facade" might be implicitly part of the API Layer's implementation)_
-- **Technologies:** Typescript, Crawlee, Cheerio, xpath, fast-diff, html-differ, Chevrotain, yargs, Ink, zlib.
+- **Technologies:** Typescript, Crawlee, Cheerio, xpath, fast-diff, html-differ, Chevrotain, Commander.js, interactive-commander, Ink, zlib.
 - **Data Flow:** Interface -> API Layer -> (Rules Parser ->) Crawler/SnapshotMgr/DOMProcessor/DiffEngine -> File System/Results -> API Layer -> Interface.
 
 ## 6. Data Management
@@ -250,3 +251,5 @@ graph TD
 - **Normalization:** Transforming data into a standard format before processing or comparison.
 - **Transformation:** Modifying specific parts of the content based on rules.
 - **CLI:** Command-Line Interface.
+
+</PRD>
