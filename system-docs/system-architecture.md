@@ -21,44 +21,43 @@ I'd like to use existing open source libraries for as much of the tool as possib
 ## **Architecture Document**
 
 ```mermaid
-%% Updated System Architecture Diagram (Aligned with PRD v2.2)
 graph TD
- A\[CLI Interface\] \--\> B(API Layer)
- C\[Web Interface--Future\] \---\> B
- B \--\> D\[Core Engine Orchestrator/Facade\]
+ A[CLI Interface] --> B(API Layer)
+ C[Web Interface--Future] --> B
+ B --> D[Core Engine Facade / Orchestrator]
 
 subgraph Core Engine Components
  direction TB
- E\[Crawler\]
- F\[Snapshot Manager\]
- G\[DOM Processor\]
- H\[Diff Engine\]
- I\[Rules Engine Parser\]
+ E[BreakcheckCrawler]
+ F[SnapshotManager]
+ G[DOM Processor]
+ H[Diff Engine]
+ I[Rules Engine Parser]
  end
 
-D \--\> E
- D \--\> F
- D \--\> G
- D \--\> H
- D \--\> I
+D --> E
+ D --> F
+ D --> G
+ D --> H
+ D --> I
 
-F \--\> J\[(File System / Snapshot Storage)\]
- I \--\> K\[Rules DSL / JSON Configuration\]
- G \--\> L\[Rule Application Logic\]
- K \--\> L
+F --> J[(File System / Snapshot Storage)]
+ I --> K[Rules DSL / JSON Configuration]
+ G --> L[Rule Application Logic]
+ K --> L
 ```
 
 - **Initial Interaction:** The CLI (or future Web Interface) interacts primarily with the **API Layer**.
-- **Orchestration:** The **API Layer** receives requests, validates them, and orchestrates the necessary calls to the **Core Engine Components** (Crawler, Snapshot Manager, DOM Processor, Diff Engine, Rules Engine Parser) to fulfill the request. It handles tasks like parsing Rules DSL if provided as text.
+- **Orchestration:** The **API Layer** receives requests, validates them, and orchestrates the necessary calls to the **Core Engine Components** (BreakcheckCrawler, SnapshotManager, DOM Processor, Diff Engine, Rules Engine Parser) to fulfill the request. It handles tasks like parsing Rules DSL if provided as text.
 - **Results:** The **API Layer** aggregates results from the components and returns a structured response to the calling interface.
 
 ### **Key Components & Technologies**
 
-1. **Crawler Component**
+1. **BreakcheckCrawler Component**
    - **Tech**: Crawlee ([https://crawlee.dev](https://crawlee.dev))
    - **Responsibility**: Site discovery, HTML capture, URL normalization. _Invoked by the API Layer with specific configuration._
-2. **Snapshot Manager**
-   - **Tech**: Compression (e.g., zlib), Storage (File system \- local JSON/ZIP)
+2. **SnapshotManager**
+   - **Tech**: Compression (e.g., zlib), Storage (File system - local JSON/ZIP)
    - **Responsibility**: Storing/retrieving versioned site states (snapshots), managing metadata. _Invoked by the API Layer._
 3. **DOM Processor**
    - **Tech**: Cheerio ([https://github.com/cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)), xpath (XPath library)
@@ -83,100 +82,91 @@ This section defines the main interface clients use to interact with Breakcheck'
 ```typescript
 // Example API Layer Interface (Conceptual)
 interface BreakcheckApi {
- /\*\*
- \* Creates a snapshot of a website based on the provided configuration.
- \* Orchestrates calls to Crawler and Snapshot Manager.
- \*/
- createSnapshot(config: SnapshotConfig): Promise\<SnapshotResult\>;
+  /**
+   * Creates a snapshot of a website based on the provided configuration.
+   * Orchestrates calls to Crawler and Snapshot Manager.
+   */
+  createSnapshot(config: SnapshotConfig): Promise<SnapshotResult>;
 
-/\*\*
- \* Runs a comparison between two snapshots using specified rules.
- \* Orchestrates calls to Snapshot Manager, Rules Engine Parser (if needed),
- \* DOM Processor, and Diff Engine.
- \*/
- runComparison(config: ComparisonConfig): Promise\<ComparisonResult\>;
+  /**
+   * Runs a comparison between two snapshots using specified rules.
+   * Orchestrates calls to Snapshot Manager, Rules Engine Parser (if needed),
+   * DOM Processor, and Diff Engine.
+   */
+  runComparison(config: ComparisonConfig): Promise<ComparisonResult>;
 
-// Potential future methods:
- // listSnapshots(): Promise\<SnapshotMetadata\[\]\>;
- // getSnapshotDetails(snapshotId: string): Promise\<Snapshot\>;
- // validateRules(rulesDsl: string): Promise\<ValidationResult\>;
+  // Potential future methods:
+  // listSnapshots(): Promise<string[]>;
+  // getSnapshotDetails(snapshotId: string): Promise<SnapshotData>;
+  // validateRules(rulesDsl: string): Promise<ValidationResult>;
 }
 
-// \--- Supporting Input/Output Types \---
+// --- Supporting Input/Output Types ---
 
 interface SnapshotConfig {
- baseUrl: string;
- snapshotName: string; // Identifier for the snapshot
- crawlSettings?: CrawlerSettings; // Depth, concurrency, user-agent, include/exclude patterns etc.
- // ... other snapshot-specific options
+  baseUrl: string;
+  name: string; // Identifier for the snapshot
+  crawlSettings: CrawlerConfig; // Depth, concurrency, user-agent, include/exclude patterns etc.
 }
 
-interface CrawlerSettings {
- maxDepth?: number;
- concurrency?: number;
- userAgent?: string;
- includePatterns?: string\[\];
- excludePatterns?: string\[\];
- useHeadlessBrowser?: boolean;
- // ... other Crawlee options
+interface CrawlerConfig {
+  maxDepth?: number;
+  concurrency?: number;
+  userAgent?: string;
+  includePatterns?: string[];
+  excludePatterns?: string[];
+  useHeadlessBrowser?: boolean;
 }
 
 interface SnapshotResult {
- success: boolean;
- snapshotId: string; // Name or unique ID assigned
- timestamp: Date;
- pageCount: number;
- errors?: CrawlError\[\];
- // ... other metadata
+  success: boolean;
+  snapshotId: string; // Name or unique ID assigned
+  timestamp: string;
+  baseUrl: string;
+  pageCount: number;
+  errors: Array<{
+    url: string;
+    message: string;
+    code?: string;
+  }>;
+  metadata: {
+    crawlSettings: CrawlerConfig;
+    duration: number; // in milliseconds
+  };
 }
 
 interface ComparisonConfig {
- beforeSnapshotId: string;
- afterSnapshotId: string;
- rules: string | RuleSetJson; // Can be raw DSL text or pre-parsed JSON
- // ... other comparison options (e.g., output format hint)
+  beforeSnapshotId: string;
+  afterSnapshotId: string;
+  rules: string | object; // Can be raw DSL text or pre-parsed JSON
 }
-
-// Represents the structured JSON format after parsing the DSL
-// (Details depend on breakcheck_json_spec_v1 mentioned in PRD)
-type RuleSetJson \= object;
 
 interface ComparisonResult {
- success: boolean;
- summary: ComparisonSummary;
- details: PageComparisonDetail\[\]; // Array of differences per page
- errors?: ComparisonError\[\];
+  success: boolean;
+  summary: {
+    totalPages: number;
+    pagesWithDifferences: number;
+    totalDifferences: number;
+  };
+  differences: Array<{
+    url: string;
+    differences: Array<{
+      type: "element" | "attribute" | "content";
+      selector: string;
+      before?: string;
+      after?: string;
+      message: string;
+    }>;
+  }>;
+  errors: Array<{
+    url: string;
+    message: string;
+    code?: string;
+  }>;
 }
-
-interface ComparisonSummary {
- pagesCompared: number;
- pagesWithDifferences: number;
- // ... other summary stats
-}
-
-interface PageComparisonDetail {
- url: string;
- status: 'match' | 'differ' | 'error' | 'only_in_before' | 'only_in_after';
- differences?: Difference\[\]; // Populated if status is 'differ'
- error?: string; // Populated if status is 'error'
-}
-
-interface Difference {
- type: 'structural' | 'content' | 'attribute';
- selector: string; // CSS or XPath identifying the location
- beforeSnippet?: string;
- afterSnippet?: string;
- // ... potentially more detail depending on diff engine output
-}
-
-// Define CrawlError, ComparisonError etc. as needed
 ```
 
-_(Note: The internal APIs used by the API Layer to communicate with components like the Crawler, DOM Processor, and Diff Engine are implementation details and not listed here as the primary interface.)_
-
 ### **Architectural Considerations**
-
-(Retained and updated slightly for context)
 
 1. **Extensibility Patterns**
    - Plugin system for custom rule types (potentially managed via API Layer).
