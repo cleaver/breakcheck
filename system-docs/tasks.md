@@ -98,9 +98,9 @@
 
 ## **8. CLI Interface (Commander.js, interactive-commander, Ink)**
 
-- [ ] 8.1. Integrate Commander.js and interactive-commander for command parsing.
-- [ ] 8.2. Define CLI commands: snapshot, compare, help (and potentially config, list-snapshots).
-- [ ] 8.3. Implement argument/option parsing for URLs, snapshot names, rule files/text, output paths, crawl settings overrides, etc.
+- [x] 8.1. Integrate Commander.js and interactive-commander for command parsing.
+- [x] 8.2. Define CLI commands: snapshot, compare, help (and potentially config, list-snapshots).
+- [x] 8.3. Implement argument/option parsing for URLs, snapshot names, rule files/text, output paths, crawl settings overrides, etc.
 - [ ] 8.4. Implement the snapshot command logic:
   - [ ] 8.4.1. Parse arguments into a SnapshotConfig object.
   - [ ] 8.4.2. Instantiate the API Layer implementation.
