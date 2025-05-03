@@ -31,6 +31,9 @@ export class BreakcheckCrawler {
       requestHandlerTimeoutSecs: 30,
     };
 
+    // Store config in closure variable to avoid 'this' binding issues
+    const { maxDepth, includePatterns, excludePatterns } = this.config;
+
     if (this.config.crawlerType === "cheerio") {
       return new CheerioCrawler({
         ...commonConfig,
@@ -50,10 +53,10 @@ export class BreakcheckCrawler {
           await Dataset.pushData(pageSnapshot);
 
           const depth = (request.userData.depth as number) || 0;
-          if (depth < (this.config.maxDepth || Infinity)) {
+          if (depth < (maxDepth || Infinity)) {
             await enqueueLinks({
-              globs: this.config.includePatterns || [],
-              exclude: this.config.excludePatterns || [],
+              globs: includePatterns || [],
+              exclude: excludePatterns || [],
             });
           }
         },
@@ -76,18 +79,18 @@ export class BreakcheckCrawler {
           const content = await page.content();
           const pageSnapshot: PageSnapshot = {
             url: request.url,
-            finalUrl: response.url(),
+            finalUrl: response?.url() || request.url,
             content,
-            statusCode: response.status(),
-            headers: response.headers(),
+            statusCode: response?.status() || 0,
+            headers: response?.headers() || {},
           };
           await Dataset.pushData(pageSnapshot);
 
           const depth = (request.userData.depth as number) || 0;
-          if (depth < (this.config.maxDepth || Infinity)) {
+          if (depth < (maxDepth || Infinity)) {
             await enqueueLinks({
-              globs: this.config.includePatterns || [],
-              exclude: this.config.excludePatterns || [],
+              globs: includePatterns || [],
+              exclude: excludePatterns || [],
             });
           }
         },
