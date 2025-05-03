@@ -62,7 +62,7 @@
 
 ## **6. Crawler (Crawlee)**
 
-- [ ] 6.1. Integrate Crawlee library.
+- [x] 6.1. Integrate Crawlee library.
 - [ ] 6.2. Implement basic crawling logic using CheerioCrawler or PlaywrightCrawler (for JS rendering).
 - [ ] 6.3. Implement configuration handling based on CrawlerSettings (base URL, depth, include/exclude patterns, concurrency).
 - [ ] 6.4. Implement extraction of HTML content, final URL, status code, and headers for each page into PageSnapshot objects.
