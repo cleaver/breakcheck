@@ -1,0 +1,88 @@
+import { SnapshotConfig, SnapshotResult } from "./types";
+import { BreakcheckCrawler } from "../core/crawler";
+import { SnapshotManager } from "../core/snapshot";
+import type { CrawlError } from "../types/crawler";
+
+/**
+ * Creates a snapshot of a website based on the provided configuration.
+ * Orchestrates calls to Crawler and Snapshot Manager.
+ */
+export async function createSnapshot(
+  config: SnapshotConfig
+): Promise<SnapshotResult> {
+  const startTime = Date.now();
+  const errors: SnapshotResult["errors"] = [];
+
+  try {
+    // Validate input config
+    if (!config.baseUrl) {
+      throw new Error("baseUrl is required");
+    }
+    if (!config.name) {
+      throw new Error("name is required");
+    }
+
+    // Initialize crawler with config
+    const crawler = new BreakcheckCrawler(config.crawlSettings);
+
+    // Execute crawl
+    const { pages, errors: crawlErrors } = await crawler.crawl();
+
+    // Convert crawl errors to result format
+    errors.push(
+      ...crawlErrors.map((err: CrawlError) => ({
+        url: err.url,
+        message: err.error,
+        code: err.statusCode?.toString(),
+      }))
+    );
+
+    // Save snapshot
+    const snapshotManager = new SnapshotManager();
+    await snapshotManager.saveSnapshot(config.name, {
+      pages,
+      metadata: {
+        baseUrl: config.baseUrl,
+        timestamp: new Date().toISOString(),
+        crawlSettings: config.crawlSettings,
+      },
+    });
+
+    // Calculate duration
+    const duration = Date.now() - startTime;
+
+    // Return result
+    return {
+      success: true,
+      snapshotId: config.name,
+      timestamp: new Date().toISOString(),
+      baseUrl: config.baseUrl,
+      pageCount: pages.length,
+      errors,
+      metadata: {
+        crawlSettings: config.crawlSettings,
+        duration,
+      },
+    };
+  } catch (error) {
+    // Handle any unexpected errors
+    errors.push({
+      url: config.baseUrl,
+      message:
+        error instanceof Error ? error.message : "Unknown error occurred",
+    });
+
+    return {
+      success: false,
+      snapshotId: config.name,
+      timestamp: new Date().toISOString(),
+      baseUrl: config.baseUrl,
+      pageCount: 0,
+      errors,
+      metadata: {
+        crawlSettings: config.crawlSettings,
+        duration: Date.now() - startTime,
+      },
+    };
+  }
+}

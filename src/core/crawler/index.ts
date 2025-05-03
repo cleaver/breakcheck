@@ -5,11 +5,12 @@ import {
   Dictionary,
 } from "crawlee";
 import type {
-  CrawlerConfig,
+  CrawlerType,
   CrawlResult,
   PageSnapshot,
   CrawlError,
   CrawlerInstance,
+  CrawlerConfig,
 } from "../../types/crawler";
 
 export class BreakcheckCrawler {
