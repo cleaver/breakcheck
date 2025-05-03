@@ -1,8 +1,8 @@
 #!/usr/bin/env npx tsx
 
+import { compareCommand } from "@cli/commands/compare.js";
+import { snapshotCommand } from "@cli/commands/snapshot.js";
 import { Command } from "commander";
-import { snapshotCommand } from "./cli/commands/snapshot.js";
-import { compareCommand } from "./cli/commands/compare.js";
 
 // Create the main program
 const program = new Command();

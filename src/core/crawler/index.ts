@@ -1,17 +1,11 @@
-import {
-  CheerioCrawler,
-  PlaywrightCrawler,
-  Dataset,
-  Dictionary,
-} from "crawlee";
 import type {
-  CrawlerType,
+  CrawlerConfig,
+  CrawlerInstance,
+  CrawlError,
   CrawlResult,
   PageSnapshot,
-  CrawlError,
-  CrawlerInstance,
-  CrawlerConfig,
-} from "../../types/crawler";
+} from "@types/crawler";
+import { CheerioCrawler, Dataset, PlaywrightCrawler } from "crawlee";
 
 export class BreakcheckCrawler {
   private config: CrawlerConfig;

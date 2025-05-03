@@ -1,7 +1,7 @@
-import { SnapshotConfig, SnapshotResult } from "./types";
-import { BreakcheckCrawler } from "../core/crawler";
-import { SnapshotManager } from "../core/snapshot";
-import type { CrawlError } from "../types/crawler";
+import { SnapshotConfig, SnapshotResult } from "@api/types";
+import { BreakcheckCrawler } from "@core/crawler";
+import { SnapshotManager } from "@core/snapshot";
+import type { CrawlError } from "@types/crawler";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.

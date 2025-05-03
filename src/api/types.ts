@@ -1,4 +1,4 @@
-import { CrawlerConfig } from "../types/crawler";
+import { CrawlerConfig } from "@types/crawler";
 
 /**
  * Configuration for creating a snapshot

@@ -1,9 +1,8 @@
-import { PageSnapshot } from "../../types/crawler";
-import { CrawlerConfig } from "../../types/crawler";
+import { CrawlerConfig, PageSnapshot } from "@types/crawler";
 import * as fs from "fs/promises";
 import * as path from "path";
-import * as zlib from "zlib";
 import { promisify } from "util";
+import * as zlib from "zlib";
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
