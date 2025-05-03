@@ -64,7 +64,7 @@
 
 - [x] 6.1. Integrate Crawlee library.
 - [x] 6.2. Implement basic crawling logic using CheerioCrawler or PlaywrightCrawler (for JS rendering).
-- [ ] 6.3. Implement configuration handling based on CrawlerSettings (base URL, depth, include/exclude patterns, concurrency).
+- [ ] 6.3. Implement configuration handling based on CrawlerConfig (base URL, depth, include/exclude patterns, concurrency).
 - [ ] 6.4. Implement extraction of HTML content, final URL, status code, and headers for each page into PageSnapshot objects.
 - [ ] 6.5. Implement URL normalization logic.
 - [ ] 6.6. Implement error handling for crawl requests (timeouts, HTTP errors) into CrawlError structure.
