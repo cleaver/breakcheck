@@ -1,4 +1,4 @@
-import { CrawlerConfig, PageSnapshot } from "@types/crawler";
+import { CrawlerConfig, PageSnapshot } from "@project-types/crawler";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";

@@ -4,7 +4,7 @@ import type {
   CrawlError,
   CrawlResult,
   PageSnapshot,
-} from "@types/crawler";
+} from "@project-types/crawler";
 import { CheerioCrawler, Dataset, PlaywrightCrawler } from "crawlee";
 
 export class BreakcheckCrawler {
