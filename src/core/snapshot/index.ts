@@ -32,6 +32,15 @@ export class SnapshotManager {
 
     // Create snapshot directory
     const snapshotDir = path.join(this.snapshotsDir, name);
+
+    // Remove existing snapshot directory if it exists
+    try {
+      await fs.rm(snapshotDir, { recursive: true, force: true });
+    } catch (error) {
+      // Ignore errors if directory doesn't exist
+    }
+
+    // Create fresh snapshot directory
     await fs.mkdir(snapshotDir, { recursive: true });
 
     // Save metadata
