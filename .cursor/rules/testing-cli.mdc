@@ -1,0 +1,13 @@
+---
+description: Testing the CLI
+globs: 
+alwaysApply: false
+---
+Site URL for testing: http://localhost:4321
+
+To test the CLI, launch it using `npm`:
+
+```bash
+# test the snapshot command
+npm run dev -- snapshot -u http://localhost:4321 -n my-snapshot -d 3 -c 5 -t cheerio
+```
