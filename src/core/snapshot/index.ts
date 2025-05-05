@@ -41,6 +41,38 @@ interface SnapshotIndex {
   };
 }
 
+// New interface/class for loaded snapshot with on-demand page loading
+export class LoadedSnapshot {
+  public readonly metadata: any;
+  public readonly index: SnapshotIndex;
+  private readonly pagesDir: string;
+
+  constructor(metadata: any, index: SnapshotIndex, pagesDir: string) {
+    this.metadata = metadata;
+    this.index = index;
+    this.pagesDir = pagesDir;
+  }
+
+  /**
+   * Loads a single page snapshot on demand by URL
+   */
+  async getPage(url: string): Promise<PageSnapshot | null> {
+    const info = this.index.urls[url];
+    if (!info) return null;
+    const filePath = path.join(this.pagesDir, info.filename);
+    try {
+      const compressed = await fs.readFile(filePath);
+      const decompressed = await gunzip(compressed);
+      const page = JSON.parse(decompressed.toString());
+      return page;
+    } catch (err) {
+      // Could be file not found, decompression, or parse error
+      // Optionally, log or rethrow with more context
+      return null;
+    }
+  }
+}
+
 export class SnapshotManager {
   private readonly snapshotsDir: string;
 
@@ -117,9 +149,9 @@ export class SnapshotManager {
   }
 
   /**
-   * Load a snapshot from disk
+   * Load a snapshot from disk (memory efficient: does not load all pages)
    */
-  async loadSnapshot(name: string): Promise<SnapshotData> {
+  async loadSnapshot(name: string): Promise<LoadedSnapshot> {
     const snapshotDir = path.join(this.snapshotsDir, name);
 
     // Load metadata
@@ -132,22 +164,11 @@ export class SnapshotManager {
     const indexContent = await fs.readFile(indexPath, "utf-8");
     const index: SnapshotIndex = JSON.parse(indexContent);
 
-    // Load pages
+    // Prepare pages directory path
     const pagesDir = path.join(snapshotDir, "pages");
-    const pages: PageSnapshot[] = [];
 
-    for (const [url, info] of Object.entries(index.urls)) {
-      const filePath = path.join(pagesDir, info.filename);
-      const compressed = await fs.readFile(filePath);
-      const decompressed = await gunzip(compressed);
-      const page = JSON.parse(decompressed.toString());
-      pages.push(page);
-    }
-
-    return {
-      pages,
-      metadata,
-    };
+    // Return a LoadedSnapshot instance for on-demand page loading
+    return new LoadedSnapshot(metadata, index, pagesDir);
   }
 
   /**
