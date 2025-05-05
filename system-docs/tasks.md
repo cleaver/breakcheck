@@ -51,14 +51,15 @@
 
 ## **5. Snapshot Manager (File System, zlib)**
 
-- [ ] 5.1. Design snapshot storage format (e.g., ZIP archive containing JSON files per page + metadata JSON).
-- [ ] 5.2. Implement function to save a collection of PageSnapshot objects and metadata to a named snapshot file/directory.
-- [ ] 5.3. Implement compression (zlib) during saving.
-- [ ] 5.4. Implement function to load a snapshot file/directory back into memory (returning PageSnapshot collection and metadata).
-- [ ] 5.5. Implement decompression during loading.
-- [ ] 5.6. Implement metadata handling (timestamps, config used).
-- [ ] 5.7. (Optional) Implement content fingerprinting (SHA hash) during snapshot creation (FR-SNAP-06).
-- [ ] 5.8. Write unit tests for saving and loading snapshots.
+- [x] 5.1. Design snapshot storage format (e.g., ZIP archive containing JSON files per page + metadata JSON).
+- [x] 5.2. Implement function to save a collection of PageSnapshot objects and metadata to a named snapshot file/directory.
+- [x] 5.3. Implement compression (gzip) during saving.
+- [ ] 5.4. Add an index of pages for quick lookup.
+- [ ] 5.5. Implement function to load a snapshot file/directory back into memory (returning PageSnapshot collection and metadata).
+- [ ] 5.6. Implement decompression during loading.
+- [ ] 5.7. Implement metadata handling (timestamps, config used).
+- [ ] 5.8. (Optional) Implement content fingerprinting (SHA hash) during snapshot creation (FR-SNAP-06).
+- [ ] 5.9. Write unit tests for saving and loading snapshots.
 
 ## **6. Crawler (Crawlee)**
 
