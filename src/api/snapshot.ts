@@ -1,4 +1,4 @@
-import { SnapshotConfig, SnapshotResult } from "@api/types";
+import { SnapshotConfig, SnapshotResult } from "@project-types/api";
 import { BreakcheckCrawler } from "@core/crawler";
 import { SnapshotManager } from "@core/snapshot";
 import type { CrawlError } from "@project-types/crawler";

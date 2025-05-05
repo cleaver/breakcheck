@@ -1,10 +1,10 @@
 import { createSnapshot } from "./snapshot";
-import {
+import type {
   ComparisonConfig,
   ComparisonResult,
   SnapshotConfig,
   SnapshotResult,
-} from "./types";
+} from "@project-types/api";
 
 /**
  * The main Breakcheck API interface
@@ -35,4 +35,4 @@ export type {
   ComparisonResult,
   SnapshotConfig,
   SnapshotResult,
-};
+} from "@project-types/api";

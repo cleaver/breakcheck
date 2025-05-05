@@ -1,5 +1,5 @@
 import { BreakcheckApi } from "@api/index";
-import type { SnapshotConfig } from "@api/types";
+import type { SnapshotConfig } from "@project-types/api";
 import { InteractiveCommand } from "interactive-commander";
 
 export const snapshotCommand = new InteractiveCommand("snapshot")
