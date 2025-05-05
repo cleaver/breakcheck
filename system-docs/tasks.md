@@ -3,10 +3,11 @@
 
 ## **1. Project Setup & Core Structures**
 
-- [ ] 1.1. Initialize Typescript project (npm/yarn init, tsconfig.json).
+- [x] 1.1. Initialize Typescript project (npm/yarn init, tsconfig.json).
 - [ ] 1.2. Set up testing framework (Jest/Vitest) and configuration.
-- [ ] 1.3. Define core data structures/interfaces (e.g., PageSnapshot, DiffResult, Rule, Action based on JSON spec, API Layer input/output types like SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonResult).
-- [ ] 1.4. Choose and install core dependencies (logging library, error handling utility).
+- [x] 1.3. Define core data structures/interfaces (e.g., PageSnapshot, DiffResult, Rule, Action based on JSON spec, API Layer input/output types like SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonResult).
+- [x] 1.4. Choose and install core dependencies (logging library, ~~error handling utility~~).
+- [ ] 1.5. Consider adding an error handling utility like [handle-cli-error](https://github.com/ehmicky/handle-cli-error).
 
 ## **2. Rules Engine & DSL**
 
@@ -54,7 +55,7 @@
 - [x] 5.1. Design snapshot storage format (e.g., ZIP archive containing JSON files per page + metadata JSON).
 - [x] 5.2. Implement function to save a collection of PageSnapshot objects and metadata to a named snapshot file/directory.
 - [x] 5.3. Implement compression (gzip) during saving.
-- [ ] 5.4. Add an index of pages for quick lookup.
+- [x] 5.4. Add an index of pages for quick lookup.
 - [ ] 5.5. Implement function to load a snapshot file/directory back into memory (returning PageSnapshot collection and metadata).
 - [ ] 5.6. Implement decompression during loading.
 - [ ] 5.7. Implement metadata handling (timestamps, config used).
