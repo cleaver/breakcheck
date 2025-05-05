@@ -34,7 +34,7 @@ export interface PageSnapshot {
 }
 
 export interface CrawlResult {
-  pages: PageSnapshot[];
+  datasetName: string;
   errors: CrawlError[];
 }
 

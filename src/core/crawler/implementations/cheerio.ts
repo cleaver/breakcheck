@@ -6,8 +6,13 @@ import type {
 } from "@project-types/crawler";
 import { CheerioCrawler, Dataset } from "crawlee";
 
-export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
+export function createCheerioCrawler(
+  config: CrawlerConfig,
+  datasetName: string
+): CrawlerInstance {
   const { maxDepth, includePatterns, excludePatterns } = config;
+
+  let datasetPromise = Dataset.open(datasetName);
 
   return new CheerioCrawler({
     maxRequestsPerCrawl: config.maxRequests,
@@ -27,7 +32,8 @@ export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
           ])
         ),
       };
-      await Dataset.pushData(pageSnapshot);
+      const dataset = await datasetPromise;
+      await dataset.pushData(pageSnapshot);
 
       const depth = (request.userData.depth as number) || 0;
       if (depth < (maxDepth || Infinity)) {
@@ -37,7 +43,7 @@ export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
         });
       }
     },
-    failedRequestHandler: ({ request, error }) => {
+    failedRequestHandler: async ({ request, error }) => {
       const crawlError: CrawlError = {
         url: request.url,
         error: error instanceof Error ? error.message : String(error),
@@ -46,7 +52,8 @@ export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
             ? (error.statusCode as number)
             : undefined,
       };
-      Dataset.pushData({ type: "error", ...crawlError });
+      const dataset = await datasetPromise;
+      await dataset.pushData({ type: "error", ...crawlError });
     },
   });
 }

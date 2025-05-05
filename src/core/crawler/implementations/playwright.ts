@@ -7,9 +7,12 @@ import type {
 import { Dataset, PlaywrightCrawler } from "crawlee";
 
 export function createPlaywrightCrawler(
-  config: CrawlerConfig
+  config: CrawlerConfig,
+  datasetName: string
 ): CrawlerInstance {
   const { maxDepth, includePatterns, excludePatterns } = config;
+
+  let datasetPromise = Dataset.open(datasetName);
 
   return new PlaywrightCrawler({
     maxRequestsPerCrawl: config.maxRequests,
@@ -25,7 +28,8 @@ export function createPlaywrightCrawler(
         statusCode: response?.status() || 0,
         headers: response?.headers() || {},
       };
-      await Dataset.pushData(pageSnapshot);
+      const dataset = await datasetPromise;
+      await dataset.pushData(pageSnapshot);
 
       const depth = (request.userData.depth as number) || 0;
       if (depth < (maxDepth || Infinity)) {
@@ -35,7 +39,7 @@ export function createPlaywrightCrawler(
         });
       }
     },
-    failedRequestHandler: ({ request, error }) => {
+    failedRequestHandler: async ({ request, error }) => {
       const crawlError: CrawlError = {
         url: request.url,
         error: error instanceof Error ? error.message : String(error),
@@ -44,7 +48,8 @@ export function createPlaywrightCrawler(
             ? (error.statusCode as number)
             : undefined,
       };
-      Dataset.pushData({ type: "error", ...crawlError });
+      const dataset = await datasetPromise;
+      await dataset.pushData({ type: "error", ...crawlError });
     },
   });
 }

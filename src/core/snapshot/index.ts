@@ -3,12 +3,22 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
+import type { Dataset } from "crawlee";
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
 
 interface SnapshotData {
   pages: PageSnapshot[];
+  metadata: {
+    baseUrl: string;
+    timestamp: string;
+    crawlSettings: CrawlerConfig;
+  };
+}
+
+interface SnapshotDataStreamed {
+  dataset: InstanceType<typeof Dataset>;
   metadata: {
     baseUrl: string;
     timestamp: string;
@@ -39,9 +49,13 @@ export class SnapshotManager {
   }
 
   /**
-   * Save a snapshot to disk
+   * Save a snapshot to disk (streaming/iterative)
+   * Returns the number of non-error pages saved
    */
-  async saveSnapshot(name: string, data: SnapshotData): Promise<void> {
+  async saveSnapshot(
+    name: string,
+    data: SnapshotDataStreamed
+  ): Promise<number> {
     // Ensure snapshots directory exists
     await fs.mkdir(this.snapshotsDir, { recursive: true });
 
@@ -72,28 +86,34 @@ export class SnapshotManager {
       metadata: {
         baseUrl: data.metadata.baseUrl,
         timestamp: data.metadata.timestamp,
-        totalPages: data.pages.length,
+        totalPages: 0, // will be updated
       },
     };
 
-    // Save each page as a compressed JSON file
-    for (const page of data.pages) {
+    let pageCount = 0;
+    await data.dataset.forEach(async (item: any) => {
+      if (item.type === "error") return;
+      // Save each page as a compressed JSON file
+      const page = item as PageSnapshot;
       const pageData = JSON.stringify(page);
       const compressed = await gzip(pageData);
       const filename = Buffer.from(page.url).toString("base64url") + ".json.gz";
       await fs.writeFile(path.join(pagesDir, filename), compressed);
-
       // Add to index
       index.urls[page.url] = {
         filename,
         statusCode: page.statusCode,
         finalUrl: page.finalUrl !== page.url ? page.finalUrl : undefined,
       };
-    }
+      pageCount++;
+    });
 
     // Save index
+    index.metadata.totalPages = pageCount;
     const indexPath = path.join(snapshotDir, "index.json");
     await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
+
+    return pageCount;
   }
 
   /**

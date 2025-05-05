@@ -26,7 +26,7 @@ export async function createSnapshot(
     const crawler = new BreakcheckCrawler(config.crawlSettings);
 
     // Execute crawl
-    const { pages, errors: crawlErrors } = await crawler.crawl();
+    const { datasetName, errors: crawlErrors } = await crawler.crawl();
 
     // Convert crawl errors to result format
     errors.push(
@@ -37,10 +37,13 @@ export async function createSnapshot(
       }))
     );
 
-    // Save snapshot
+    // Open the dataset
+    const dataset = await (await import("crawlee")).Dataset.open(datasetName);
+
+    // Save snapshot (streaming/iterative)
     const snapshotManager = new SnapshotManager();
-    await snapshotManager.saveSnapshot(config.name, {
-      pages,
+    const pageCount = await snapshotManager.saveSnapshot(config.name, {
+      dataset,
       metadata: {
         baseUrl: config.baseUrl,
         timestamp: new Date().toISOString(),
@@ -66,7 +69,7 @@ export async function createSnapshot(
       snapshotId: config.name,
       timestamp: new Date().toISOString(),
       baseUrl: config.baseUrl,
-      pageCount: pages.length,
+      pageCount,
       errors,
       metadata: {
         crawlSettings: config.crawlSettings,
