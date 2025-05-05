@@ -15,6 +15,7 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
     "Crawler type (cheerio or playwright)",
     "cheerio"
   )
+  .option("--url-list <path>", "Generate a URL list file at the specified path")
   .action(async (options) => {
     try {
       // Create API instance
@@ -32,6 +33,7 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
           includePatterns: options.include,
           excludePatterns: options.exclude,
         },
+        urlListPath: options.urlList,
       };
 
       // Call API to create snapshot
@@ -48,6 +50,10 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
           result.errors.forEach((error) => {
             console.log(`  - ${error.url}: ${error.message}`);
           });
+        }
+
+        if (result.urlListPath) {
+          console.log(`\n📝 URL list generated: ${result.urlListPath}`);
         }
       } else {
         console.error("❌ Failed to create snapshot");

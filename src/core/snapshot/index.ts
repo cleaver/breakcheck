@@ -16,6 +16,21 @@ interface SnapshotData {
   };
 }
 
+interface SnapshotIndex {
+  urls: {
+    [url: string]: {
+      filename: string;
+      statusCode: number;
+      finalUrl?: string;
+    };
+  };
+  metadata: {
+    baseUrl: string;
+    timestamp: string;
+    totalPages: number;
+  };
+}
+
 export class SnapshotManager {
   private readonly snapshotsDir: string;
 
@@ -51,13 +66,34 @@ export class SnapshotManager {
     const pagesDir = path.join(snapshotDir, "pages");
     await fs.mkdir(pagesDir, { recursive: true });
 
+    // Create index
+    const index: SnapshotIndex = {
+      urls: {},
+      metadata: {
+        baseUrl: data.metadata.baseUrl,
+        timestamp: data.metadata.timestamp,
+        totalPages: data.pages.length,
+      },
+    };
+
     // Save each page as a compressed JSON file
     for (const page of data.pages) {
       const pageData = JSON.stringify(page);
       const compressed = await gzip(pageData);
       const filename = Buffer.from(page.url).toString("base64url") + ".json.gz";
       await fs.writeFile(path.join(pagesDir, filename), compressed);
+
+      // Add to index
+      index.urls[page.url] = {
+        filename,
+        statusCode: page.statusCode,
+        finalUrl: page.finalUrl !== page.url ? page.finalUrl : undefined,
+      };
     }
+
+    // Save index
+    const indexPath = path.join(snapshotDir, "index.json");
+    await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   }
 
   /**
@@ -71,24 +107,62 @@ export class SnapshotManager {
     const metadataContent = await fs.readFile(metadataPath, "utf-8");
     const metadata = JSON.parse(metadataContent);
 
+    // Load index
+    const indexPath = path.join(snapshotDir, "index.json");
+    const indexContent = await fs.readFile(indexPath, "utf-8");
+    const index: SnapshotIndex = JSON.parse(indexContent);
+
     // Load pages
     const pagesDir = path.join(snapshotDir, "pages");
-    const pageFiles = await fs.readdir(pagesDir);
     const pages: PageSnapshot[] = [];
 
-    for (const file of pageFiles) {
-      if (file.endsWith(".json.gz")) {
-        const compressed = await fs.readFile(path.join(pagesDir, file));
-        const decompressed = await gunzip(compressed);
-        const page = JSON.parse(decompressed.toString());
-        pages.push(page);
-      }
+    for (const [url, info] of Object.entries(index.urls)) {
+      const filePath = path.join(pagesDir, info.filename);
+      const compressed = await fs.readFile(filePath);
+      const decompressed = await gunzip(compressed);
+      const page = JSON.parse(decompressed.toString());
+      pages.push(page);
     }
 
     return {
       pages,
       metadata,
     };
+  }
+
+  /**
+   * Generate a URL list file from a snapshot
+   * @param name Snapshot name
+   * @param outputPath Optional path to save the URL list. If not provided, saves in the snapshot directory
+   * @param filter Optional function to filter URLs
+   */
+  async generateUrlList(
+    name: string,
+    outputPath?: string,
+    filter?: (url: string, statusCode: number) => boolean
+  ): Promise<string> {
+    const snapshotDir = path.join(this.snapshotsDir, name);
+
+    // Load index
+    const indexPath = path.join(snapshotDir, "index.json");
+    const indexContent = await fs.readFile(indexPath, "utf-8");
+    const index: SnapshotIndex = JSON.parse(indexContent);
+
+    // Filter and collect URLs
+    const urls = Object.entries(index.urls)
+      .filter(([url, info]) => !filter || filter(url, info.statusCode))
+      .map(([url]) => url);
+
+    // Generate URL list content
+    const content = urls.join("\n");
+
+    // Determine output path
+    const finalOutputPath = outputPath || path.join(snapshotDir, "urls.txt");
+
+    // Save URL list
+    await fs.writeFile(finalOutputPath, content);
+
+    return finalOutputPath;
   }
 
   /**

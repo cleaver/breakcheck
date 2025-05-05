@@ -48,6 +48,15 @@ export async function createSnapshot(
       },
     });
 
+    // Generate URL list if requested
+    let urlListPath: string | undefined;
+    if (config.urlListPath) {
+      urlListPath = await snapshotManager.generateUrlList(
+        config.name,
+        config.urlListPath
+      );
+    }
+
     // Calculate duration
     const duration = Date.now() - startTime;
 
@@ -63,6 +72,7 @@ export async function createSnapshot(
         crawlSettings: config.crawlSettings,
         duration,
       },
+      urlListPath,
     };
   } catch (error) {
     // Handle any unexpected errors

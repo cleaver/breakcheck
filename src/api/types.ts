@@ -10,6 +10,8 @@ export interface SnapshotConfig {
   name: string;
   /** Crawler configuration to use */
   crawlSettings: CrawlerConfig;
+  /** Optional path to generate a URL list file */
+  urlListPath?: string;
 }
 
 /**
@@ -37,6 +39,8 @@ export interface SnapshotResult {
     crawlSettings: CrawlerConfig;
     duration: number; // in milliseconds
   };
+  /** Path to the generated URL list file, if requested */
+  urlListPath?: string;
 }
 
 /**
