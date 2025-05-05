@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Rules to follow when adding code:
+
+- we use `pino` and `pino-pretty` for logging
