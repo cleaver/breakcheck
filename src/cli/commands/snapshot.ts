@@ -1,6 +1,9 @@
 import { BreakcheckApi } from "@api/index";
 import type { SnapshotConfig } from "@project-types/api";
 import { InteractiveCommand } from "interactive-commander";
+import pino from "pino";
+
+const logger = pino({ transport: { target: "pino-pretty" } });
 
 export const snapshotCommand = new InteractiveCommand("snapshot")
   .description("Create a snapshot of a website")
@@ -47,28 +50,28 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
 
       // Display results
       if (result.success) {
-        console.log(`✅ Snapshot created successfully: ${result.snapshotId}`);
-        console.log(`📊 Pages crawled: ${result.pageCount}`);
-        console.log(`⏱️ Duration: ${result.metadata.duration}ms`);
+        logger.info(`✅ Snapshot created successfully: ${result.snapshotId}`);
+        logger.info(`📊 Pages crawled: ${result.pageCount}`);
+        logger.info(`⏱️ Duration: ${result.metadata.duration}ms`);
 
         if (result.errors.length > 0) {
-          console.log("\n⚠️ Some pages had errors:");
+          logger.warn("\n⚠️ Some pages had errors:");
           result.errors.forEach((error) => {
-            console.log(`  - ${error.url}: ${error.message}`);
+            logger.warn(`  - ${error.url}: ${error.message}`);
           });
         }
 
         if (result.urlListPath) {
-          console.log(`\n📝 URL list generated: ${result.urlListPath}`);
+          logger.info(`\n📝 URL list generated: ${result.urlListPath}`);
         }
       } else {
-        console.error("❌ Failed to create snapshot");
+        logger.error("❌ Failed to create snapshot");
         result.errors.forEach((error) => {
-          console.error(`  - ${error.url}: ${error.message}`);
+          logger.error(`  - ${error.url}: ${error.message}`);
         });
       }
     } catch (error) {
-      console.error(
+      logger.error(
         "❌ Error:",
         error instanceof Error ? error.message : "Unknown error occurred"
       );

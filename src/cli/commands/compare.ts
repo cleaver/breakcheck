@@ -1,4 +1,6 @@
 import { InteractiveCommand } from "interactive-commander";
+import pino from "pino";
+const logger = pino({ transport: { target: "pino-pretty" } });
 
 export const compareCommand = new InteractiveCommand("compare")
   .description("Compare two snapshots")
@@ -7,6 +9,6 @@ export const compareCommand = new InteractiveCommand("compare")
   .option("-r, --rules <path>", "Path to rules file")
   .option("-o, --output <path>", "Path to output file")
   .action(async (options) => {
-    console.log("Compare command called with options:", options);
+    logger.info("Compare command called with options:", options);
     // TODO: Implement comparison logic
   });
