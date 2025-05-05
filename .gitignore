@@ -34,6 +34,10 @@ coverage/
 
 \*.tmp
 
+# URL list files
+
+/*.txt
+
 # Storage
 
 storage/
