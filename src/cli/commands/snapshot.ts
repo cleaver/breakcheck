@@ -24,7 +24,13 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
       // Map CLI options to SnapshotConfig
       const config: SnapshotConfig = {
         baseUrl: options.url,
-        name: options.name || `snapshot_${Date.now()}`,
+        name:
+          options.name ||
+          `snapshot_${new Date()
+            .toISOString()
+            .replace(/[:.]/g, "-")
+            .replace(/T/, "_")
+            .replace(/Z$/, "Z")}`,
         crawlSettings: {
           baseUrl: options.url,
           crawlerType: options.type,
