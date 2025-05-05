@@ -1,6 +1,6 @@
+import { BreakcheckApi } from "@api/index";
+import type { SnapshotConfig } from "@api/types";
 import { InteractiveCommand } from "interactive-commander";
-import { BreakcheckApi } from "../../api";
-import type { SnapshotConfig } from "../../api/types";
 
 export const snapshotCommand = new InteractiveCommand("snapshot")
   .description("Create a snapshot of a website")
