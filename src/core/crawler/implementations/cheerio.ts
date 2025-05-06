@@ -19,7 +19,8 @@ export function createCheerioCrawler(
     maxConcurrency: config.maxConcurrency,
     maxRequestRetries: 3,
     requestHandlerTimeoutSecs: 30,
-    async requestHandler({ request, response, body, enqueueLinks }) {
+    async requestHandler({ request, response, body, $, enqueueLinks }) {
+      const title = $("title").first().text() || undefined;
       const pageSnapshot: PageSnapshot = {
         url: request.url,
         finalUrl: response.url || request.url,
@@ -31,6 +32,7 @@ export function createCheerioCrawler(
             Array.isArray(value) ? value.join(", ") : value || "",
           ])
         ),
+        title,
       };
       const dataset = await datasetPromise;
       await dataset.pushData(pageSnapshot);

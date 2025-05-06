@@ -21,10 +21,12 @@ export function createPlaywrightCrawler(
     requestHandlerTimeoutSecs: 30,
     async requestHandler({ request, response, page, enqueueLinks }) {
       const content = await page.content();
+      const title = await page.title();
       const pageSnapshot: PageSnapshot = {
         url: request.url,
         finalUrl: response?.url() || request.url,
         content,
+        title,
         statusCode: response?.status() || 0,
         headers: response?.headers() || {},
       };
