@@ -31,6 +31,7 @@ export interface PageSnapshot {
   content: string;
   statusCode: number;
   headers: Record<string, string>;
+  title?: string;
 }
 
 export interface CrawlResult {

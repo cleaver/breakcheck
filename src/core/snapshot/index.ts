@@ -4,6 +4,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
+import { SnapshotIndex } from "@project-types/snapshot";
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
@@ -17,21 +18,6 @@ interface SnapshotMetadata {
 interface SnapshotData {
   dataset: InstanceType<typeof Dataset>;
   metadata: SnapshotMetadata;
-}
-
-interface SnapshotIndex {
-  urls: {
-    [url: string]: {
-      filename: string;
-      statusCode: number;
-      finalUrl?: string;
-    };
-  };
-  metadata: {
-    baseUrl: string;
-    timestamp: string;
-    totalPages: number;
-  };
 }
 
 // New interface/class for loaded snapshot with on-demand page loading
@@ -112,7 +98,7 @@ export class SnapshotManager {
       metadata: {
         baseUrl: data.metadata.baseUrl,
         timestamp: data.metadata.timestamp,
-        totalPages: 0, // will be updated
+        totalPages: 0,
       },
     };
 
@@ -130,6 +116,7 @@ export class SnapshotManager {
         filename,
         statusCode: page.statusCode,
         finalUrl: page.finalUrl !== page.url ? page.finalUrl : undefined,
+        pageTitle: page.title,
       };
       pageCount++;
     });
@@ -143,7 +130,7 @@ export class SnapshotManager {
   }
 
   /**
-   * Load a snapshot from disk (memory efficient: does not load all pages)
+   * Load a snapshot from disk
    */
   async loadSnapshot(name: string): Promise<LoadedSnapshot> {
     const snapshotDir = path.join(this.snapshotsDir, name);
