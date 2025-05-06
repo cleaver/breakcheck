@@ -111,6 +111,9 @@ export class SnapshotManager {
       const compressed = await gzip(pageData);
       const filename = Buffer.from(page.url).toString("base64url") + ".json.gz";
       await fs.writeFile(path.join(pagesDir, filename), compressed);
+
+      console.log("pageTitle", page.title);
+
       // Add to index
       index.urls[page.url] = {
         filename,

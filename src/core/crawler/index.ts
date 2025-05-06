@@ -4,8 +4,7 @@ import type {
   CrawlError,
   CrawlResult,
 } from "@project-types/crawler";
-import { Dataset } from "crawlee";
-import { randomUUID } from "crypto";
+import { Dataset, purgeDefaultStorages } from "crawlee";
 import { createCheerioCrawler } from "./implementations/cheerio";
 import { createPlaywrightCrawler } from "./implementations/playwright";
 
@@ -17,8 +16,7 @@ export class BreakcheckCrawler {
 
   constructor(config: CrawlerConfig) {
     this.config = config;
-    // Generate a unique dataset name for this crawl
-    this.datasetName = `breakcheck-${Date.now()}-${randomUUID()}`;
+    this.datasetName = "breakcheckDataset";
     this.crawler = this.createCrawler();
   }
 
@@ -36,6 +34,7 @@ export class BreakcheckCrawler {
 
   async crawl(): Promise<CrawlResult> {
     try {
+      await purgeDefaultStorages();
       this.errors = [];
       await this.crawler.run([this.config.baseUrl]);
       // Open the dataset and scan for error items only
