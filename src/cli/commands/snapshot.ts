@@ -18,7 +18,10 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
     "Crawler type (cheerio or playwright)",
     "cheerio"
   )
-  .option("--url-list <path>", "Generate a URL list file at the specified path")
+  .option(
+    "-w, --write-urls <path>",
+    "Generate a URL list file at the specified path"
+  )
   .action(async (options) => {
     try {
       // Create API instance
@@ -42,7 +45,7 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
           includePatterns: options.include,
           excludePatterns: options.exclude,
         },
-        urlListPath: options.urlList,
+        urlListPath: options.writeUrls,
       };
 
       // Call API to create snapshot
