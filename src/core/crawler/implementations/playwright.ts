@@ -7,12 +7,11 @@ import type {
 import { Dataset, PlaywrightCrawler } from "crawlee";
 
 export function createPlaywrightCrawler(
-  config: CrawlerConfig,
-  datasetName: string
+  config: CrawlerConfig
 ): CrawlerInstance {
   const { maxDepth, includePatterns, excludePatterns } = config;
 
-  let datasetPromise = Dataset.open(datasetName);
+  let datasetPromise = Dataset.open();
 
   return new PlaywrightCrawler({
     maxRequestsPerCrawl: config.maxRequests,

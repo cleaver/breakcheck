@@ -6,13 +6,10 @@ import type {
 } from "@project-types/crawler";
 import { CheerioCrawler, Dataset } from "crawlee";
 
-export function createCheerioCrawler(
-  config: CrawlerConfig,
-  datasetName: string
-): CrawlerInstance {
+export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
   const { maxDepth, includePatterns, excludePatterns } = config;
 
-  let datasetPromise = Dataset.open(datasetName);
+  let datasetPromise = Dataset.open();
 
   return new CheerioCrawler({
     maxRequestsPerCrawl: config.maxRequests,

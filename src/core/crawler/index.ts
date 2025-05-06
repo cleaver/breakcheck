@@ -4,28 +4,26 @@ import type {
   CrawlError,
   CrawlResult,
 } from "@project-types/crawler";
-import { Dataset, purgeDefaultStorages } from "crawlee";
+import { Dataset, purgeDefaultStorages, Configuration } from "crawlee";
 import { createCheerioCrawler } from "./implementations/cheerio";
 import { createPlaywrightCrawler } from "./implementations/playwright";
 
 export class BreakcheckCrawler {
   private config: CrawlerConfig;
   private crawler: CrawlerInstance;
-  private datasetName: string;
   private errors: CrawlError[] = [];
 
   constructor(config: CrawlerConfig) {
     this.config = config;
-    this.datasetName = "breakcheckDataset";
     this.crawler = this.createCrawler();
   }
 
   private createCrawler(): CrawlerInstance {
     switch (this.config.crawlerType) {
       case "cheerio":
-        return createCheerioCrawler(this.config, this.datasetName);
+        return createCheerioCrawler(this.config);
       case "playwright":
-        return createPlaywrightCrawler(this.config, this.datasetName);
+        return createPlaywrightCrawler(this.config);
       default:
         const _exhaustiveCheck: never = this.config.crawlerType;
         throw new Error(`Unsupported crawler type: ${this.config.crawlerType}`);
@@ -38,7 +36,7 @@ export class BreakcheckCrawler {
       this.errors = [];
       await this.crawler.run([this.config.baseUrl]);
       // Open the dataset and scan for error items only
-      const dataset = await Dataset.open(this.datasetName);
+      const dataset = await Dataset.open();
       await dataset.forEach((item: any) => {
         if (item.type === "error") {
           this.errors.push({
@@ -48,8 +46,13 @@ export class BreakcheckCrawler {
           });
         }
       });
+      const datasetInfo = await dataset.getInfo();
+      let actualDatasetName =
+        datasetInfo?.name ||
+        Configuration.getGlobalConfig().get("defaultDatasetId");
+      if (!actualDatasetName) actualDatasetName = "";
       return {
-        datasetName: this.datasetName,
+        datasetName: actualDatasetName,
         errors: this.errors,
       };
     } catch (error) {
