@@ -56,9 +56,9 @@
 - [x] 5.2. Implement function to save a collection of PageSnapshot objects and metadata to a named snapshot file/directory.
 - [x] 5.3. Implement compression (gzip) during saving.
 - [x] 5.4. Add an index of pages for quick lookup.
-- [ ] 5.5. Implement function to load a snapshot file/directory back into memory (returning PageSnapshot collection and metadata).
-- [ ] 5.6. Implement decompression during loading.
-- [ ] 5.7. Implement metadata handling (timestamps, config used).
+- [x] 5.5. Implement function to load a snapshot file/directory back into memory (returning PageSnapshot collection and metadata).
+- [x] 5.6. Implement decompression during loading.
+- [x] 5.7. Implement metadata handling (timestamps, config used).
 - [ ] 5.8. (Optional) Implement content fingerprinting (SHA hash) during snapshot creation (FR-SNAP-06).
 - [ ] 5.9. Write unit tests for saving and loading snapshots.
 
@@ -66,23 +66,23 @@
 
 - [x] 6.1. Integrate Crawlee library.
 - [x] 6.2. Implement basic crawling logic using CheerioCrawler or PlaywrightCrawler (for JS rendering).
-- [ ] 6.3. Implement configuration handling based on CrawlerConfig (base URL, depth, include/exclude patterns, concurrency).
-- [ ] 6.4. Implement extraction of HTML content, final URL, status code, and headers for each page into PageSnapshot objects.
-- [ ] 6.5. Implement URL normalization logic.
-- [ ] 6.6. Implement error handling for crawl requests (timeouts, HTTP errors) into CrawlError structure.
-- [ ] 6.7. Implement function to return the collection of PageSnapshot data and any CrawlErrors **to the API Layer**.
+- [x] 6.3. Implement configuration handling based on CrawlerConfig (base URL, depth, include/exclude patterns, concurrency).
+- [x] 6.4. Implement extraction of HTML content, final URL, status code, and headers for each page into PageSnapshot objects.
+- [x] 6.5. Implement URL normalization logic. (CB: Deduplication handled automatically.)
+- [x] 6.6. Implement error handling for crawl requests (timeouts, HTTP errors) into CrawlError structure.
+- [x] 6.7. Implement function to return the collection of PageSnapshot data and any CrawlErrors **to the API Layer**.
 - [ ] 6.8. Write integration tests for crawling test sites (local static sites or mock servers).
 
 ## **7. API Layer (Internal Module)**
 
-- [ ] 7.1. Define the BreakcheckApi interface and supporting types (SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonResult, etc.) in Typescript.
-- [ ] 7.2. Implement the createSnapshot function:
-  - [ ] 7.2.1. Validate input SnapshotConfig.
-  - [ ] 7.2.2. Instantiate and configure the Crawler based on config.crawlSettings.
-  - [ ] 7.2.3. Execute the Crawler.
-  - [ ] 7.2.4. Receive PageSnapshot data and errors from Crawler.
-  - [ ] 7.2.5. Call Snapshot Manager to save the snapshot data and metadata.
-  - [ ] 7.2.6. Format and return the SnapshotResult (including success status, ID, metadata, errors).
+- [x] 7.1. Define the BreakcheckApi interface and supporting types (SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonResult, etc.) in Typescript.
+- [x] 7.2. Implement the createSnapshot function:
+  - [x] 7.2.1. Validate input SnapshotConfig.
+  - [x] 7.2.2. Instantiate and configure the Crawler based on config.crawlSettings.
+  - [x] 7.2.3. Execute the Crawler.
+  - [x] 7.2.4. Receive PageSnapshot data and errors from Crawler.
+  - [x] 7.2.5. Call Snapshot Manager to save the snapshot data and metadata.
+  - [x] 7.2.6. Format and return the SnapshotResult (including success status, ID, metadata, errors).
 - [ ] 7.3. Implement the runComparison function:
   - [ ] 7.3.1. Validate input ComparisonConfig.
   - [ ] 7.3.2. Call Snapshot Manager to load "before" and "after" snapshots. Handle errors if snapshots not found.
@@ -104,11 +104,11 @@
 - [x] 8.2. Define CLI commands: snapshot, compare, help (and potentially config, list-snapshots).
 - [x] 8.3. Implement argument/option parsing for URLs, snapshot names, rule files/text, output paths, crawl settings overrides, etc.
 - [ ] 8.4. Implement the snapshot command logic:
-  - [ ] 8.4.1. Parse arguments into a SnapshotConfig object.
-  - [ ] 8.4.2. Instantiate the API Layer implementation.
-  - [ ] 8.4.3. Call apiLayer.createSnapshot(config).
+  - [x] 8.4.1. Parse arguments into a SnapshotConfig object.
+  - [x] 8.4.2. Instantiate the API Layer implementation.
+  - [x] 8.4.3. Call apiLayer.createSnapshot(config).
   - [ ] 8.4.4. Display progress/feedback to the user (potentially using Ink).
-  - [ ] 8.4.5. Report the SnapshotResult (success/failure, snapshot ID, errors) to the console.
+  - [x] 8.4.5. Report the SnapshotResult (success/failure, snapshot ID, errors) to the console.
 - [ ] 8.5. Implement the compare command logic:
   - [ ] 8.5.1. Parse arguments into a ComparisonConfig object (reading rule file content if path provided).
   - [ ] 8.5.2. Instantiate the API Layer implementation.
