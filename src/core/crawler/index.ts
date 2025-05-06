@@ -3,12 +3,11 @@ import type {
   CrawlerInstance,
   CrawlError,
   CrawlResult,
-  PageSnapshot,
 } from "@project-types/crawler";
 import { Dataset } from "crawlee";
+import { randomUUID } from "crypto";
 import { createCheerioCrawler } from "./implementations/cheerio";
 import { createPlaywrightCrawler } from "./implementations/playwright";
-import { randomUUID } from "crypto";
 
 export class BreakcheckCrawler {
   private config: CrawlerConfig;

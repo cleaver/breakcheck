@@ -1,29 +1,22 @@
 import { CrawlerConfig, PageSnapshot } from "@project-types/crawler";
+import type { Dataset } from "crawlee";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
-import type { Dataset } from "crawlee";
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
 
-interface SnapshotData {
-  pages: PageSnapshot[];
-  metadata: {
-    baseUrl: string;
-    timestamp: string;
-    crawlSettings: CrawlerConfig;
-  };
+interface SnapshotMetadata {
+  baseUrl: string;
+  timestamp: string;
+  crawlSettings: CrawlerConfig;
 }
 
-interface SnapshotDataStreamed {
+interface SnapshotData {
   dataset: InstanceType<typeof Dataset>;
-  metadata: {
-    baseUrl: string;
-    timestamp: string;
-    crawlSettings: CrawlerConfig;
-  };
+  metadata: SnapshotMetadata;
 }
 
 interface SnapshotIndex {
@@ -43,11 +36,15 @@ interface SnapshotIndex {
 
 // New interface/class for loaded snapshot with on-demand page loading
 export class LoadedSnapshot {
-  public readonly metadata: any;
+  public readonly metadata: SnapshotMetadata;
   public readonly index: SnapshotIndex;
   private readonly pagesDir: string;
 
-  constructor(metadata: any, index: SnapshotIndex, pagesDir: string) {
+  constructor(
+    metadata: SnapshotMetadata,
+    index: SnapshotIndex,
+    pagesDir: string
+  ) {
     this.metadata = metadata;
     this.index = index;
     this.pagesDir = pagesDir;
@@ -84,10 +81,7 @@ export class SnapshotManager {
    * Save a snapshot to disk (streaming/iterative)
    * Returns the number of non-error pages saved
    */
-  async saveSnapshot(
-    name: string,
-    data: SnapshotDataStreamed
-  ): Promise<number> {
+  async saveSnapshot(name: string, data: SnapshotData): Promise<number> {
     // Ensure snapshots directory exists
     await fs.mkdir(this.snapshotsDir, { recursive: true });
 
