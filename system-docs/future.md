@@ -11,3 +11,7 @@
 - store and read config files
 - interactive config files
 - ability to set a snapshot as baseline
+
+# Things to check:
+
+- [q] ~~Does `CompareConfig` have too many options. `normalizeHtml` will probably be done elsewhere.~~
