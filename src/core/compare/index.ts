@@ -1,5 +1,5 @@
 import { PageSnapshot } from "@project-types/crawler";
-import { PageDiff } from "@project-types/compare";
+import { PageDiff, LineDifference } from "@project-types/compare";
 import { diffLines, Change } from "diff";
 
 /**
@@ -13,32 +13,21 @@ export class CompareManager {
     before: PageSnapshot,
     after: PageSnapshot
   ): Promise<PageDiff> {
-    const differences: PageDiff["differences"] = [];
     const url = before.url;
 
-    // Compare content
-    const contentDiff = diffLines(before.content, after.content);
+    const differences: LineDifference[] = diffLines(
+      before.content,
+      after.content
+    );
 
-    // Process differences
-    contentDiff.forEach((part: Change) => {
-      if (part.added || part.removed) {
-        differences.push({
-          type: "content",
-          selector: "body", // Default to body since we're comparing full HTML
-          before: part.removed ? part.value : undefined,
-          after: part.added ? part.value : undefined,
-          message: part.added ? "Content added" : "Content removed",
-        });
-      }
-    });
+    const hasDifferences = differences.some(
+      (diff) => diff.added || diff.removed
+    );
 
     return {
       url,
       differences,
-      hasDifferences: differences.length > 0,
-      existsInBoth: true,
-      onlyInBefore: false,
-      onlyInAfter: false,
+      hasDifferences,
     };
   }
 }
