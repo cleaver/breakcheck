@@ -4,7 +4,7 @@
 ## **1. Project Setup & Core Structures**
 
 - [x] 1.1. Initialize Typescript project (npm/yarn init, tsconfig.json).
-- [ ] 1.2. Set up testing framework (Jest/Vitest) and configuration.
+- [x] 1.2. Set up testing framework (Jest/Vitest) and configuration.
 - [x] 1.3. Define core data structures/interfaces (e.g., PageSnapshot, DiffResult, Rule, Action based on JSON spec, API Layer input/output types like SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonResult).
 - [x] 1.4. Choose and install core dependencies (logging library, ~~error handling utility~~).
 - [ ] 1.5. Consider adding an error handling utility like [handle-cli-error](https://github.com/ehmicky/handle-cli-error).

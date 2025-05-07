@@ -10,15 +10,19 @@
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage"
   },
   "author": "Cleaver Barnes",
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/commander": "^2.12.0",
     "@types/node": "^22.15.2",
+    "@vitest/coverage-v8": "^3.1.3",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.3"
   },
   "dependencies": {
     "commander": "^13.1.0",
