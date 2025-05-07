@@ -105,14 +105,14 @@ _(Parsing invoked by API Layer, Application logic used by DOM Processor)_
 - **FR-RULE-07:** The rule application logic (within the DOM Processor) must correctly interpret the parsed JSON rules (mode, selectors, actions, modifiers) to modify the DOM.
 - **FR-RULE-08:** The engine should handle rule order predictably (e.g., order of definition in the DSL/JSON array).
 
-### 3.6 Diff Engine (fast-diff, html-differ)
+### 3.6 Diff Engine
 
 _(Invoked by the API Layer)_
 
 - **FR-DIFF-01:** The diff engine must compare two processed DOM structures (output from the DOM Processor for a corresponding 'before' and 'after' page).
-- **FR-DIFF-02:** The comparison must identify differences at both the structural level (elements/attributes added, removed, modified - using e.g., html-differ) and the content level (text changes within elements - using e.g., fast-diff).
+- ~~REMOVE: **FR-DIFF-02:** The comparison must identify differences at both the structural level (elements/attributes added, removed, modified) and the content level (text changes within elements).~~
 - **FR-DIFF-03:** The Diff Engine must operate on the DOMs _after_ normalization and rule application have occurred.
-- **FR-DIFF-04:** The Diff Engine must produce a structured DiffResult object detailing the identified differences (type, location/selector, before/after snippets).
+- **FR-DIFF-04:** The Diff Engine must produce a structured PageDiff object detailing the identified differences (type, location/selector, before/after snippets).
 - **FR-DIFF-05:** The Diff Engine itself doesn't classify expected/unexpected; that filtering happens during DOM processing based on rules. It reports all differences found between the _processed_ DOMs.
 
 ### 3.7 Reporting
@@ -199,7 +199,7 @@ graph TD
     - **DOM Processor:** Parses HTML, applies normalization and parsed rules.
     - **Diff Engine:** Compares two processed DOMs.
   - _(The "Core Engine Facade" might be implicitly part of the API Layer's implementation)_
-- **Technologies:** Typescript, Crawlee, Cheerio, xpath, fast-diff, html-differ, Chevrotain, Commander.js, interactive-commander, Ink, zlib.
+- **Technologies:** Typescript, Crawlee, Cheerio, xpath, diff (jsdiff), Chevrotain, Commander.js, interactive-commander, Ink, zlib.
 - **Data Flow:** Interface -> API Layer -> (Rules Parser ->) Crawler/SnapshotMgr/DOMProcessor/DiffEngine -> File System/Results -> API Layer -> Interface.
 
 ## 6. Data Management

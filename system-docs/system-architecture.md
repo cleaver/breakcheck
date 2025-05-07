@@ -63,7 +63,7 @@ F --> J[(File System / Snapshot Storage)]
    - **Tech**: Cheerio ([https://github.com/cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)), xpath (XPath library)
    - **Responsibility**: Parsing HTML, applying normalization, applying rules (via CSS/XPath selectors) received from the API Layer. _Invoked by the API Layer during comparison._
 4. **Diff Engine**
-   - **Tech**: fast-diff ([https://github.com/jhchen/fast-diff](https://github.com/jhchen/fast-diff)), html-differ (structural comparison)
+   - **Tech**: [diff](https://github.com/kpdecker/jsdiff)
    - **Responsibility**: Comparing two processed DOM structures provided by the API Layer, identifying differences. _Invoked by the API Layer._
 5. **Rules Engine Parser**
    - **Tech**: Chevrotain (DSL parser), JSON Schema (validation)

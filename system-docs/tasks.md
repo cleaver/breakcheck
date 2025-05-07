@@ -41,8 +41,8 @@
 
 ## **4. Diff Engine (fast-diff, html-differ)**
 
-- [ ] 4.1. Choose and integrate HTML diffing library (e.g., html-differ or similar for structural comparison).
-- [ ] 4.2. Choose and integrate text diffing library (e.g., fast-diff for content changes within elements).
+- [x] 4.1. Choose and integrate HTML diffing library (CB: we'll use `diff` npm package)
+- [x] 4.2. Choose and integrate text diffing library (`diff`)
 - [ ] 4.3. Implement comparison logic taking two processed DOMs (output from DOM Processor) as input.
 - [ ] 4.4. Implement logic to identify structural changes (added/removed/moved elements/attributes).
 - [ ] 4.5. Implement logic to identify content changes (text modifications).
