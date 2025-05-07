@@ -1,19 +1,7 @@
+import { SnapshotManager } from "@core/snapshot";
+import { LineDifference, PageDiff, SnapshotDiff } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
-import { PageDiff, LineDifference } from "@project-types/compare";
-import { diffLines, Change } from "diff";
-import { SnapshotManager } from "../snapshot";
-
-/**
- * Result of comparing two snapshots
- */
-export interface SnapshotComparisonResult {
-  /** List of page differences found */
-  pageDiffs: PageDiff[];
-  /** URLs that exist in the after snapshot but not in the before snapshot */
-  newUrls: string[];
-  /** URLs that exist in the before snapshot but not in the after snapshot */
-  removedUrls: string[];
-}
+import { diffLines } from "diff";
 
 /**
  * Manages the comparison of page snapshots
@@ -60,7 +48,7 @@ export class CompareManager {
     beforeName: string,
     afterName: string,
     urls?: string[]
-  ): Promise<SnapshotComparisonResult> {
+  ): Promise<SnapshotDiff> {
     // Load both snapshots
     const beforeSnapshot = await this.snapshotManager.loadSnapshot(beforeName);
     const afterSnapshot = await this.snapshotManager.loadSnapshot(afterName);

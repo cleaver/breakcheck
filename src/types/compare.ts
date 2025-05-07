@@ -17,3 +17,15 @@ export interface PageDiff {
   /** Whether the page had any differences */
   hasDifferences: boolean;
 }
+
+/**
+ * Result of comparing two snapshots
+ */
+export interface SnapshotDiff {
+  /** List of page differences found */
+  pageDiffs: PageDiff[];
+  /** URLs that exist in the after snapshot but not in the before snapshot */
+  newUrls: string[];
+  /** URLs that exist in the before snapshot but not in the after snapshot */
+  removedUrls: string[];
+}
