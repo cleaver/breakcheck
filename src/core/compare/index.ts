@@ -9,7 +9,7 @@ export class CompareManager {
   /**
    * Compares two page snapshots and returns the differences found
    */
-  async compareSnapshots(
+  async comparePage(
     before: PageSnapshot,
     after: PageSnapshot
   ): Promise<PageDiff> {

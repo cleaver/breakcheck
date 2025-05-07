@@ -23,7 +23,7 @@ describe("CompareManager", () => {
         headers: { "content-type": "text/html" },
       };
 
-      const result = await compareManager.compareSnapshots(before, after);
+      const result = await compareManager.comparePage(before, after);
 
       expect(result.url).toBe("https://example.com");
       expect(result.hasDifferences).toBe(true);
@@ -53,7 +53,7 @@ describe("CompareManager", () => {
         headers: { "content-type": "text/html" },
       };
 
-      const result = await compareManager.compareSnapshots(snapshot, snapshot);
+      const result = await compareManager.comparePage(snapshot, snapshot);
 
       expect(result.url).toBe("https://example.com");
       expect(result.hasDifferences).toBe(false);
