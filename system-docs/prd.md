@@ -242,7 +242,10 @@ graph TD
 
 - **API Layer:** The software interface that exposes Breakcheck's core functionalities (snapshotting, comparison) and orchestrates the underlying components. Acts as an intermediary between clients (like the CLI) and the core engine.
 - **Core Engine Components:** The collection of specialized modules performing the main tasks (Crawling, Snapshot Management, Rule Parsing, DOM Processing, Diffing, etc.), invoked via the API Layer.
+- **Page:** An individual captured page.
 - **Snapshot:** A representation of the website's state at a specific point in time, containing crawled URLs and their corresponding HTML content, stored by the Snapshot Manager.
+- **Page Diff:** A before / after comparison of a particular page as identified by URL.
+- **Snapshot Diff:** A before / after comparison of a entire snapshots.
 - **DOM (Document Object Model):** A structured representation of an HTML document used for processing.
 - **DSL (Domain Specific Language):** The specialized language used in Breakcheck rule files (.breakcheckrc) to define comparison behavior.
 - **Rules Engine:** The combination of the DSL Parser and the Rule Application Logic within the DOM Processor.
