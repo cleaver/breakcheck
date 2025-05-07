@@ -2,6 +2,7 @@
 
 import { compareCommand } from "@cli/commands/compare.js";
 import { snapshotCommand } from "@cli/commands/snapshot.js";
+import { listSnapshotsCommand } from "@cli/commands/list-snapshots.js";
 import { Command } from "commander";
 
 // Create the main program
@@ -16,6 +17,7 @@ program
 // Add the commands to the program
 program.addCommand(snapshotCommand);
 program.addCommand(compareCommand);
+program.addCommand(listSnapshotsCommand);
 
 // Parse command line arguments
 program.parse();

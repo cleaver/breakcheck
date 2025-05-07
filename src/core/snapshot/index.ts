@@ -56,6 +56,13 @@ export class LoadedSnapshot {
   }
 }
 
+interface SnapshotSummary {
+  name: string;
+  date: string;
+  pageCount: number;
+  errorCount: number;
+}
+
 export class SnapshotManager {
   private readonly snapshotsDir: string;
 
@@ -189,16 +196,55 @@ export class SnapshotManager {
   }
 
   /**
-   * List all available snapshots
+   * List all available snapshots with their details
    */
-  async listSnapshots(): Promise<string[]> {
+  async listSnapshots(): Promise<SnapshotSummary[]> {
     try {
       const entries = await fs.readdir(this.snapshotsDir, {
         withFileTypes: true,
       });
-      return entries
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name);
+
+      const snapshots = entries.filter((entry) => entry.isDirectory());
+      const summaries: SnapshotSummary[] = [];
+
+      for (const snapshot of snapshots) {
+        try {
+          // Load metadata
+          const metadataPath = path.join(
+            this.snapshotsDir,
+            snapshot.name,
+            "metadata.json"
+          );
+          const metadataContent = await fs.readFile(metadataPath, "utf-8");
+          const metadata = JSON.parse(metadataContent);
+
+          // Load index for page count
+          const indexPath = path.join(
+            this.snapshotsDir,
+            snapshot.name,
+            "index.json"
+          );
+          const indexContent = await fs.readFile(indexPath, "utf-8");
+          const index: SnapshotIndex = JSON.parse(indexContent);
+
+          summaries.push({
+            name: snapshot.name,
+            date: metadata.timestamp,
+            pageCount: index.metadata.totalPages,
+            errorCount: 0, // TODO: Track error count in metadata
+          });
+        } catch (error) {
+          // If we can't read the metadata or index, just include the name
+          summaries.push({
+            name: snapshot.name,
+            date: "Unknown",
+            pageCount: 0,
+            errorCount: 0,
+          });
+        }
+      }
+
+      return summaries;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
         return [];

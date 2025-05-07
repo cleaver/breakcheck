@@ -5,11 +5,18 @@ import type {
   SnapshotResult,
 } from "@project-types/api";
 import { createSnapshot } from "./snapshot";
+import { SnapshotManager } from "@core/snapshot";
 
 /**
  * The main Breakcheck API interface
  */
 export class BreakcheckApi {
+  private snapshotManager: SnapshotManager;
+
+  constructor() {
+    this.snapshotManager = new SnapshotManager();
+  }
+
   /**
    * Creates a snapshot of a website based on the provided configuration.
    * Orchestrates calls to Crawler and Snapshot Manager.
@@ -26,6 +33,13 @@ export class BreakcheckApi {
   async runComparison(config: ComparisonConfig): Promise<ComparisonResult> {
     // TODO: Implement in task 7.3
     throw new Error("Not implemented yet");
+  }
+
+  /**
+   * Lists all available snapshots with their details
+   */
+  async listSnapshots() {
+    return this.snapshotManager.listSnapshots();
   }
 }
 

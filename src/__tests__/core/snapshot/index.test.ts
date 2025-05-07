@@ -258,6 +258,7 @@ describe("SnapshotManager", () => {
       });
 
       const snapshots = await snapshotManager.listSnapshots();
+      console.log("snapshots", snapshots);
       expect(snapshots).toContain("snapshot1");
       expect(snapshots).toContain("snapshot2");
     });
