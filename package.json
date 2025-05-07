@@ -10,8 +10,8 @@
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
-    "test": "vitest",
-    "test:watch": "vitest watch",
+    "test": "vitest --run",
+    "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "author": "Cleaver Barnes",

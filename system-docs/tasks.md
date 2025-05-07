@@ -60,7 +60,7 @@
 - [x] 5.6. Implement decompression during loading.
 - [x] 5.7. Implement metadata handling (timestamps, config used).
 - [ ] 5.8. (Optional) Implement content fingerprinting (SHA hash) during snapshot creation (FR-SNAP-06).
-- [ ] 5.9. Write unit tests for saving and loading snapshots.
+- [x] 5.9. Write unit tests for saving and loading snapshots.
 
 ## **6. Crawler (Crawlee)**
 
