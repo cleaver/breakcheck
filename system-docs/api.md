@@ -18,20 +18,27 @@
 
 ```typescript
 // Exported from src/api/index.ts
-import type { SnapshotConfig, SnapshotResult, ComparisonConfig, ComparisonResult } from './types';
+import type {
+  SnapshotConfig,
+  SnapshotResult,
+  ComparisonConfig,
+  ComparisonResult,
+} from "./types";
 
-/\*\*
- \* Creates a snapshot of a website based on the provided configuration.
- \* Orchestrates calls to Crawler and Snapshot Manager.
- \*/
-async function createSnapshot(config: SnapshotConfig): Promise\<SnapshotResult\>;
+/**
+ * Creates a snapshot of a website based on the provided configuration.
+ * Orchestrates calls to Crawler and Snapshot Manager.
+ */
+async function createSnapshot(config: SnapshotConfig): Promise<SnapshotResult>;
 
-/\*\*
- \* Runs a comparison between two snapshots using specified rules.
- \* Orchestrates calls to Snapshot Manager, Rules Engine Parser (if needed),
- \* DOM Processor, and Diff Engine.
- \*/
-async function runComparison(config: ComparisonConfig): Promise\<ComparisonResult\>;
+/**
+ * Runs a comparison between two snapshots using specified rules.
+ * Orchestrates calls to Snapshot Manager, Rules Engine Parser (if needed),
+ * DOM Processor, and Diff Engine.
+ */
+async function runComparison(
+  config: ComparisonConfig
+): Promise<ComparisonResult>;
 
 // Potentially others: listSnapshots, getSnapshotDetails, validateRules...
 ```
