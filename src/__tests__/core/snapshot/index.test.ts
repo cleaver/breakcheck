@@ -258,9 +258,32 @@ describe("SnapshotManager", () => {
       });
 
       const snapshots = await snapshotManager.listSnapshots();
-      console.log("snapshots", snapshots);
-      expect(snapshots).toContain("snapshot1");
-      expect(snapshots).toContain("snapshot2");
+
+      // Check that we got the expected number of snapshots
+      expect(snapshots).toHaveLength(2);
+
+      // Check that both snapshots are present with correct data
+      const snapshot1 = snapshots.find((s) => s.name === "snapshot1");
+      const snapshot2 = snapshots.find((s) => s.name === "snapshot2");
+
+      expect(snapshot1).toBeDefined();
+      expect(snapshot2).toBeDefined();
+
+      // Check snapshot1 details
+      expect(snapshot1).toEqual({
+        name: "snapshot1",
+        date: metadata.timestamp,
+        pageCount: 1,
+        errorCount: 0,
+      });
+
+      // Check snapshot2 details
+      expect(snapshot2).toEqual({
+        name: "snapshot2",
+        date: metadata.timestamp,
+        pageCount: 1,
+        errorCount: 0,
+      });
     });
 
     it("should return empty array when no snapshots exist", async () => {
