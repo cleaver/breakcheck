@@ -23,7 +23,7 @@ import type {
   SnapshotResult,
   ComparisonConfig,
   ComparisonResult,
-} from "./types";
+} from "@project-types/api";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.

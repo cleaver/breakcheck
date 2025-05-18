@@ -229,6 +229,7 @@ graph TD
 - **FC-04:** **Plugin System:** Formalize a plugin architecture (e.g., for custom rule actions, reporters, snapshot storage) potentially managed via the API.
 - **FC-05:** **API / CI/CD Integration:** Provide clear documentation and potentially client libraries for using the (future network) API in automated CI/CD pipelines.
 - **FC-06:** **Screenshot Comparison:** Add optional screenshot capture during crawl and comparison capabilities (visual regression testing).
+- **FC-07:** **REST API:** Add REST API implementing 202 / Polling approach for long running jobs like snapshot.
 
 ## 9. Out of Scope (for v2.1)
 
