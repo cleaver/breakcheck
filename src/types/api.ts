@@ -1,4 +1,29 @@
-import { CrawlerConfig } from "@project-types/crawler";
+/** Types for API users. */
+
+export type CrawlerType = "cheerio" | "playwright";
+
+/**
+ * Configuration for the crawler behavior.
+ * Used both internally by the crawler and externally via the API.
+ */
+export interface CrawlerConfig {
+  /** Base URL to start crawling from */
+  baseUrl: string;
+  /** Maximum depth to crawl from the base URL */
+  maxDepth?: number;
+  /** Maximum number of requests to make */
+  maxRequests?: number;
+  /** Maximum number of concurrent requests */
+  maxConcurrency?: number;
+  /** URL patterns to include in the crawl */
+  includePatterns?: string[];
+  /** URL patterns to exclude from the crawl */
+  excludePatterns?: string[];
+  /** User agent string to use for requests */
+  userAgent?: string;
+  /** Type of crawler to use (cheerio or playwright) */
+  crawlerType: CrawlerType;
+}
 
 /**
  * Configuration for creating a snapshot
@@ -14,34 +39,71 @@ export interface SnapshotConfig {
   urlListPath?: string;
 }
 
-/**
- * Result of a snapshot creation operation
- */
-export interface SnapshotResult {
-  /** Whether the snapshot was created successfully */
-  success: boolean;
-  /** Name/identifier of the created snapshot */
+interface SnapshotJobBase {
   snapshotId: string;
-  /** Timestamp when the snapshot was created */
+}
+
+/**
+ * Snapshot job is pending
+ */
+export interface SnapshotJobPending extends SnapshotJobBase {
+  status: "pending";
+  message?: string;
+}
+
+/**
+ * Snapshot job is processing
+ */
+export interface SnapshotJobProcessing extends SnapshotJobBase {
+  status: "processing";
+  message?: string;
+  progress?: {
+    pagesCrawled?: number;
+  };
+}
+
+/**
+ * Snapshot job is successful
+ */
+export interface SnapshotJobSuccess extends SnapshotJobBase {
+  status: "success";
   timestamp: string;
-  /** Base URL that was crawled */
   baseUrl: string;
-  /** Number of pages successfully crawled */
   pageCount: number;
-  /** Any errors that occurred during crawling */
   errors: Array<{
     url: string;
     message: string;
     code?: string;
   }>;
-  /** Metadata about the crawl */
   metadata: {
     crawlSettings: CrawlerConfig;
-    duration: number; // in milliseconds
+    durationMs: number;
   };
-  /** Path to the generated URL list file, if requested */
-  urlListPath?: string;
+  urlList?: string[];
 }
+
+/**
+ * Snapshot job failed
+ */
+export interface SnapshotJobFailed extends SnapshotJobBase {
+  status: "failed";
+  message: string;
+  errors: Array<{
+    code?: string;
+    message: string;
+  }>;
+}
+
+export type SnapshotJobStatusResponse =
+  | SnapshotJobPending
+  | SnapshotJobProcessing
+  | SnapshotJobSuccess
+  | SnapshotJobFailed;
+
+/**
+ * Result of a snapshot creation operation
+ */
+export type SnapshotResult = SnapshotJobSuccess | SnapshotJobFailed;
 
 /**
  * Configuration for running a comparison
@@ -51,8 +113,10 @@ export interface ComparisonConfig {
   beforeSnapshotId: string;
   /** Name/identifier of the "after" snapshot */
   afterSnapshotId: string;
-  /** Rules to apply during comparison (either as DSL text or pre-parsed JSON) */
-  rules: string | object;
+  /** Name/identifier of the ruleset to use */
+  rulesetName?: string;
+  /** Optional list of URLs to compare */
+  urls?: string[];
 }
 
 /**

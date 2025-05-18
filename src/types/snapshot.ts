@@ -1,3 +1,5 @@
+/** Internal types for snapshot saves / indexing used by other modules. */
+
 export interface SnapshotIndex {
   urls: {
     [url: string]: {

@@ -1,10 +1,12 @@
+/** Internal types for diffs / comparisons used by other modules */
+
 import { Change } from "diff";
 
 /**
  * Represents a single difference found between two page snapshots
  * This is equivalent to the Change type from the diff package
  */
-export type LineDifference = Change;
+export type LineDiff = Change;
 
 /**
  * Represents the complete diff result for a single page
@@ -13,7 +15,7 @@ export interface PageDiff {
   /** URL of the page being compared */
   url: string;
   /** List of differences found */
-  differences: LineDifference[];
+  differences: LineDiff[];
   /** Whether the page had any differences */
   hasDifferences: boolean;
 }
