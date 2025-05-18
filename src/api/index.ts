@@ -1,3 +1,4 @@
+import { SnapshotManager } from "@core/snapshot";
 import type {
   ComparisonConfig,
   ComparisonResult,
@@ -5,8 +6,7 @@ import type {
   SnapshotResult,
 } from "@project-types/api";
 import { createSnapshot } from "./snapshot";
-import { SnapshotManager } from "@core/snapshot";
-
+import { CompareManager } from "@core/compare";
 /**
  * The main Breakcheck API interface
  */
@@ -31,8 +31,8 @@ export class BreakcheckApi {
    * DOM Processor, and Diff Engine.
    */
   async runComparison(config: ComparisonConfig): Promise<ComparisonResult> {
-    // TODO: Implement in task 7.3
-    throw new Error("Not implemented yet");
+    const compareManager = new CompareManager();
+    return await compareManager.compareSnapshots(config);
   }
 
   /**
@@ -45,7 +45,6 @@ export class BreakcheckApi {
 
 // Export types for external use
 export type {
-  ComparisonConfig,
   ComparisonResult,
   SnapshotConfig,
   SnapshotResult,

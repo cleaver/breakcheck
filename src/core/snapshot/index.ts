@@ -1,4 +1,5 @@
-import { CrawlerConfig, PageSnapshot } from "@project-types/crawler";
+import { CrawlerConfig } from "@project-types/api";
+import { PageSnapshot } from "@project-types/crawler";
 import type { Dataset } from "crawlee";
 import * as fs from "fs/promises";
 import * as path from "path";

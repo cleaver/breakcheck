@@ -1,5 +1,6 @@
+import { ComparisonConfig } from "@/types/api";
 import { SnapshotManager } from "@core/snapshot";
-import { LineDifference, PageDiff, SnapshotDiff } from "@project-types/compare";
+import { LineDiff, PageDiff, SnapshotDiff } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
 
@@ -22,10 +23,7 @@ export class CompareManager {
   ): Promise<PageDiff> {
     const url = before.url;
 
-    const differences: LineDifference[] = diffLines(
-      before.content,
-      after.content
-    );
+    const differences: LineDiff[] = diffLines(before.content, after.content);
 
     const hasDifferences = differences.some(
       (diff) => diff.added || diff.removed
@@ -44,23 +42,24 @@ export class CompareManager {
    * @param afterName Name of the after snapshot
    * @param urls Optional list of URLs to compare. If not provided, compares all URLs.
    */
-  async compareSnapshots(
-    beforeName: string,
-    afterName: string,
-    urls?: string[]
-  ): Promise<SnapshotDiff> {
+  async compareSnapshots(config: ComparisonConfig): Promise<SnapshotDiff> {
     // Load both snapshots
-    const beforeSnapshot = await this.snapshotManager.loadSnapshot(beforeName);
-    const afterSnapshot = await this.snapshotManager.loadSnapshot(afterName);
+    const beforeSnapshot = await this.snapshotManager.loadSnapshot(
+      config.beforeSnapshotId
+    );
+    const afterSnapshot = await this.snapshotManager.loadSnapshot(
+      config.afterSnapshotId
+    );
 
     // Get all URLs from both snapshots
     const beforeUrls = Object.keys(beforeSnapshot.index.urls).sort();
     const afterUrls = Object.keys(afterSnapshot.index.urls);
 
     // Filter URLs if specified
-    const urlsToCompare = urls
-      ? beforeUrls.filter((url) => urls.includes(url))
-      : beforeUrls;
+    const urlsToCompare =
+      Array.isArray(config.urls) && config.urls.length > 0
+        ? beforeUrls.filter((url) => (config.urls as string[]).includes(url))
+        : beforeUrls;
 
     // Find new and removed URLs
     const newUrls = afterUrls.filter((url) => !beforeUrls.includes(url));

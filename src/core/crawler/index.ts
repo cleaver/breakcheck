@@ -1,5 +1,5 @@
+import type { CrawlerConfig } from "@project-types/api";
 import type {
-  CrawlerConfig,
   CrawlerInstance,
   CrawlError,
   CrawlResult,
