@@ -17,7 +17,7 @@ export interface CrawlResult {
 
 export interface CrawlError {
   url: string;
-  error: string;
+  message: string;
   statusCode?: number;
 }
 

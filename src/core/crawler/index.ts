@@ -41,7 +41,7 @@ export class BreakcheckCrawler {
         if (item.type === "error") {
           this.errors.push({
             url: item.url,
-            error: item.error,
+            message: item.error,
             statusCode: item.statusCode,
           });
         }

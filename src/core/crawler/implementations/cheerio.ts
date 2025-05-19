@@ -45,7 +45,7 @@ export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
     failedRequestHandler: async ({ request, error }) => {
       const crawlError: CrawlError = {
         url: request.url,
-        error: error instanceof Error ? error.message : String(error),
+        message: error instanceof Error ? error.message : String(error),
         statusCode:
           error instanceof Error && "statusCode" in error
             ? (error.statusCode as number)

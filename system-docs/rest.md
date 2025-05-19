@@ -172,7 +172,7 @@ Manages website snapshots.
           {
             "url": "string (url)",
             "message": "string",
-            "code": "string (optional, http status code)"
+            "statusCode": "integer (optional, http status code)"
           }
         ],
         "metadata": {
@@ -180,7 +180,7 @@ Manages website snapshots.
             // CrawlerConfig object
             // ...
           },
-          "duration": "integer (milliseconds)"
+          "durationMs": "integer (milliseconds)"
         },
         "urlList": [
           "string (url)"
@@ -200,7 +200,7 @@ Manages website snapshots.
           {
             "url": "string (optional)",
             "message": "string",
-            "code": "string (optional)"
+            "statusCode": "integer (optional)"
           }
         ]
       }

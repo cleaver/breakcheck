@@ -1,7 +1,7 @@
 import { BreakcheckCrawler } from "@core/crawler";
 import { SnapshotManager } from "@core/snapshot";
 import { SnapshotConfig, SnapshotResult } from "@project-types/api";
-import type { CrawlError } from "@project-types/crawler";
+import { CrawlError } from "@project-types/crawler";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.
@@ -11,7 +11,7 @@ export async function createSnapshot(
   config: SnapshotConfig
 ): Promise<SnapshotResult> {
   const startTime = Date.now();
-  const errors: SnapshotResult["errors"] = [];
+  const errors: CrawlError[] = [];
 
   try {
     // Validate input config
@@ -29,13 +29,7 @@ export async function createSnapshot(
     const { datasetName, errors: crawlErrors } = await crawler.crawl();
 
     // Convert crawl errors to result format
-    errors.push(
-      ...crawlErrors.map((err: CrawlError) => ({
-        url: err.url,
-        message: err.error,
-        code: err.statusCode?.toString(),
-      }))
-    );
+    errors.push(...crawlErrors);
 
     // Open the dataset
     const dataset = await (await import("crawlee")).Dataset.open(datasetName);
@@ -65,15 +59,15 @@ export async function createSnapshot(
 
     // Return result
     return {
-      success: true,
+      status: "success",
       snapshotId: config.name,
       timestamp: new Date().toISOString(),
       baseUrl: config.baseUrl,
       pageCount,
-      errors,
+      errors: errors,
       metadata: {
         crawlSettings: config.crawlSettings,
-        duration,
+        durationMs: duration,
       },
       urlListPath,
     };
@@ -86,16 +80,11 @@ export async function createSnapshot(
     });
 
     return {
-      success: false,
+      status: "failed",
       snapshotId: config.name,
-      timestamp: new Date().toISOString(),
-      baseUrl: config.baseUrl,
-      pageCount: 0,
+      message:
+        error instanceof Error ? error.message : "Unknown error occurred",
       errors,
-      metadata: {
-        crawlSettings: config.crawlSettings,
-        duration: Date.now() - startTime,
-      },
     };
   }
 }

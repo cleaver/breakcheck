@@ -1,5 +1,7 @@
 /** Types for API users. */
 
+import { CrawlError } from "./crawler";
+
 export type CrawlerType = "cheerio" | "playwright";
 
 /**
@@ -70,15 +72,14 @@ export interface SnapshotJobSuccess extends SnapshotJobBase {
   timestamp: string;
   baseUrl: string;
   pageCount: number;
-  errors: Array<{
-    url: string;
-    message: string;
-    code?: string;
-  }>;
+  errors: Array<CrawlError>;
   metadata: {
     crawlSettings: CrawlerConfig;
     durationMs: number;
   };
+  /** Path to the URL list file */
+  urlListPath?: string;
+  /** List of URLs crawled */
   urlList?: string[];
 }
 
@@ -89,7 +90,7 @@ export interface SnapshotJobFailed extends SnapshotJobBase {
   status: "failed";
   message: string;
   errors: Array<{
-    code?: string;
+    statusCode?: number;
     message: string;
   }>;
 }
@@ -146,6 +147,6 @@ export interface ComparisonResult {
   errors: Array<{
     url: string;
     message: string;
-    code?: string;
+    statusCode?: string;
   }>;
 }
