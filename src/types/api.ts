@@ -132,17 +132,8 @@ export interface ComparisonResult {
     pagesWithDifferences: number;
     totalDifferences: number;
   };
-  /** Detailed differences found, grouped by page URL */
-  differences: Array<{
-    url: string;
-    differences: Array<{
-      type: "element" | "attribute" | "content";
-      selector: string;
-      before?: string;
-      after?: string;
-      message: string;
-    }>;
-  }>;
+  /** Path to the file containing detailed differences */
+  differencesPath: string;
   /** Any errors that occurred during comparison */
   errors: Array<{
     url: string;

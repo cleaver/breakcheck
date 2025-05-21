@@ -118,10 +118,10 @@ _(Invoked by the API Layer)_
 ### 3.7 Reporting
 
 - **FR-REP-01:** The **API Layer** must aggregate DiffResult objects from the Diff Engine and return a structured summary report object (number of pages compared, pages with differences, etc.).
-- **FR-REP-02:** The **API Layer** must return structured data detailing the specific differences found, grouped by page URL (based on the aggregated DiffResult objects).
-- **FR-REP-03:** For each difference, the returned data must provide context (selector/XPath, type of change, before/after snippets).
-- **FR-REP-04:** The **CLI** must format the structured data received from the API into human-readable console output.
-- **FR-REP-05:** The **API Layer** should return the comparison result as structured data (e.g., JSON). The **CLI** will handle writing this to a file if requested (--output).
+- **FR-REP-02:** The **API Layer** must write detailed differences to a file on disk and return the path to this file in the comparison result.
+- **FR-REP-03:** The differences file must contain structured data (e.g., JSON) with differences grouped by page URL, providing context (selector/XPath, type of change, before/after snippets).
+- **FR-REP-04:** The **CLI** must format the structured summary data received from the API into human-readable console output.
+- **FR-REP-05:** The **API Layer** should return the comparison result as structured data (e.g., JSON) containing the summary and path to the differences file. The **CLI** will handle writing this to a file if requested (--output).
 - **FR-REP-06:** (Optional) The **API Layer** could generate HTML diff report data. The **CLI** would handle saving this.
 
 ### 3.8 CLI Interface (Commander.js, interactive-commander, Ink)
@@ -207,7 +207,8 @@ graph TD
 - **DM-01:** Snapshots will be stored on the local file system in a user-specified or default location.
 - **DM-02:** Snapshot format will be a compressed archive (e.g., ZIP) containing structured data (e.g., JSON files per page) and metadata.
 - **DM-03:** Rule configurations will be stored in separate files (e.g., .breakcheckrc) managed by the user, read by the CLI/API.
-- **DM-04:** No database is required for v2.1.
+- **DM-04:** Detailed comparison differences will be stored in JSON files on disk, with paths returned in the comparison result.
+- **DM-05:** No database is required for v2.1.
 
 ## 7. Testing Strategy
 
