@@ -131,7 +131,10 @@ describe("CompareManager", () => {
         beforeSnapshot,
         afterSnapshot
       );
-      const result = await compareManager.compareSnapshots("before", "after");
+      const result = await compareManager.compareSnapshots({
+        beforeSnapshotId: "before",
+        afterSnapshotId: "after",
+      });
 
       expect(result.pageDiffs).toHaveLength(1);
       expect(result.newUrls).toHaveLength(0);
@@ -194,7 +197,10 @@ describe("CompareManager", () => {
         beforeSnapshot,
         afterSnapshot
       );
-      const result = await compareManager.compareSnapshots("before", "after");
+      const result = await compareManager.compareSnapshots({
+        beforeSnapshotId: "before",
+        afterSnapshotId: "after",
+      });
 
       expect(result.pageDiffs).toHaveLength(0);
       expect(result.newUrls).toHaveLength(1);
@@ -264,9 +270,11 @@ describe("CompareManager", () => {
         beforeSnapshot,
         afterSnapshot
       );
-      const result = await compareManager.compareSnapshots("before", "after", [
-        "https://example.com/page1",
-      ]);
+      const result = await compareManager.compareSnapshots({
+        beforeSnapshotId: "before",
+        afterSnapshotId: "after",
+        urls: ["https://example.com/page1"],
+      });
 
       expect(result.pageDiffs).toHaveLength(1);
       expect(result.pageDiffs[0].url).toBe("https://example.com/page1");
@@ -303,7 +311,10 @@ describe("CompareManager", () => {
         snapshot,
         snapshot
       );
-      const result = await compareManager.compareSnapshots("before", "after");
+      const result = await compareManager.compareSnapshots({
+        beforeSnapshotId: "before",
+        afterSnapshotId: "after",
+      });
 
       expect(result.pageDiffs).toHaveLength(1);
       expect(result.pageDiffs[0].hasDifferences).toBe(false);
@@ -378,7 +389,10 @@ describe("CompareManager", () => {
         beforeSnapshot,
         afterSnapshot
       );
-      const result = await compareManager.compareSnapshots("before", "after");
+      const result = await compareManager.compareSnapshots({
+        beforeSnapshotId: "before",
+        afterSnapshotId: "after",
+      });
 
       expect(result.pageDiffs).toHaveLength(3);
 
