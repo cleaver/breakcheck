@@ -11,7 +11,7 @@
 
 - Located within the src/api/ directory.
 - src/api/index.ts: Exports the public API functions.
-- src/api/types.ts: Defines shared TypeScript types for API request configurations (e.g., SnapshotConfig, ComparisonConfig) and response objects (e.g., SnapshotResult, ComparisonResult).
+- src/api/types.ts: Defines shared TypeScript types for API request configurations (e.g., SnapshotConfig, ComparisonConfig) and response objects (e.g., SnapshotResult, ComparisonSummary).
 - Individual modules (e.g., src/api/snapshot.ts, src/api/compare.ts) contain the logic for specific API operations, orchestrating calls to the src/core/ components.
 
 **Key Public Functions (Examples):**
@@ -22,7 +22,7 @@ import type {
   SnapshotConfig,
   SnapshotResult,
   ComparisonConfig,
-  ComparisonResult,
+  ComparisonSummary,
 } from "@project-types/api";
 
 /**
@@ -38,7 +38,7 @@ async function createSnapshot(config: SnapshotConfig): Promise<SnapshotResult>;
  */
 async function runComparison(
   config: ComparisonConfig
-): Promise<ComparisonResult>;
+): Promise<ComparisonSummary>;
 
 // Potentially others: listSnapshots, getSnapshotDetails, validateRules...
 ```

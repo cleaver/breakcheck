@@ -5,7 +5,7 @@
 
 - [x] 1.1. Initialize Typescript project (npm/yarn init, tsconfig.json).
 - [x] 1.2. Set up testing framework (Jest/Vitest) and configuration.
-- [x] 1.3. Define core data structures/interfaces (e.g., PageSnapshot, DiffResult, Rule, Action based on JSON spec, API Layer input/output types like SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonResult).
+- [x] 1.3. Define core data structures/interfaces (e.g., PageSnapshot, DiffResult, Rule, Action based on JSON spec, API Layer input/output types like SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonSummary).
 - [x] 1.4. Choose and install core dependencies (logging library, ~~error handling utility~~).
 - [ ] 1.5. Consider adding an error handling utility like [handle-cli-error](https://github.com/ehmicky/handle-cli-error).
 
@@ -46,13 +46,13 @@
 - [ ] 4.3. Implement comparison logic taking two processed DOMs (output from DOM Processor) as input.
 - [ ] 4.4. Implement logic to identify structural changes (added/removed/moved elements/attributes).
 - [ ] 4.5. Implement logic to identify content changes (text modifications).
-- [ ] 4.6. Define and implement the Difference structure (part of ComparisonResult).
+- [ ] 4.6. Define and implement the Difference structure (part of ComparisonSummary).
 - [ ] 4.7. (Optional) Implement basic HTML report generation for visual diff (potentially as a separate utility or reporter module).
 - [ ] 4.8. Write unit tests comparing various pairs of processed HTML snippets, verifying Difference outputs.
 
 ## **5. Snapshot Manager (File System, zlib)**
 
-- [x] 5.1. Design snapshot storage format (e.g., ZIP archive containing JSON files per page + metadata JSON).
+- [x] 5.1. Design snapshot storage format (e.g., directory containing metadata.json, index.json, and a pages/ subdirectory with gzipped JSON files).
 - [x] 5.2. Implement function to save a collection of PageSnapshot objects and metadata to a named snapshot file/directory.
 - [x] 5.3. Implement compression (gzip) during saving.
 - [x] 5.4. Add an index of pages for quick lookup.
@@ -75,7 +75,7 @@
 
 ## **7. API Layer (Internal Module)**
 
-- [x] 7.1. Define the BreakcheckApi interface and supporting types (SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonResult, etc.) in Typescript.
+- [x] 7.1. Define the BreakcheckApi interface and supporting types (SnapshotConfig, ComparisonConfig, SnapshotResult, ComparisonSummary, etc.) in Typescript.
 - [x] 7.2. Implement the createSnapshot function:
   - [x] 7.2.1. Validate input SnapshotConfig.
   - [x] 7.2.2. Instantiate and configure the Crawler based on config.crawlSettings.
@@ -94,7 +94,7 @@
     - [ ] 7.3.5.3. Call Diff Engine with the two processed DOMs.
   - [ ] 7.3.6. Aggregate Difference results per page into PageComparisonDetail objects. Handle pages only present in one snapshot.
   - [ ] 7.3.7. Compile the overall ComparisonSummary.
-  - [ ] 7.3.8. Format and return the final ComparisonResult.
+  - [ ] 7.3.8. Format and return the final ComparisonSummary.
 - [ ] 7.4. Implement robust error handling throughout the API layer (catching errors from components, returning structured errors).
 - [ ] 7.5. Write integration tests for the API layer functions (createSnapshot, runComparison), mocking core components initially, then testing interactions with real components.
 
@@ -114,10 +114,10 @@
   - [ ] 8.5.2. Instantiate the API Layer implementation.
   - [ ] 8.5.3. Call apiLayer.runComparison(config).
   - [ ] 8.5.4. Display progress/feedback to the user.
-  - [ ] 8.5.5. Receive the ComparisonResult from the API Layer.
-  - [ ] 8.5.6. Format and display the report based on ComparisonResult to the console (summary and details of differences).
-  - [ ] 8.5.7. (Optional) Implement JSON report output (--output): Write the received ComparisonResult object to a file.
-  - [ ] 8.5.8. (Optional) Implement HTML report output (--output): Generate HTML from the ComparisonResult (may require a separate reporting utility called by the CLI).
+  - [ ] 8.5.5. Receive the ComparisonSummary from the API Layer.
+  - [ ] 8.5.6. Format and display the report based on ComparisonSummary to the console (summary and details of differences).
+  - [ ] 8.5.7. (Optional) Implement JSON report output (--output): Write the received ComparisonSummary object to a file.
+  - [ ] 8.5.8. (Optional) Implement HTML report output (--output): Generate HTML from the ComparisonSummary (may require a separate reporting utility called by the CLI).
 - [ ] 8.6. Integrate Ink for enhanced progress reporting and potentially richer output formatting.
 - [ ] 8.7. Implement clear error reporting to the console based on errors received from the API Layer.
 - [ ] 8.8. Write end-to-end tests simulating CLI usage with sample sites and rules, verifying console output and generated files.

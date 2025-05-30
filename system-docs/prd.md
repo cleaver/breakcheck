@@ -77,10 +77,11 @@ _(Invoked by the API Layer)_
 
 - **FR-SNAP-01:** The snapshot manager must store snapshots of crawled site states ("before" and "after") based on identifiers provided by the API Layer.
 - **FR-SNAP-02:** Each snapshot must contain the collection of captured pages (URL, HTML content, headers, etc.) received from the crawler.
-- **FR-SNAP-03:** Snapshots must be stored efficiently on the local file system (e.g., compressed archive like ZIP containing JSON data per page and metadata).
+- **FR-SNAP-03:** Snapshots must be stored for quick easy access. Compression using gzip would be advised.
 - **FR-SNAP-04:** Snapshots must include metadata provided by the API Layer: timestamp of crawl, base URL, crawl configuration used.
 - **FR-SNAP-05:** The snapshot manager shall allow retrieval of specific snapshots by their identifier.
 - **FR-SNAP-06:** (Optional) Implement content fingerprinting (e.g., SHA hash of HTML) for quick identification of unchanged pages during snapshot creation or loading.
+- **FR-SNAP-07:** The snapshot manager will keep an index of all pages in the snapshot.
 
 ### 3.4 DOM Processor (Cheerio, xpath)
 
@@ -134,19 +135,23 @@ _(Invoked by the API Layer)_
 - **FR-CLI-06:** The CLI must receive structured results (or status updates/progress) from the API Layer.
 - **FR-CLI-07:** The CLI must present results and errors received from the API Layer clearly to the user (using console output, potentially enhanced by Ink for progress/formatting).
 - **FR-CLI-08:** The CLI shall not require a database connection or user login.
+- **FR-CLI-09:** The CLI interacts with the internal API synchronously. It will await the Promise returned by an API call (e.g., createSnapshot) and will only proceed after the entire operation has finished and the final result is returned.
 
 ### **3.9 API Layer**
 
 - **FR-API-01:** The API Layer must expose well-defined functions/methods for core operations:
   - createSnapshot(config: SnapshotConfig): `Promise<SnapshotResult>`
-  - runComparison(config: ComparisonConfig): `Promise<ComparisonResult>`
+  - runComparison(config: ComparisonConfig): `Promise<ComparisonSummary>`
   - (Potentially others: listSnapshots, getSnapshotDetails, validateRules)
 - **FR-API-02:** The API Layer must accept configuration objects defining parameters for snapshots (URL, crawl settings) and comparisons (snapshot IDs/names, rules content or path or parsed JSON).
 - **FR-API-03:** The API Layer must orchestrate the necessary calls to the Core Engine components (Crawler, Snapshot Manager, Rules Engine Parser, DOM Processor, Diff Engine) to fulfill requests.
 - **FR-API-04:** The API Layer must handle parsing of the Rules DSL (if rules are passed as raw text) into the intermediate JSON format, invoking the Rules Engine parser.
-- **FR-API-05:** The API Layer must return structured data representing the results of operations (e.g., snapshot metadata, comparison summary and detailed diffs).
+- **FR-API-05:** The API Layer must return structured data objects for operation results.
+  - The `createSnapshot` function must return a `SnapshotResult` object, which, on success, must contain the `snapshotId`, `timestamp`, total `pageCount`, a list of crawl errors, and metadata including `durationMs` and the `crawlSettings` used. If requested, it also includes the `urlListPath`.
+  - The `runComparison` function must return a `ComparisonSummary` object containing a summary (e.g., number of pages with differences, new/removed URLs) and the structured `PageDiff` data for each page compared.
 - **FR-API-06:** The API Layer must implement robust error handling (catching errors from core components) and return meaningful error objects/codes to the client (CLI).
 - **FR-API-07:** For v2.1, the API Layer will be implemented as an internal Typescript interface/module within the same codebase as the CLI.
+- **FR-API-08:** API functions will return a Promise that resolves upon the completion of the entire requested task (e.g., crawling and saving a snapshot). This synchronous execution model is for the internal v2.1 API consumed by the CLI. It is distinct from the asynchronous, non-blocking model planned for the future network-accessible REST API.
 
 ## 4. Non-Functional Requirements
 
@@ -205,7 +210,7 @@ graph TD
 ## 6. Data Management
 
 - **DM-01:** Snapshots will be stored on the local file system in a user-specified or default location.
-- **DM-02:** Snapshot format will be a compressed archive (e.g., ZIP) containing structured data (e.g., JSON files per page) and metadata.
+- **DM-02:** Snapshot page format will contain structured data (e.g., JSON files per page) and metadata. Files can be compressed with gzip.
 - **DM-03:** Rule configurations will be stored in separate files (e.g., .breakcheckrc) managed by the user, read by the CLI/API.
 - **DM-04:** Detailed comparison differences will be stored in JSON files on disk, with paths returned in the comparison result.
 - **DM-05:** No database is required for v2.1.
@@ -246,6 +251,7 @@ graph TD
 - **Core Engine Components:** The collection of specialized modules performing the main tasks (Crawling, Snapshot Management, Rule Parsing, DOM Processing, Diffing, etc.), invoked via the API Layer.
 - **Page:** An individual captured page.
 - **Snapshot:** A representation of the website's state at a specific point in time, containing crawled URLs and their corresponding HTML content, stored by the Snapshot Manager.
+- **Snapshot Index:** A list of all pages in a snapshot.
 - **Page Diff:** A before / after comparison of a particular page as identified by URL.
 - **Snapshot Diff:** A before / after comparison of a entire snapshots.
 - **DOM (Document Object Model):** A structured representation of an HTML document used for processing.

@@ -389,7 +389,7 @@ Manages comparisons between two snapshots. Adopts an asynchronous pattern for po
   - `comparisonId`: The ID of the comparison job.
 - **Responses:**
   - `200 OK`: Summary retrieved. (Requires comparison job status to be "completed")
-    - Body: (Structure based on `SnapshotDiff` from `src/types/compare.ts` and aspects of `ComparisonResult` from `src/types/api.ts`)
+    - Body: (Structure based on `SnapshotDiff` from `src/types/compare.ts` and aspects of `ComparisonSummary` from `src/types/api.ts`)
       ```json
       {
         "comparisonId": "string",
@@ -471,7 +471,7 @@ Manages comparisons between two snapshots. Adopts an asynchronous pattern for po
   - `encodedPageUrl`: The URL-encoded full URL of the page.
 - **Responses:**
   - `200 OK`: Detailed page difference retrieved. (Requires comparison job status to be "completed")
-    - Body: (`PageDiff` structure from `src/types/compare.ts`, where `differences` are `LineDiff` objects or a more structured representation if transformed, e.g. similar to `ComparisonResult.differences[n].differences` from `src/types/api.ts` but for a single page)
+    - Body: (`PageDiff` structure from `src/types/compare.ts`, where `differences` are `LineDiff` objects or a more structured representation if transformed, e.g. similar to `ComparisonSummary`.differences[n].differences`from`src/types/api.ts` but for a single page)
       ```json
       {
         "url": "string (url)",
@@ -486,7 +486,7 @@ Manages comparisons between two snapshots. Adopts an asynchronous pattern for po
             "removed": "boolean (optional)"
           }
           // Option B: Transformed, more semantic diffs (preferred for API clients)
-          // This should align with the 'differences' array in the API's ComparisonResult type
+          // This should align with the 'differences' array in the API's ComparisonSummary type
           // {
           //   "type": "\"element\" | \"attribute\" | \"content\"",
           //   "selector": "string (css or xpath)",

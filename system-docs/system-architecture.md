@@ -73,7 +73,7 @@ F --> J[(File System / Snapshot Storage - LoadedSnapshot, SnapshotIndex)]
     - **Responsibility**: User interaction, command parsing (e.g., `snapshotCommand`, `compareCommand`, `listSnapshotsCommand`), configuration gathering, **calling the API Layer (`BreakcheckApi`)**, presenting results received from the API Layer.
 7.  **API Layer** (`BreakcheckApi` class)
     - **Tech**: Typescript interfaces/modules (Internal for v2.1)
-    - **Responsibility**: Provides the primary interface for clients (CLI, future Web UI). Orchestrates core component interactions (e.g., `createSnapshot` function in `api/snapshot.ts`, `SnapshotManager`, `BreakcheckCrawler`), handles rule parsing invocation, validates inputs, formats outputs (`SnapshotResult`, `ComparisonResult`), manages errors.
+    - **Responsibility**: Provides the primary interface for clients (CLI, future Web UI). Orchestrates core component interactions (e.g., `createSnapshot` function in `api/snapshot.ts`, `SnapshotManager`, `BreakcheckCrawler`), handles rule parsing invocation, validates inputs, formats outputs (`SnapshotResult`, `ComparisonSummary`), manages errors.
 
 ### **Primary API (Exposed by API Layer - `BreakcheckApi`)**
 
@@ -94,7 +94,7 @@ export class BreakcheckApi {
    * DOM Processor, and Diff Engine.
    * (Note: Implementation for runComparison is pending as per code)
    */
-  async runComparison(config: ComparisonConfig): Promise<ComparisonResult>;
+  async runComparison(config: ComparisonConfig): Promise<ComparisonSummary>;
 
   /**
    * Lists all available snapshots with their details
@@ -136,7 +136,7 @@ export interface ComparisonConfig {
   rules: string | object; // Can be raw DSL text or pre-parsed JSON
 }
 
-export interface ComparisonResult {
+export interface ComparisonSummary {
   success: boolean;
   summary: {
     totalPages: number;
@@ -256,7 +256,7 @@ export interface SnapshotDiff {
     - On-demand page loading in `LoadedSnapshot` via `getPage` method.
 3.  **Future Web Interface Hooks**
     - The API Layer (`BreakcheckApi`) provides the natural integration point (potentially via a network wrapper like REST/JSON-RPC in the future).
-    - Standardized JSON result format from the API Layer (e.g., `SnapshotResult`, `ComparisonResult`).
+    - Standardized JSON result format from the API Layer (e.g., `SnapshotResult`, `ComparisonSummary`).
     - Audit trail metadata can be managed by the API Layer.
 
 This updated architecture aligns with the PRD v2.3 and the provided codebase, emphasizing the `BreakcheckApi` Layer for better modularity, testability, and future extensibility (like adding a Web UI). It leverages TypeScript's type system and relies on appropriate OSS libraries for core functionality.
