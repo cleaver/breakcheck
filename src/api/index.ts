@@ -1,7 +1,7 @@
 import { SnapshotManager } from "@core/snapshot";
 import type {
   ComparisonConfig,
-  ComparisonResult,
+  ComparisonSummary,
   SnapshotConfig,
   SnapshotJobStatusResponse,
   SnapshotResult,
@@ -46,9 +46,10 @@ export class BreakcheckApi {
    * Orchestrates calls to Snapshot Manager, Rules Engine Parser (if needed),
    * DOM Processor, and Diff Engine.
    */
-  // async runComparison(config: ComparisonConfig): Promise<ComparisonResult> {
-  //   const compareManager = new CompareManager();
-  // }
+  async runComparison(config: ComparisonConfig): Promise<ComparisonSummary> {
+    const compareManager = new CompareManager();
+    return compareManager.runComparison(config);
+  }
 
   /**
    * Lists all available snapshots with their details
@@ -59,8 +60,4 @@ export class BreakcheckApi {
 }
 
 // Export types for external use
-export type {
-  ComparisonResult,
-  SnapshotConfig,
-  SnapshotResult,
-} from "@project-types/api";
+export type { SnapshotConfig, SnapshotResult } from "@project-types/api";
