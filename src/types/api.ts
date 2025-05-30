@@ -107,6 +107,46 @@ export type SnapshotJobStatusResponse =
 export type SnapshotResult = SnapshotJobSuccess | SnapshotJobFailed;
 
 /**
+ * Defines the structure of a single comparison rule.
+ * This should align with breakcheck_json_spec_v1.
+ * (As defined in the previous response)
+ */
+export interface Rule {
+  mode:
+    | "include"
+    | "exclude"
+    | "remove_attr"
+    | "rewrite_attr"
+    | "rewrite_content"
+    | string;
+  selectors: string[];
+  selectorType: "css" | "xpath";
+  attribute?: string;
+  pattern?: string;
+  replacement?: string;
+  // Add other fields as per breakcheck_json_spec_v1
+}
+
+type RulesetName = string;
+
+/**
+ * Represents a named, ordered collection of rules.
+ * Rulesets can be stored on disk and referenced by their name.
+ */
+export interface Ruleset {
+  /** Unique identifier for the ruleset. */
+  name: RulesetName;
+  /** Optional description of the ruleset's purpose. */
+  description?: string;
+  /** Ordered list of rules that constitute this ruleset. The order is significant for rule application. */
+  rules: Rule[];
+  /** Optional path to the file from which this ruleset was loaded. */
+  filePath?: string;
+  /** Optional timestamp of when the ruleset was last modified or created (ISO 8601 datetime). */
+  lastModified?: string;
+}
+
+/**
  * Configuration for running a comparison
  */
 export interface ComparisonConfig {
@@ -115,29 +155,75 @@ export interface ComparisonConfig {
   /** Name/identifier of the "after" snapshot */
   afterSnapshotId: string;
   /** Name/identifier of the ruleset to use */
-  rulesetName?: string;
+  ruleset: Ruleset | RulesetName;
   /** Optional list of URLs to compare */
   urls?: string[];
 }
 
 /**
- * Result of a comparison operation
+ * Response payload when a comparison job is successfully initiated.
  */
-export interface ComparisonResult {
-  /** Whether the comparison completed successfully */
-  success: boolean;
-  /** Summary of the comparison results */
-  summary: {
-    totalPages: number;
-    pagesWithDifferences: number;
-    totalDifferences: number;
-  };
-  /** Path to the file containing detailed differences */
-  differencesPath: string;
-  /** Any errors that occurred during comparison */
-  errors: Array<{
-    url: string;
-    message: string;
-    statusCode?: string;
-  }>;
+export interface ComparisonJobInfo {
+  comparisonId: string;
+  status: "pending" | "processing";
+  message: string;
+  statusUrl: string;
+  resultsPath: string;
+}
+
+/**
+ * Progress details for a running comparison job.
+ */
+export interface ComparisonProgress {
+  processedPages: number;
+  totalPages: number;
+  currentStage?: string;
+}
+
+/**
+ * Represents the status of a comparison job.
+ */
+export interface ComparisonJobStatus {
+  comparisonId: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  progress?: ComparisonProgress;
+  startTime?: string;
+  endTime?: string;
+  message?: string;
+  summaryUrl?: string;
+  pageDiffsUrl?: string;
+  resultsPath: string;
+}
+
+/**
+ * Details of an error that occurred during the comparison process itself.
+ */
+export interface ComparisonProcessError {
+  pageUrl?: string;
+  stage?: string;
+  message: string;
+  details?: any;
+}
+
+/**
+ * Summary of a completed comparison job.
+ */
+export interface ComparisonSummary {
+  comparisonId: string;
+  status: "completed" | "failed";
+  overallResult: "pass" | "fail";
+  beforeSnapshotId: string;
+  afterSnapshotId: string;
+  /** Identifier of the ruleset or description of rules used (e.g., 'custom_rules_provided', rulesetName, or filePath). */
+  rulesUsedIdentifier?: string;
+  timestamp: string;
+  durationMs: number;
+  totalPagesCompared: number;
+  pagesWithDifferences: number;
+  pagesWithErrors: number;
+  newUrls: string[];
+  removedUrls: string[];
+  comparisonProcessErrors: ComparisonProcessError[];
+  summaryFilePath: string;
+  resultsPath: string;
 }
