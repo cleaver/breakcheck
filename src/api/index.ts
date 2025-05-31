@@ -1,62 +1,77 @@
+import { CompareManager } from "@core/compare";
 import { SnapshotManager } from "@core/snapshot";
 import type {
   ComparisonConfig,
   ComparisonSummary,
   SnapshotConfig,
-  SnapshotJobStatusResponse,
   SnapshotResult,
 } from "@project-types/api";
 import { createSnapshot } from "./snapshot";
-import { CompareManager } from "@core/compare";
-import { PageSnapshot } from "@project-types/crawler";
+
+const snapshotManager = new SnapshotManager();
+
 /**
- * The main Breakcheck API interface
+ * Creates a snapshot of a website based on the provided configuration.
+ * Orchestrates calls to Crawler and Snapshot Manager.
  */
-export class BreakcheckApi {
-  private snapshotManager: SnapshotManager;
+export async function createSnapshotFromConfig(
+  config: SnapshotConfig
+): Promise<SnapshotResult> {
+  return createSnapshot(config);
+}
 
-  constructor() {
-    this.snapshotManager = new SnapshotManager();
-  }
+/**
+ * Starts a snapshot job and returns the job status.
+ */
+// async startSnapshotJob(
+//   config: SnapshotConfig
+// ): Promise<SnapshotJobStatusResponse> {}
 
-  /**
-   * Creates a snapshot of a website based on the provided configuration.
-   * Orchestrates calls to Crawler and Snapshot Manager.
-   */
-  async createSnapshot(config: SnapshotConfig): Promise<SnapshotResult> {
-    return createSnapshot(config);
-  }
+/**
+ * Gets the status of a snapshot job.
+ */
+// async getSnapshotJobStatus(
+//   jobId: string
+// ): Promise<SnapshotJobStatusResponse> {}
 
-  /**
-   * Starts a snapshot job and returns the job status.
-   */
-  // async startSnapshotJob(
-  //   config: SnapshotConfig
-  // ): Promise<SnapshotJobStatusResponse> {}
+/**
+ * Runs a comparison between two snapshots using specified rules.
+ * Orchestrates calls to Snapshot Manager, Rules Engine Parser (if needed),
+ * DOM Processor, and Diff Engine.
+ */
+export async function runComparison(
+  config: ComparisonConfig
+): Promise<ComparisonSummary> {
+  const compareManager = new CompareManager();
+  const diff = await compareManager.compareSnapshots(config);
 
-  /**
-   * Gets the status of a snapshot job.
-   */
-  // async getSnapshotJobStatus(
-  //   jobId: string
-  // ): Promise<SnapshotJobStatusResponse> {}
+  // Convert SnapshotDiff to ComparisonSummary
+  return {
+    comparisonId: `${config.beforeSnapshotId}_${config.afterSnapshotId}`,
+    status: "completed",
+    overallResult: diff.pageDiffs.some((d) => d.hasDifferences)
+      ? "fail"
+      : "pass",
+    beforeSnapshotId: config.beforeSnapshotId,
+    afterSnapshotId: config.afterSnapshotId,
+    timestamp: new Date().toISOString(),
+    durationMs: 0, // TODO: Add duration tracking
+    totalPagesCompared: diff.pageDiffs.length,
+    pagesWithDifferences: diff.pageDiffs.filter((d) => d.hasDifferences).length,
+    pagesWithErrors: 0,
+    newUrls: diff.newUrls,
+    removedUrls: diff.removedUrls,
+    comparisonProcessErrors: [],
+    summaryFilePath: "", // TODO: Add summary file path
+    resultsPath: "", // TODO: Add results path
+  };
+}
 
-  /**
-   * Runs a comparison between two snapshots using specified rules.
-   * Orchestrates calls to Snapshot Manager, Rules Engine Parser (if needed),
-   * DOM Processor, and Diff Engine.
-   */
-  async runComparison(config: ComparisonConfig): Promise<ComparisonSummary> {
-    const compareManager = new CompareManager();
-    return compareManager.runComparison(config);
-  }
-
-  /**
-   * Lists all available snapshots with their details
-   */
-  async listSnapshots() {
-    return this.snapshotManager.listSnapshots();
-  }
+/**
+ * Lists all available snapshots with their details
+ */
+export async function listSnapshots() {
+  return snapshotManager.listSnapshots();
 }
 
 // Export types for external use

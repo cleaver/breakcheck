@@ -1,4 +1,4 @@
-import { BreakcheckApi } from "@api/index";
+import { listSnapshots } from "@api/index";
 import { InteractiveCommand } from "interactive-commander";
 import pino from "pino";
 
@@ -9,11 +9,8 @@ export const listSnapshotsCommand = new InteractiveCommand("list-snapshots")
   .alias("lss")
   .action(async () => {
     try {
-      // Create API instance
-      const api = new BreakcheckApi();
-
       // Get snapshots
-      const snapshots = await api.listSnapshots();
+      const snapshots = await listSnapshots();
 
       // Display results
       if (snapshots.length === 0) {

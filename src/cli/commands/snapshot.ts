@@ -1,4 +1,4 @@
-import { BreakcheckApi } from "@api/index";
+import { createSnapshotFromConfig } from "@api/index";
 import type { SnapshotConfig } from "@project-types/api";
 import { InteractiveCommand } from "interactive-commander";
 import pino from "pino";
@@ -24,9 +24,6 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
   )
   .action(async (options) => {
     try {
-      // Create API instance
-      const api = new BreakcheckApi();
-
       // Map CLI options to SnapshotConfig
       const config: SnapshotConfig = {
         baseUrl: options.url,
@@ -49,13 +46,13 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
       };
 
       // Call API to create snapshot
-      const result = await api.createSnapshot(config);
+      const result = await createSnapshotFromConfig(config);
 
       // Display results
-      if (result.success) {
+      if (result.status === "success") {
         logger.info(`✅ Snapshot created successfully: ${result.snapshotId}`);
         logger.info(`📊 Pages crawled: ${result.pageCount}`);
-        logger.info(`⏱️ Duration: ${result.metadata.duration}ms`);
+        logger.info(`⏱️ Duration: ${result.metadata.durationMs}ms`);
 
         if (result.errors.length > 0) {
           logger.warn("\n⚠️ Some pages had errors:");
@@ -70,7 +67,7 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
       } else {
         logger.error("❌ Failed to create snapshot");
         result.errors.forEach((error) => {
-          logger.error(`  - ${error.url}: ${error.message}`);
+          logger.error(`  - ${error.message}`);
         });
       }
     } catch (error) {
