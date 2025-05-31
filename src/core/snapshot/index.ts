@@ -64,7 +64,7 @@ interface SnapshotSummary {
   errorCount: number;
 }
 
-export class SnapshotManager {
+export class SnapshotRepository {
   private readonly snapshotsDir: string;
 
   constructor(snapshotsDir: string = path.join(process.cwd(), "snapshots")) {

@@ -1,5 +1,5 @@
 import { BreakcheckCrawler } from "@core/crawler";
-import { SnapshotManager } from "@core/snapshot";
+import { SnapshotRepository } from "@core/snapshot";
 import { SnapshotConfig, SnapshotResult } from "@project-types/api";
 import { CrawlError } from "@project-types/crawler";
 
@@ -35,8 +35,8 @@ export async function createSnapshot(
     const dataset = await (await import("crawlee")).Dataset.open(datasetName);
 
     // Save snapshot (streaming/iterative)
-    const snapshotManager = new SnapshotManager();
-    const pageCount = await snapshotManager.saveSnapshot(config.name, {
+    const snapshotRepository = new SnapshotRepository();
+    const pageCount = await snapshotRepository.saveSnapshot(config.name, {
       dataset,
       metadata: {
         baseUrl: config.baseUrl,
@@ -48,7 +48,7 @@ export async function createSnapshot(
     // Generate URL list if requested
     let urlListPath: string | undefined;
     if (config.urlListPath) {
-      urlListPath = await snapshotManager.generateUrlList(
+      urlListPath = await snapshotRepository.generateUrlList(
         config.name,
         config.urlListPath
       );

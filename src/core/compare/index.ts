@@ -1,5 +1,5 @@
 import { ComparisonConfig } from "@/types/api";
-import { SnapshotManager } from "@core/snapshot";
+import { SnapshotRepository } from "@core/snapshot";
 import { LineDiff, PageDiff, SnapshotDiff } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
@@ -32,13 +32,13 @@ export async function comparePage(
  */
 export async function compareSnapshots(
   config: ComparisonConfig,
-  snapshotManager: SnapshotManager
+  snapshotRepository: SnapshotRepository
 ): Promise<SnapshotDiff> {
   // Load both snapshots
-  const beforeSnapshot = await snapshotManager.loadSnapshot(
+  const beforeSnapshot = await snapshotRepository.loadSnapshot(
     config.beforeSnapshotId
   );
-  const afterSnapshot = await snapshotManager.loadSnapshot(
+  const afterSnapshot = await snapshotRepository.loadSnapshot(
     config.afterSnapshotId
   );
 

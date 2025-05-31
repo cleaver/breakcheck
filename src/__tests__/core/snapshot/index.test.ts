@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { SnapshotManager, LoadedSnapshot } from "../../../core/snapshot";
+import { CrawlerType } from "@project-types/api";
 import { Dataset, purgeDefaultStorages } from "crawlee";
 import * as fs from "fs/promises";
 import * as path from "path";
-import { PageSnapshot, CrawlerType } from "@project-types/crawler";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { LoadedSnapshot, SnapshotRepository } from "../../../core/snapshot";
 
-describe("SnapshotManager", () => {
+describe("SnapshotRepository", () => {
   const TEST_SNAPSHOTS_DIR = path.join(process.cwd(), "test-snapshots");
-  let snapshotManager: SnapshotManager;
+  let snapshotRepository: SnapshotRepository;
   let testDataset: Dataset;
 
   beforeEach(async () => {
@@ -16,7 +16,7 @@ describe("SnapshotManager", () => {
 
     // Create a fresh test snapshots directory
     await fs.mkdir(TEST_SNAPSHOTS_DIR, { recursive: true });
-    snapshotManager = new SnapshotManager(TEST_SNAPSHOTS_DIR);
+    snapshotRepository = new SnapshotRepository(TEST_SNAPSHOTS_DIR);
 
     // Create a test dataset
     testDataset = await Dataset.open("test-dataset");
@@ -51,7 +51,7 @@ describe("SnapshotManager", () => {
         },
       };
 
-      const pageCount = await snapshotManager.saveSnapshot("test-snapshot", {
+      const pageCount = await snapshotRepository.saveSnapshot("test-snapshot", {
         dataset: testDataset,
         metadata,
       });
@@ -95,10 +95,13 @@ describe("SnapshotManager", () => {
         },
       };
 
-      const pageCount = await snapshotManager.saveSnapshot("empty-snapshot", {
-        dataset: emptyDataset,
-        metadata,
-      });
+      const pageCount = await snapshotRepository.saveSnapshot(
+        "empty-snapshot",
+        {
+          dataset: emptyDataset,
+          metadata,
+        }
+      );
 
       expect(pageCount).toBe(0);
       await emptyDataset.drop();
@@ -118,13 +121,13 @@ describe("SnapshotManager", () => {
         },
       };
 
-      await snapshotManager.saveSnapshot("test-snapshot", {
+      await snapshotRepository.saveSnapshot("test-snapshot", {
         dataset: testDataset,
         metadata,
       });
 
       // Then load it
-      const loadedSnapshot = await snapshotManager.loadSnapshot(
+      const loadedSnapshot = await snapshotRepository.loadSnapshot(
         "test-snapshot"
       );
 
@@ -151,13 +154,13 @@ describe("SnapshotManager", () => {
         },
       };
 
-      await snapshotManager.saveSnapshot("test-snapshot", {
+      await snapshotRepository.saveSnapshot("test-snapshot", {
         dataset: testDataset,
         metadata,
       });
 
       // Then load it
-      const loadedSnapshot = await snapshotManager.loadSnapshot(
+      const loadedSnapshot = await snapshotRepository.loadSnapshot(
         "test-snapshot"
       );
 
@@ -180,13 +183,15 @@ describe("SnapshotManager", () => {
         },
       };
 
-      await snapshotManager.saveSnapshot("test-snapshot", {
+      await snapshotRepository.saveSnapshot("test-snapshot", {
         dataset: testDataset,
         metadata,
       });
 
       // Generate URL list
-      const outputPath = await snapshotManager.generateUrlList("test-snapshot");
+      const outputPath = await snapshotRepository.generateUrlList(
+        "test-snapshot"
+      );
 
       // Verify file exists and contains correct content
       const content = await fs.readFile(outputPath, "utf-8");
@@ -215,13 +220,13 @@ describe("SnapshotManager", () => {
         },
       };
 
-      await snapshotManager.saveSnapshot("test-snapshot", {
+      await snapshotRepository.saveSnapshot("test-snapshot", {
         dataset: testDataset,
         metadata,
       });
 
       // Generate URL list with filter
-      const outputPath = await snapshotManager.generateUrlList(
+      const outputPath = await snapshotRepository.generateUrlList(
         "test-snapshot",
         undefined,
         (url, statusCode) => statusCode === 200
@@ -247,17 +252,17 @@ describe("SnapshotManager", () => {
         },
       };
 
-      await snapshotManager.saveSnapshot("snapshot1", {
+      await snapshotRepository.saveSnapshot("snapshot1", {
         dataset: testDataset,
         metadata,
       });
 
-      await snapshotManager.saveSnapshot("snapshot2", {
+      await snapshotRepository.saveSnapshot("snapshot2", {
         dataset: testDataset,
         metadata,
       });
 
-      const snapshots = await snapshotManager.listSnapshots();
+      const snapshots = await snapshotRepository.listSnapshots();
 
       // Check that we got the expected number of snapshots
       expect(snapshots).toHaveLength(2);
@@ -287,7 +292,7 @@ describe("SnapshotManager", () => {
     });
 
     it("should return empty array when no snapshots exist", async () => {
-      const snapshots = await snapshotManager.listSnapshots();
+      const snapshots = await snapshotRepository.listSnapshots();
       expect(snapshots).toEqual([]);
     });
   });

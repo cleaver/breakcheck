@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { comparePage, compareSnapshots } from "@core/compare";
 import { PageSnapshot } from "@project-types/crawler";
-import { SnapshotManager } from "@core/snapshot";
+import { SnapshotRepository } from "@core/snapshot";
 import { Dataset } from "crawlee";
 
 /**
- * Creates a mock SnapshotManager for testing
+ * Creates a mock SnapshotRepository for testing
  */
-class MockSnapshotManager extends SnapshotManager {
+class MockSnapshotRepository extends SnapshotRepository {
   constructor(private beforeSnapshot: any, private afterSnapshot: any) {
     super();
   }
@@ -29,11 +29,11 @@ class MockSnapshotManager extends SnapshotManager {
   }
 }
 
-function createMockSnapshotManager(
+function createMockSnapshotRepository(
   beforeSnapshot: any,
   afterSnapshot: any
-): SnapshotManager {
-  return new MockSnapshotManager(beforeSnapshot, afterSnapshot);
+): SnapshotRepository {
+  return new MockSnapshotRepository(beforeSnapshot, afterSnapshot);
 }
 
 describe("Compare Functions", () => {
@@ -143,7 +143,7 @@ describe("Compare Functions", () => {
         }),
       };
 
-      const snapshotManager = createMockSnapshotManager(
+      const snapshotRepository = createMockSnapshotRepository(
         beforeSnapshot,
         afterSnapshot
       );
@@ -153,7 +153,7 @@ describe("Compare Functions", () => {
           afterSnapshotId: "after",
           ruleset: "default",
         },
-        snapshotManager
+        snapshotRepository
       );
 
       expect(result.pageDiffs).toHaveLength(1);
@@ -213,7 +213,7 @@ describe("Compare Functions", () => {
         }),
       };
 
-      const snapshotManager = createMockSnapshotManager(
+      const snapshotRepository = createMockSnapshotRepository(
         beforeSnapshot,
         afterSnapshot
       );
@@ -223,7 +223,7 @@ describe("Compare Functions", () => {
           afterSnapshotId: "after",
           ruleset: "default",
         },
-        snapshotManager
+        snapshotRepository
       );
 
       expect(result.pageDiffs).toHaveLength(0);
@@ -290,7 +290,7 @@ describe("Compare Functions", () => {
         }),
       };
 
-      const snapshotManager = createMockSnapshotManager(
+      const snapshotRepository = createMockSnapshotRepository(
         beforeSnapshot,
         afterSnapshot
       );
@@ -301,7 +301,7 @@ describe("Compare Functions", () => {
           urls: ["https://example.com/page1"],
           ruleset: "default",
         },
-        snapshotManager
+        snapshotRepository
       );
 
       expect(result.pageDiffs).toHaveLength(1);
@@ -335,14 +335,17 @@ describe("Compare Functions", () => {
         }),
       };
 
-      const snapshotManager = createMockSnapshotManager(snapshot, snapshot);
+      const snapshotRepository = createMockSnapshotRepository(
+        snapshot,
+        snapshot
+      );
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
           afterSnapshotId: "after",
           ruleset: "default",
         },
-        snapshotManager
+        snapshotRepository
       );
 
       expect(result.pageDiffs).toHaveLength(1);
@@ -414,7 +417,7 @@ describe("Compare Functions", () => {
         }),
       };
 
-      const snapshotManager = createMockSnapshotManager(
+      const snapshotRepository = createMockSnapshotRepository(
         beforeSnapshot,
         afterSnapshot
       );
@@ -424,7 +427,7 @@ describe("Compare Functions", () => {
           afterSnapshotId: "after",
           ruleset: "default",
         },
-        snapshotManager
+        snapshotRepository
       );
 
       expect(result.pageDiffs).toHaveLength(3);
