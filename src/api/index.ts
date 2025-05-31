@@ -1,4 +1,4 @@
-import { CompareManager } from "@core/compare";
+import { compareSnapshots } from "@core/compare";
 import { SnapshotManager } from "@core/snapshot";
 import type {
   ComparisonConfig,
@@ -42,8 +42,7 @@ export async function createSnapshotFromConfig(
 export async function runComparison(
   config: ComparisonConfig
 ): Promise<ComparisonSummary> {
-  const compareManager = new CompareManager();
-  const diff = await compareManager.compareSnapshots(config);
+  const diff = await compareSnapshots(config, snapshotManager);
 
   // Convert SnapshotDiff to ComparisonSummary
   return {

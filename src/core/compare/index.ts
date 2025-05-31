@@ -5,85 +5,75 @@ import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
 
 /**
- * Manages the comparison of page snapshots
+ * Compares two page snapshots and returns the differences found
  */
-export class CompareManager {
-  private snapshotManager: SnapshotManager;
+export async function comparePage(
+  before: PageSnapshot,
+  after: PageSnapshot
+): Promise<PageDiff> {
+  const url = before.url;
 
-  constructor(snapshotsDir?: string) {
-    this.snapshotManager = new SnapshotManager(snapshotsDir);
-  }
+  const differences: LineDiff[] = diffLines(before.content, after.content);
 
-  /**
-   * Compares two page snapshots and returns the differences found
-   */
-  async comparePage(
-    before: PageSnapshot,
-    after: PageSnapshot
-  ): Promise<PageDiff> {
-    const url = before.url;
+  const hasDifferences = differences.some((diff) => diff.added || diff.removed);
 
-    const differences: LineDiff[] = diffLines(before.content, after.content);
+  return {
+    url,
+    differences,
+    hasDifferences,
+  };
+}
 
-    const hasDifferences = differences.some(
-      (diff) => diff.added || diff.removed
-    );
+/**
+ * Compares two snapshots and returns the differences found
+ * @param beforeName Name of the before snapshot
+ * @param afterName Name of the after snapshot
+ * @param urls Optional list of URLs to compare. If not provided, compares all URLs.
+ */
+export async function compareSnapshots(
+  config: ComparisonConfig,
+  snapshotManager: SnapshotManager
+): Promise<SnapshotDiff> {
+  // Load both snapshots
+  const beforeSnapshot = await snapshotManager.loadSnapshot(
+    config.beforeSnapshotId
+  );
+  const afterSnapshot = await snapshotManager.loadSnapshot(
+    config.afterSnapshotId
+  );
 
-    return {
-      url,
-      differences,
-      hasDifferences,
-    };
-  }
+  // Get all URLs from both snapshots
+  const beforeUrls = Object.keys(beforeSnapshot.index.urls).sort();
+  const afterUrls = Object.keys(afterSnapshot.index.urls);
 
-  /**
-   * Compares two snapshots and returns the differences found
-   * @param beforeName Name of the before snapshot
-   * @param afterName Name of the after snapshot
-   * @param urls Optional list of URLs to compare. If not provided, compares all URLs.
-   */
-  async compareSnapshots(config: ComparisonConfig): Promise<SnapshotDiff> {
-    // Load both snapshots
-    const beforeSnapshot = await this.snapshotManager.loadSnapshot(
-      config.beforeSnapshotId
-    );
-    const afterSnapshot = await this.snapshotManager.loadSnapshot(
-      config.afterSnapshotId
-    );
+  // Filter URLs if specified
+  const urlsToCompare =
+    Array.isArray(config.urls) && config.urls.length > 0
+      ? beforeUrls.filter((url) => (config.urls as string[]).includes(url))
+      : beforeUrls;
 
-    // Get all URLs from both snapshots
-    const beforeUrls = Object.keys(beforeSnapshot.index.urls).sort();
-    const afterUrls = Object.keys(afterSnapshot.index.urls);
+  // Find new and removed URLs
+  const newUrls = afterUrls.filter((url) => !beforeUrls.includes(url));
+  const removedUrls = beforeUrls.filter((url) => !afterUrls.includes(url));
 
-    // Filter URLs if specified
-    const urlsToCompare =
-      Array.isArray(config.urls) && config.urls.length > 0
-        ? beforeUrls.filter((url) => (config.urls as string[]).includes(url))
-        : beforeUrls;
+  // Compare pages
+  const pageDiffs: PageDiff[] = [];
+  for (const url of urlsToCompare) {
+    // Skip URLs that don't exist in both snapshots
+    if (!afterUrls.includes(url)) continue;
 
-    // Find new and removed URLs
-    const newUrls = afterUrls.filter((url) => !beforeUrls.includes(url));
-    const removedUrls = beforeUrls.filter((url) => !afterUrls.includes(url));
+    const beforePage = await beforeSnapshot.getPage(url);
+    const afterPage = await afterSnapshot.getPage(url);
 
-    // Compare pages
-    const pageDiffs: PageDiff[] = [];
-    for (const url of urlsToCompare) {
-      // Skip URLs that don't exist in both snapshots
-      if (!afterUrls.includes(url)) continue;
-
-      const beforePage = await beforeSnapshot.getPage(url);
-      const afterPage = await afterSnapshot.getPage(url);
-
-      if (beforePage && afterPage) {
-        const diff = await this.comparePage(beforePage, afterPage);
-        pageDiffs.push(diff);
-      }
+    if (beforePage && afterPage) {
+      const diff = await comparePage(beforePage, afterPage);
+      pageDiffs.push(diff);
     }
-
-    return {
-      pageDiffs,
-      newUrls,
-      removedUrls,
-    };
   }
+
+  return {
+    pageDiffs,
+    newUrls,
+    removedUrls,
+  };
 }

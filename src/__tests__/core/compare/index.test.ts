@@ -1,26 +1,42 @@
 import { describe, it, expect } from "vitest";
-import { CompareManager } from "@core/compare";
+import { comparePage, compareSnapshots } from "@core/compare";
 import { PageSnapshot } from "@project-types/crawler";
+import { SnapshotManager } from "@core/snapshot";
+import { Dataset } from "crawlee";
 
 /**
- * Creates a CompareManager with a mocked SnapshotManager
+ * Creates a mock SnapshotManager for testing
  */
-function createCompareManagerWithMockSnapshots(
-  beforeSnapshot: any,
-  afterSnapshot: any
-) {
-  const snapshotManager = {
-    loadSnapshot: async (name: string) =>
-      name === "before" ? beforeSnapshot : afterSnapshot,
-  };
-  const compareManager = new CompareManager();
-  (compareManager as any).snapshotManager = snapshotManager;
-  return compareManager;
+class MockSnapshotManager extends SnapshotManager {
+  constructor(private beforeSnapshot: any, private afterSnapshot: any) {
+    super();
+  }
+
+  async loadSnapshot(name: string) {
+    return name === "before" ? this.beforeSnapshot : this.afterSnapshot;
+  }
+
+  async saveSnapshot(name: string, data: { dataset: Dataset; metadata: any }) {
+    return 0;
+  }
+
+  async generateUrlList(name: string) {
+    return "";
+  }
+
+  async listSnapshots() {
+    return [];
+  }
 }
 
-describe("CompareManager", () => {
-  const compareManager = new CompareManager();
+function createMockSnapshotManager(
+  beforeSnapshot: any,
+  afterSnapshot: any
+): SnapshotManager {
+  return new MockSnapshotManager(beforeSnapshot, afterSnapshot);
+}
 
+describe("Compare Functions", () => {
   describe("comparePage", () => {
     it("should detect content differences between snapshots", async () => {
       const before: PageSnapshot = {
@@ -39,7 +55,7 @@ describe("CompareManager", () => {
         headers: { "content-type": "text/html" },
       };
 
-      const result = await compareManager.comparePage(before, after);
+      const result = await comparePage(before, after);
 
       expect(result.url).toBe("https://example.com");
       expect(result.hasDifferences).toBe(true);
@@ -69,7 +85,7 @@ describe("CompareManager", () => {
         headers: { "content-type": "text/html" },
       };
 
-      const result = await compareManager.comparePage(snapshot, snapshot);
+      const result = await comparePage(snapshot, snapshot);
 
       expect(result.url).toBe("https://example.com");
       expect(result.hasDifferences).toBe(false);
@@ -127,14 +143,18 @@ describe("CompareManager", () => {
         }),
       };
 
-      const compareManager = createCompareManagerWithMockSnapshots(
+      const snapshotManager = createMockSnapshotManager(
         beforeSnapshot,
         afterSnapshot
       );
-      const result = await compareManager.compareSnapshots({
-        beforeSnapshotId: "before",
-        afterSnapshotId: "after",
-      });
+      const result = await compareSnapshots(
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          ruleset: "default",
+        },
+        snapshotManager
+      );
 
       expect(result.pageDiffs).toHaveLength(1);
       expect(result.newUrls).toHaveLength(0);
@@ -193,14 +213,18 @@ describe("CompareManager", () => {
         }),
       };
 
-      const compareManager = createCompareManagerWithMockSnapshots(
+      const snapshotManager = createMockSnapshotManager(
         beforeSnapshot,
         afterSnapshot
       );
-      const result = await compareManager.compareSnapshots({
-        beforeSnapshotId: "before",
-        afterSnapshotId: "after",
-      });
+      const result = await compareSnapshots(
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          ruleset: "default",
+        },
+        snapshotManager
+      );
 
       expect(result.pageDiffs).toHaveLength(0);
       expect(result.newUrls).toHaveLength(1);
@@ -266,15 +290,19 @@ describe("CompareManager", () => {
         }),
       };
 
-      const compareManager = createCompareManagerWithMockSnapshots(
+      const snapshotManager = createMockSnapshotManager(
         beforeSnapshot,
         afterSnapshot
       );
-      const result = await compareManager.compareSnapshots({
-        beforeSnapshotId: "before",
-        afterSnapshotId: "after",
-        urls: ["https://example.com/page1"],
-      });
+      const result = await compareSnapshots(
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          urls: ["https://example.com/page1"],
+          ruleset: "default",
+        },
+        snapshotManager
+      );
 
       expect(result.pageDiffs).toHaveLength(1);
       expect(result.pageDiffs[0].url).toBe("https://example.com/page1");
@@ -307,14 +335,15 @@ describe("CompareManager", () => {
         }),
       };
 
-      const compareManager = createCompareManagerWithMockSnapshots(
-        snapshot,
-        snapshot
+      const snapshotManager = createMockSnapshotManager(snapshot, snapshot);
+      const result = await compareSnapshots(
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          ruleset: "default",
+        },
+        snapshotManager
       );
-      const result = await compareManager.compareSnapshots({
-        beforeSnapshotId: "before",
-        afterSnapshotId: "after",
-      });
 
       expect(result.pageDiffs).toHaveLength(1);
       expect(result.pageDiffs[0].hasDifferences).toBe(false);
@@ -385,14 +414,18 @@ describe("CompareManager", () => {
         }),
       };
 
-      const compareManager = createCompareManagerWithMockSnapshots(
+      const snapshotManager = createMockSnapshotManager(
         beforeSnapshot,
         afterSnapshot
       );
-      const result = await compareManager.compareSnapshots({
-        beforeSnapshotId: "before",
-        afterSnapshotId: "after",
-      });
+      const result = await compareSnapshots(
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          ruleset: "default",
+        },
+        snapshotManager
+      );
 
       expect(result.pageDiffs).toHaveLength(3);
 
