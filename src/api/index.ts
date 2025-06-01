@@ -1,13 +1,12 @@
 import { compareSnapshots } from "@core/compare";
 import { createSnapshot, SnapshotRepository } from "@core/snapshot";
+import { ComparisonRepository } from "@core/compare/classes/ComparisonRepository";
 import type {
   ComparisonConfig,
   ComparisonSummary,
   SnapshotConfig,
   SnapshotResult,
 } from "@project-types/api";
-
-const snapshotRepository = new SnapshotRepository();
 
 /**
  * Creates a snapshot of a website based on the provided configuration.
@@ -41,7 +40,13 @@ export async function createSnapshotFromConfig(
 export async function runComparison(
   config: ComparisonConfig
 ): Promise<ComparisonSummary> {
-  const diff = await compareSnapshots(config, snapshotRepository);
+  const snapshotRepository = new SnapshotRepository();
+  const comparisonRepository = new ComparisonRepository();
+  const diff = await compareSnapshots(
+    config,
+    snapshotRepository,
+    comparisonRepository
+  );
 
   // Convert SnapshotDiff to ComparisonSummary
   return {

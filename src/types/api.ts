@@ -154,6 +154,8 @@ export interface ComparisonConfig {
   beforeSnapshotId: string;
   /** Name/identifier of the "after" snapshot */
   afterSnapshotId: string;
+  /** Name/identifier of the comparison */
+  comparisonName: string;
   /** Name/identifier of the ruleset to use */
   ruleset: Ruleset | RulesetName;
   /** Optional list of URLs to compare */

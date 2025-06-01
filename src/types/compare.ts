@@ -31,3 +31,29 @@ export interface SnapshotDiff {
   /** URLs that exist in the before snapshot but not in the after snapshot */
   removedUrls: string[];
 }
+
+/**
+ * Metadata stored in metadata.json for a comparison.
+ */
+export interface ComparisonMetadata {
+  beforeSnapshotId: string;
+  afterSnapshotId: string;
+  rulesUsedIdentifier?: string;
+}
+
+/**
+ * The structure of the main index for a comparison result.
+ */
+export interface ComparisonIndex {
+  urls: {
+    [url: string]: {
+      filename: string;
+      hasDifferences: boolean;
+    };
+  };
+  metadata: ComparisonMetadata & {
+    timestamp: string;
+    totalPages: number;
+    pagesWithDifferences: number;
+  };
+}

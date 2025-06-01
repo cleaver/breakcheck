@@ -3,37 +3,39 @@ import { SnapshotRepository } from "@core/snapshot";
 import { LineDiff, PageDiff } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
+import { ComparisonRepository } from "./classes/ComparisonRepository";
 
 /**
- * Compares two page snapshots and returns the differences found
+ * Compares two page snapshots and returns the differences found.
+ * (This function remains unchanged)
  */
 export async function comparePage(
   before: PageSnapshot,
   after: PageSnapshot
 ): Promise<PageDiff> {
+  // ... existing implementation ...
   const url = before.url;
-
   const differences: LineDiff[] = diffLines(before.content, after.content);
-
   const hasDifferences = differences.some((diff) => diff.added || diff.removed);
-
-  return {
-    url,
-    differences,
-    hasDifferences,
-  };
+  return { url, differences, hasDifferences };
 }
 
 /**
- * Compares two snapshots and returns the differences found
- * @param beforeName Name of the before snapshot
- * @param afterName Name of the after snapshot
- * @param urls Optional list of URLs to compare. If not provided, compares all URLs.
+ * Compares two snapshots iteratively, saving each diff to disk.
  */
 export async function compareSnapshots(
   config: ComparisonConfig,
-  snapshotRepository: SnapshotRepository
-): Promise<ComparisonSummary> {
+  snapshotRepository: SnapshotRepository,
+  comparisonRepository: ComparisonRepository
+): Promise<
+  Omit<
+    ComparisonSummary,
+    "comparisonId" | "durationMs" | "summaryFilePath" | "resultsPath"
+  >
+> {
+  // Return type changed
+  const startTime = Date.now();
+
   // Load both snapshots
   const beforeSnapshot = await snapshotRepository.loadSnapshot(
     config.beforeSnapshotId
@@ -42,38 +44,57 @@ export async function compareSnapshots(
     config.afterSnapshotId
   );
 
-  // Get all URLs from both snapshots
-  const beforeUrls = Object.keys(beforeSnapshot.index.urls).sort();
-  const afterUrls = Object.keys(afterSnapshot.index.urls);
+  // Determine URLs to compare
+  const beforeUrls = Object.keys(beforeSnapshot.index.urls);
+  const afterUrls = new Set(Object.keys(afterSnapshot.index.urls));
+  const urlsToCompare = config.urls || beforeUrls;
 
-  // Filter URLs if specified
-  const urlsToCompare =
-    Array.isArray(config.urls) && config.urls.length > 0
-      ? beforeUrls.filter((url) => (config.urls as string[]).includes(url))
-      : beforeUrls;
+  // Start the comparison process in the repository
+  await comparisonRepository.startComparison(config.comparisonName, {
+    beforeSnapshotId: config.beforeSnapshotId,
+    afterSnapshotId: config.afterSnapshotId,
+    rulesUsedIdentifier:
+      typeof config.ruleset === "string" ? config.ruleset : config.ruleset.name,
+  });
 
   // Find new and removed URLs
-  const newUrls = afterUrls.filter((url) => !beforeUrls.includes(url));
-  const removedUrls = beforeUrls.filter((url) => !afterUrls.includes(url));
+  const newUrls = [...afterUrls].filter((url) => !beforeUrls.includes(url));
+  const removedUrls = beforeUrls.filter((url) => !afterUrls.has(url));
 
-  // Compare pages
-  const pageDiffs: PageDiff[] = [];
+  let pagesWithErrors = 0;
+
+  // Compare pages one by one
   for (const url of urlsToCompare) {
-    // Skip URLs that don't exist in both snapshots
-    if (!afterUrls.includes(url)) continue;
+    if (!afterUrls.has(url)) continue; // Skip URLs not in the "after" snapshot
 
     const beforePage = await beforeSnapshot.getPage(url);
     const afterPage = await afterSnapshot.getPage(url);
 
     if (beforePage && afterPage) {
       const diff = await comparePage(beforePage, afterPage);
-      pageDiffs.push(diff);
+      await comparisonRepository.savePageDiff(diff);
+    } else {
+      pagesWithErrors++;
     }
   }
 
+  const finalIndex = comparisonRepository.getIndex();
+
+  // Return the summary data
   return {
-    pageDiffs,
+    status: "completed",
+    overallResult:
+      finalIndex.metadata.pagesWithDifferences > 0 ? "fail" : "pass",
+    beforeSnapshotId: config.beforeSnapshotId,
+    afterSnapshotId: config.afterSnapshotId,
+    rulesUsedIdentifier:
+      typeof config.ruleset === "string" ? config.ruleset : config.ruleset.name,
+    timestamp: finalIndex.metadata.timestamp,
+    totalPagesCompared: finalIndex.metadata.totalPages,
+    pagesWithDifferences: finalIndex.metadata.pagesWithDifferences,
+    pagesWithErrors,
     newUrls,
     removedUrls,
+    comparisonProcessErrors: [], // Can be enhanced later
   };
 }
