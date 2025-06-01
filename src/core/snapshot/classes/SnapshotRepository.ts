@@ -11,6 +11,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
+import { LoadedSnapshot } from "./LoadedSnapshot";
 
 const gzip = promisify(zlib.gzip);
 
@@ -108,7 +109,6 @@ export class SnapshotRepository {
     const pagesDir = path.join(snapshotDir, "pages");
 
     // Return a LoadedSnapshot instance for on-demand page loading
-    const { LoadedSnapshot } = await import("./LoadedSnapshot");
     return new LoadedSnapshot(metadata, index, pagesDir);
   }
 
