@@ -1,9 +1,5 @@
 import { BreakcheckCrawler } from "@core/crawler";
-import {
-  CrawlerConfig,
-  SnapshotConfig,
-  SnapshotResult,
-} from "@project-types/api";
+import { SnapshotConfig, SnapshotResult } from "@project-types/api";
 import { CrawlError } from "@project-types/crawler";
 import { Dataset } from "crawlee";
 import { SnapshotRepository } from "./classes/SnapshotRepository";

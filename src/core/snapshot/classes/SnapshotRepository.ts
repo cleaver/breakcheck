@@ -1,12 +1,9 @@
-import { CrawlerConfig } from "@project-types/api";
 import { PageSnapshot } from "@project-types/crawler";
 import {
   SnapshotData,
   SnapshotIndex,
-  SnapshotMetadata,
   SnapshotSummary,
 } from "@project-types/snapshot";
-import type { Dataset } from "crawlee";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
