@@ -1,12 +1,11 @@
 import { compareSnapshots } from "@core/compare";
-import { SnapshotRepository } from "@core/snapshot";
+import { createSnapshot, SnapshotRepository } from "@core/snapshot";
 import type {
   ComparisonConfig,
   ComparisonSummary,
   SnapshotConfig,
   SnapshotResult,
 } from "@project-types/api";
-import { createSnapshot } from "./snapshot";
 
 const snapshotRepository = new SnapshotRepository();
 
