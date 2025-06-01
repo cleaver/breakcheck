@@ -5,7 +5,7 @@ import {
   SnapshotResult,
 } from "@project-types/api";
 import { CrawlError } from "@project-types/crawler";
-import type { Dataset } from "crawlee";
+import { Dataset } from "crawlee";
 import { SnapshotRepository } from "./classes/SnapshotRepository";
 
 export { LoadedSnapshot } from "./classes/LoadedSnapshot";
@@ -40,7 +40,7 @@ export async function createSnapshot(
     errors.push(...crawlErrors);
 
     // Open the dataset
-    const dataset = await (await import("crawlee")).Dataset.open(datasetName);
+    const dataset = await Dataset.open(datasetName);
 
     // Save snapshot (streaming/iterative)
     const snapshotRepository = new SnapshotRepository();
