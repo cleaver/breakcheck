@@ -1,6 +1,6 @@
-import { ComparisonConfig } from "@/types/api";
+import { ComparisonConfig, ComparisonSummary } from "@/types/api";
 import { SnapshotRepository } from "@core/snapshot";
-import { LineDiff, PageDiff, SnapshotDiff } from "@project-types/compare";
+import { LineDiff, PageDiff } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
 
@@ -33,7 +33,7 @@ export async function comparePage(
 export async function compareSnapshots(
   config: ComparisonConfig,
   snapshotRepository: SnapshotRepository
-): Promise<SnapshotDiff> {
+): Promise<ComparisonSummary> {
   // Load both snapshots
   const beforeSnapshot = await snapshotRepository.loadSnapshot(
     config.beforeSnapshotId
