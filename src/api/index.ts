@@ -50,23 +50,21 @@ export async function runComparison(
 
   // Convert SnapshotDiff to ComparisonSummary
   return {
-    comparisonId: `${config.beforeSnapshotId}_${config.afterSnapshotId}`,
+    comparisonId: config.comparisonName,
     status: "completed",
-    overallResult: diff.pageDiffs.some((d) => d.hasDifferences)
-      ? "fail"
-      : "pass",
+    overallResult: diff.overallResult,
     beforeSnapshotId: config.beforeSnapshotId,
     afterSnapshotId: config.afterSnapshotId,
     timestamp: new Date().toISOString(),
-    durationMs: 0, // TODO: Add duration tracking
-    totalPagesCompared: diff.pageDiffs.length,
-    pagesWithDifferences: diff.pageDiffs.filter((d) => d.hasDifferences).length,
-    pagesWithErrors: 0,
+    durationMs: diff.durationMs,
+    totalPagesCompared: diff.totalPagesCompared,
+    pagesWithDifferences: diff.pagesWithDifferences,
+    pagesWithErrors: diff.pagesWithErrors,
     newUrls: diff.newUrls,
     removedUrls: diff.removedUrls,
     comparisonProcessErrors: [],
-    summaryFilePath: "", // TODO: Add summary file path
-    resultsPath: "", // TODO: Add results path
+    summaryFilePath: diff.summaryFilePath,
+    resultsPath: diff.resultsPath,
   };
 }
 
@@ -74,6 +72,7 @@ export async function runComparison(
  * Lists all available snapshots with their details
  */
 export async function listSnapshots() {
+  const snapshotRepository = new SnapshotRepository();
   return snapshotRepository.listSnapshots();
 }
 

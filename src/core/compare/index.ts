@@ -4,6 +4,7 @@ import { LineDiff, PageDiff } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
 import { ComparisonRepository } from "./classes/ComparisonRepository";
+import path from "path";
 
 /**
  * Compares two page snapshots and returns the differences found.
@@ -27,13 +28,7 @@ export async function compareSnapshots(
   config: ComparisonConfig,
   snapshotRepository: SnapshotRepository,
   comparisonRepository: ComparisonRepository
-): Promise<
-  Omit<
-    ComparisonSummary,
-    "comparisonId" | "durationMs" | "summaryFilePath" | "resultsPath"
-  >
-> {
-  // Return type changed
+): Promise<ComparisonSummary> {
   const startTime = Date.now();
 
   // Load both snapshots
@@ -79,6 +74,7 @@ export async function compareSnapshots(
   }
 
   const finalIndex = comparisonRepository.getIndex();
+  const resultsPath = await comparisonRepository.finalizeComparison();
 
   // Return the summary data
   return {
@@ -96,5 +92,9 @@ export async function compareSnapshots(
     newUrls,
     removedUrls,
     comparisonProcessErrors: [], // Can be enhanced later
+    comparisonId: config.comparisonName,
+    durationMs: Date.now() - startTime,
+    summaryFilePath: path.join(resultsPath, "index.json"),
+    resultsPath,
   };
 }
