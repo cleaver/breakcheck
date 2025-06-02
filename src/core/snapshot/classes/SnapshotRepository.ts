@@ -20,6 +20,21 @@ export class SnapshotRepository {
   }
 
   /**
+   * Normalizes a URL by removing scheme, hostname, and port
+   * @param url The URL to normalize
+   * @returns The normalized URL path starting with "/"
+   */
+  private normalizeUrl(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.pathname + urlObj.search + urlObj.hash;
+    } catch {
+      // If URL parsing fails, return the original URL
+      return url;
+    }
+  }
+
+  /**
    * Save a snapshot to disk (streaming/iterative)
    * Returns the number of non-error pages saved
    */
@@ -63,13 +78,22 @@ export class SnapshotRepository {
       if (item.type === "error") return;
       // Save each page as a compressed JSON file
       const page = item as PageSnapshot;
-      const pageData = JSON.stringify(page);
+      const normalizedUrl = this.normalizeUrl(page.url);
+
+      // Create a copy of the page with normalized URL
+      const normalizedPage = {
+        ...page,
+        url: normalizedUrl,
+      };
+
+      const pageData = JSON.stringify(normalizedPage);
       const compressed = await gzip(pageData);
-      const filename = Buffer.from(page.url).toString("base64url") + ".json.gz";
+      const filename =
+        Buffer.from(normalizedUrl).toString("base64url") + ".json.gz";
       await fs.writeFile(path.join(pagesDir, filename), compressed);
 
       // Add to index
-      index.urls[page.url] = {
+      index.urls[normalizedUrl] = {
         filename,
         statusCode: page.statusCode,
         finalUrl: page.finalUrl !== page.url ? page.finalUrl : undefined,
