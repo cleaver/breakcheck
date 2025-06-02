@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>BreakCheck - Diff for <%= pageUrl %>
+    </title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        .diff-container {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .line {
+            padding: 0 0.5rem;
+        }
+
+        .removed {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .added {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/" class="back-link">← Back to Comparison</a>
+    <h1>Diff for <%= pageUrl %>
+    </h1>
+
+    <div class="diff-container">
+        <pre>
+      <% diffData.differences.forEach(function(diff) { %>
+        <div class="line <%= diff.removed ? 'removed' : diff.added ? 'added' : '' %>">
+          <%= diff.value %>
+        </div>
+      <% }); %>
+    </pre>
+    </div>
+</body>
+
+</html>
