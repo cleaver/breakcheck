@@ -15,7 +15,8 @@ import type {
 export async function createSnapshotFromConfig(
   config: SnapshotConfig
 ): Promise<SnapshotResult> {
-  return createSnapshot(config);
+  const snapshotRepository = new SnapshotRepository();
+  return createSnapshot(config, snapshotRepository);
 }
 
 /**

@@ -12,7 +12,8 @@ export { SnapshotRepository } from "./classes/SnapshotRepository";
  * Orchestrates calls to Crawler and Snapshot Manager.
  */
 export async function createSnapshot(
-  config: SnapshotConfig
+  config: SnapshotConfig,
+  snapshotRepository: SnapshotRepository
 ): Promise<SnapshotResult> {
   const startTime = Date.now();
   const errors: CrawlError[] = [];
@@ -39,7 +40,6 @@ export async function createSnapshot(
     const dataset = await Dataset.open(datasetName);
 
     // Save snapshot (streaming/iterative)
-    const snapshotRepository = new SnapshotRepository();
     const pageCount = await snapshotRepository.saveSnapshot(config.name, {
       dataset,
       metadata: {
