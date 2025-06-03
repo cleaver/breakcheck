@@ -68,13 +68,11 @@
     </h1>
 
     <div class="diff-container">
-        <pre>
-      <% diffData.differences.forEach(function(diff) { %>
-        <div class="line <%= diff.removed ? 'removed' : diff.added ? 'added' : '' %>">
-          <%= diff.value %>
-        </div>
-      <% }); %>
-    </pre>
+        <% diffData.differences.forEach(function(diff) { %>
+            <div class="line <%= diff.removed ? 'removed' : diff.added ? 'added' : '' %>">
+                <pre><%= diff.value %></pre>
+            </div>
+            <% }); %>
     </div>
 </body>
 
