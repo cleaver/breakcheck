@@ -2,10 +2,8 @@ import { ComparisonIndex, PageDiff } from "@/types/compare";
 import { Request, RequestHandler, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
-import pino from "pino";
+import { logger } from "@lib/logger";
 import { gunzip } from "zlib";
-
-const logger = pino({ transport: { target: "pino-pretty" } });
 
 export const createIndexHandler = (comparisonDir: string): RequestHandler => {
   return async (req: Request, res: Response) => {
@@ -28,7 +26,7 @@ export const createIndexHandler = (comparisonDir: string): RequestHandler => {
         unchangedPages,
       });
     } catch (error) {
-      logger.error("Error reading index file:", error);
+      logger.error({ err: error }, "Error reading index file");
       res.status(500).send("Error reading comparison data");
     }
   };
@@ -70,7 +68,7 @@ export const createDiffHandler = (comparisonDir: string): RequestHandler => {
         diffData,
       });
     } catch (error) {
-      logger.error("Error reading diff file:", error);
+      logger.error({ err: error }, "Error reading diff file");
       res.status(500).send("Error reading diff data");
     }
   };

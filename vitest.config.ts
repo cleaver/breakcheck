@@ -17,6 +17,7 @@ export default defineConfig({
       "@api": resolve(__dirname, "./src/api"),
       "@cli": resolve(__dirname, "./src/cli"),
       "@core": resolve(__dirname, "./src/core"),
+      "@lib": resolve(__dirname, "./src/lib"),
       "@project-types": resolve(__dirname, "./src/types"),
     },
   },

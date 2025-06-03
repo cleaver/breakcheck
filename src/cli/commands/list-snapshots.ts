@@ -1,8 +1,6 @@
 import { listSnapshots } from "@api/index";
 import { InteractiveCommand } from "interactive-commander";
-import pino from "pino";
-
-const logger = pino({ transport: { target: "pino-pretty" } });
+import { logger } from "@lib/logger";
 
 export const listSnapshotsCommand = new InteractiveCommand("list-snapshots")
   .description("List all available snapshots")
@@ -63,10 +61,7 @@ export const listSnapshotsCommand = new InteractiveCommand("list-snapshots")
         );
       });
     } catch (error) {
-      logger.error(
-        "❌ Error:",
-        error instanceof Error ? error.message : "Unknown error occurred"
-      );
+      logger.error({ err: error }, "❌ Error listing snapshots");
       process.exit(1);
     }
   });

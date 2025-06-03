@@ -1,15 +1,14 @@
 import express from "express";
 import path from "path";
-import pino from "pino";
 import { promisify } from "util";
 import { createIndexHandler, createDiffHandler } from "./index.handlers";
 import zlib from "zlib";
 import { fileURLToPath } from "url";
+import { logger } from "@lib/logger";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const logger = pino({ transport: { target: "pino-pretty" } });
 const gunzip = promisify(zlib.gunzip);
 
 interface DiffEntry {

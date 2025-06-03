@@ -1,8 +1,7 @@
 import { runComparison } from "@api/index";
 import type { ComparisonConfig } from "@project-types/api";
 import { InteractiveCommand } from "interactive-commander";
-import pino from "pino";
-const logger = pino({ transport: { target: "pino-pretty" } });
+import { logger } from "@lib/logger";
 
 export const compareCommand = new InteractiveCommand("compare")
   .description("Compare two snapshots and save the results to disk")
@@ -49,15 +48,12 @@ export const compareCommand = new InteractiveCommand("compare")
         );
       } else {
         logger.error(
-          "❌ Comparison failed:",
-          summary.comparisonProcessErrors.map((error) => error.message)
+          { errors: summary.comparisonProcessErrors },
+          "❌ Comparison failed"
         );
       }
     } catch (error) {
-      logger.error(
-        "❌ Error:",
-        error instanceof Error ? error.message : "Unknown error occurred"
-      );
+      logger.error({ err: error }, "❌ Error running comparison");
       process.exit(1);
     }
   });

@@ -1,8 +1,6 @@
 import { InteractiveCommand } from "interactive-commander";
-import pino from "pino";
-import { startViewServer } from "../../core/view";
-
-const logger = pino({ transport: { target: "pino-pretty" } });
+import { startViewServer } from "@core/view";
+import { logger } from "@lib/logger";
 
 export const viewCommand = new InteractiveCommand("view")
   .description("View the results of a comparison")
@@ -23,10 +21,7 @@ export const viewCommand = new InteractiveCommand("view")
 
       await startViewServer(comparisonName, port);
     } catch (error) {
-      logger.error(
-        "❌ Error:",
-        error instanceof Error ? error.message : "Unknown error occurred"
-      );
+      logger.error({ err: error }, "❌ Error starting view server");
       process.exit(1);
     }
   });
