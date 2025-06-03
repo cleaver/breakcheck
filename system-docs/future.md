@@ -1,13 +1,16 @@
 # Features for the future:
 
-- `breakcheck clean` - delete snapshot
-  - `--name` option for name of snapshot to delete
+- `breakcheck clean snapshot|comparison` - delete snapshot|comparison
+  - `--name` option for name of snapshot|comparison to delete
   - `--all` to nuke everything
   - omit name for interactive
+  - add `--force` to skip confirmation
 - `breakcheck list/ls` - list snapshots
   - [x] show name, date, number of pages, number of errors
   - [ ] in future, maybe add list diffs?
 - `breakcheck snapshot --url-file` - to use the url list text file.
+- `breakcheck init` - to initialize a new project
+- `breakcheck new rule <name>` - to create a new rule file.
 - store and read config files
 - interactive config files
 - ability to set a snapshot as baseline
