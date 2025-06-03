@@ -83,7 +83,7 @@ export interface Rule {
 /**
  * The root structure of the JSON rules document
  */
-export interface RulesDocument {
+export interface Ruleset {
   mode: ProcessingMode;
   rules: Rule[];
 }

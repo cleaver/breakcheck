@@ -6,13 +6,16 @@ This document specifies the JSON format that represents the parsed rules from th
 
 ## **2. Top-Level Structure**
 
-The root of the JSON document is an object containing the overall configuration mode and a list of rules.  
-{  
- "mode": "default_include" | "explicit_include",  
- "rules": [
-// Array of Rule objects (see section 3)
-]  
+The root of the JSON document is an object containing the overall configuration mode and a list of rules.
+
+```json
+{
+  "mode": "default_include" | "explicit_include",
+  "rules": [
+    // Array of Rule objects (see section 3)
+  ]
 }
+```
 
 - **mode** (String, Required): Specifies the overall processing mode.
   - Value must be either "default_include" or "explicit_include".
@@ -21,14 +24,17 @@ The root of the JSON document is an object containing the overall configuration 
 
 ## **3. Rule Object Structure**
 
-Each object within the rules array represents a single selector and the action(s) associated with it.  
-{  
- "selector_type": "css" | "xpath",  
- "selector": "string",  
- "actions": [
-// Array of Action objects (see section 4)
-]  
+Each object within the rules array represents a single selector and the action(s) associated with it.
+
+```json
+{
+  "selector_type": "css" | "xpath",
+  "selector": "string",
+  "actions": [
+    // Array of Action objects (see section 4)
+  ]
 }
+```
 
 - **selector_type** (String, Required): Specifies the type of selector used.
   - Value must be either "css" or "xpath".
@@ -37,13 +43,16 @@ Each object within the rules array represents a single selector and the action(s
 
 ## **4. Action Object Structure**
 
-Each object within a rule's actions array represents a specific operation to perform.  
-{  
- "action": "include" | "exclude" | "remove_attr" | "rewrite_attr" | "rewrite_content",  
- "modifiers": {  
- // Optional modifier properties based on the action type  
- }  
+Each object within a rule's actions array represents a specific operation to perform.
+
+```json
+{
+  "action": "include" | "exclude" | "remove_attr" | "rewrite_attr" | "rewrite_content",
+  "modifiers": {
+    // Optional modifier properties based on the action type
+  }
 }
+```
 
 - **action** (String, Required): The type of action to perform.
   - Value must be one of: "include", "exclude", "remove_attr", "rewrite_attr", "rewrite_content".
@@ -69,66 +78,81 @@ Each object within a rule's actions array represents a specific operation to per
 
 ## **5. Examples of DSL to JSON Transformation**
 
-**DSL Example 1 (Single Action):**  
+**DSL Example 1 (Single Action):**
 css:.ad-container do: exclude
 
-**JSON Output 1:**  
-{  
- "selector_type": "css",  
- "selector": ".ad-container",  
- "actions": [
-{
-"action": "exclude"
-}
-]  
-}
+**JSON Output 1:**
 
-**DSL Example 2 (Block Action):**  
-xpath://img do  
- remove_attr attr:srcset  
- rewrite_attr attr:src regex://cdn\d+\.example\.com/ replace://cdn.example.com/  
+```json
+{
+  "selector_type": "css",
+  "selector": ".ad-container",
+  "actions": [
+    {
+      "action": "exclude"
+    }
+  ]
+}
+```
+
+**DSL Example 2 (Block Action):**
+
+```
+xpath://img do
+  remove_attr attr:srcset
+  rewrite_attr attr:src regex://cdn\d+\.example\.com/ replace://cdn.example.com/
 end
+```
 
-**JSON Output 2:**  
-{  
- "selector_type": "xpath",  
- "selector": "//img",  
- "actions": [
-{
-"action": "remove_attr",
-"modifiers": {
-"attr": "srcset"
-}
-},
-{
-"action": "rewrite_attr",
-"modifiers": {
-"attr": "src",
-"regex": "//cdn\d+\.example\.com/",
-"replace": "//cdn.example.com/"
-}
-}
-]  
-}
+**JSON Output 2:**
 
-**DSL Example 3 (Mode and Content Regex):**  
-mode explicit_include  
+```json
+{
+  "selector_type": "xpath",
+  "selector": "//img",
+  "actions": [
+    {
+      "action": "remove_attr",
+      "modifiers": {
+        "attr": "srcset"
+      }
+    },
+    {
+      "action": "rewrite_attr",
+      "modifiers": {
+        "attr": "src",
+        "regex": "//cdn\\d+\\.example\\.com/",
+        "replace": "//cdn.example.com/"
+      }
+    }
+  ]
+}
+```
+
+**DSL Example 3 (Mode and Content Regex):**
+
+```
+mode explicit_include
 css:.important-note do: include content_regex:"Warning:"
+```
 
-**JSON Output 3 (Partial - showing only the rule):**  
-// Assuming this rule is within the main JSON structure like:  
-// { "mode": "explicit_include", "rules": [ ... ] }  
-{  
- "selector_type": "css",  
- "selector": ".important-note",  
- "actions": [
+**JSON Output 3 (Partial - showing only the rule):**
+
+```json
+// Assuming this rule is within the main JSON structure like:
+// { "mode": "explicit_include", "rules": [ ... ] }
 {
-"action": "include",
-"modifiers": {
-"content_regex": "Warning:"
+  "selector_type": "css",
+  "selector": ".important-note",
+  "actions": [
+    {
+      "action": "include",
+      "modifiers": {
+        "content_regex": "Warning:"
+      }
+    }
+  ]
 }
-}
-]  
-}
+```
 
 This specification provides a clear target format for the DSL parser and a well-defined input structure for the Rules Engine.
