@@ -236,6 +236,7 @@ graph TD
 - **FC-05:** **API / CI/CD Integration:** Provide clear documentation and potentially client libraries for using the (future network) API in automated CI/CD pipelines.
 - **FC-06:** **Screenshot Comparison:** Add optional screenshot capture during crawl and comparison capabilities (visual regression testing).
 - **FC-07:** **REST API:** Add REST API implementing 202 / Polling approach for long running jobs like snapshot.
+- **FC-08:** **Advanced Rule Scoping:** Enhance the Rules DSL to allow individual rules to be scoped to specific URL path patterns. This would enable a single, consolidated rule file to apply different transformations to distinct sections of a website (e.g., applying one set of rules to /products/_ and another to /blog/_). This provides more granular control and better organization for complex projects. This feature could later be expanded to support other conditions, such as scoping by HTTP status code.
 
 ## 9. Out of Scope (for v2.1)
 
