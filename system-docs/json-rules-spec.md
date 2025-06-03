@@ -59,7 +59,7 @@ Each object within a rule's actions array represents a specific operation to per
 - **modifiers** (Object, Optional): Contains key-value pairs providing additional parameters needed for the specific action. The presence and requirement of keys within modifiers depend on the action value:
   - **If action is remove_attr:**
     - attr (String, Required): The name of the attribute to remove.
-    - Example: { "action": "remove_attr", "modifiers": { "attr": "srcset" } }
+    - Example: `{ "action": "remove_attr", "modifiers": { "attr": "srcset" } }`
   - **If action is rewrite_attr:**
     - attr (String, Required): The name of the attribute to rewrite.
     - regex (String, Required): The regular expression pattern to match within the attribute value.

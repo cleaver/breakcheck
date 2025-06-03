@@ -1,6 +1,7 @@
 /** Types for API users. */
 
 import { CrawlError } from "./crawler";
+import { Ruleset } from "./rules";
 
 export type CrawlerType = "cheerio" | "playwright";
 
@@ -106,45 +107,7 @@ export type SnapshotJobStatusResponse =
  */
 export type SnapshotResult = SnapshotJobSuccess | SnapshotJobFailed;
 
-/**
- * Defines the structure of a single comparison rule.
- * This should align with breakcheck_json_spec_v1.
- * (As defined in the previous response)
- */
-export interface Rule {
-  mode:
-    | "include"
-    | "exclude"
-    | "remove_attr"
-    | "rewrite_attr"
-    | "rewrite_content"
-    | string;
-  selectors: string[];
-  selectorType: "css" | "xpath";
-  attribute?: string;
-  pattern?: string;
-  replacement?: string;
-  // Add other fields as per breakcheck_json_spec_v1
-}
-
 type RulesetName = string;
-
-/**
- * Represents a named, ordered collection of rules.
- * Rulesets can be stored on disk and referenced by their name.
- */
-export interface Ruleset {
-  /** Unique identifier for the ruleset. */
-  name: RulesetName;
-  /** Optional description of the ruleset's purpose. */
-  description?: string;
-  /** Ordered list of rules that constitute this ruleset. The order is significant for rule application. */
-  rules: Rule[];
-  /** Optional path to the file from which this ruleset was loaded. */
-  filePath?: string;
-  /** Optional timestamp of when the ruleset was last modified or created (ISO 8601 datetime). */
-  lastModified?: string;
-}
 
 /**
  * Configuration for running a comparison
