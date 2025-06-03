@@ -12,7 +12,7 @@
 ## **2. Rules Engine & DSL**
 
 - [ ] 2.1. **DSL Parser (Chevrotain)**
-  - [ ] 2.1.1. Define grammar for the object-first DSL (keywords: mode, do, end, actions, modifiers).
+  - [x] 2.1.1. Define grammar for the object-first DSL (keywords: mode, do, end, actions, modifiers).
   - [ ] 2.1.2. Implement lexer and parser logic.
   - [ ] 2.1.3. Implement transformation from parse tree (CST) to the intermediate JSON format (AST - RuleSetJson).
   - [ ] 2.1.4. Add validation for selector syntax (basic check, maybe integrate CSS/XPath validator later).
@@ -43,11 +43,11 @@
 
 - [x] 4.1. Choose and integrate HTML diffing library (CB: we'll use `diff` npm package)
 - [x] 4.2. Choose and integrate text diffing library (`diff`)
-- [ ] 4.3. Implement comparison logic taking two processed DOMs (output from DOM Processor) as input.
-- [ ] 4.4. Implement logic to identify structural changes (added/removed/moved elements/attributes).
-- [ ] 4.5. Implement logic to identify content changes (text modifications).
-- [ ] 4.6. Define and implement the Difference structure (part of ComparisonSummary).
-- [ ] 4.7. (Optional) Implement basic HTML report generation for visual diff (potentially as a separate utility or reporter module).
+- [x] 4.3. Implement comparison logic taking two processed DOMs (output from DOM Processor) as input.
+- [x] 4.4. Implement logic to identify structural changes (added/removed/moved elements/attributes).
+- [ ] ~~4.5. Implement logic to identify content changes (text modifications).~~
+- [x] 4.6. Define and implement the Difference structure (part of ComparisonSummary).
+- [x] 4.7. (Optional) Implement basic HTML report generation for visual diff (potentially as a separate utility or reporter module).
 - [ ] 4.8. Write unit tests comparing various pairs of processed HTML snippets, verifying Difference outputs.
 
 ## **5. Snapshot Manager (File System, zlib)**
@@ -84,10 +84,10 @@
   - [x] 7.2.5. Call Snapshot Manager to save the snapshot data and metadata.
   - [x] 7.2.6. Format and return the SnapshotResult (including success status, ID, metadata, errors).
 - [ ] 7.3. Implement the runComparison function:
-  - [ ] 7.3.1. Validate input ComparisonConfig.
-  - [ ] 7.3.2. Call Snapshot Manager to load "before" and "after" snapshots. Handle errors if snapshots not found.
+  - [x] 7.3.1. Validate input ComparisonConfig.
+  - [x] 7.3.2. Call Snapshot Manager to load "before" and "after" snapshots. Handle errors if snapshots not found.
   - [ ] 7.3.3. If config.rules is a string (DSL), call the Rules Engine Parser to get RuleSetJson. Handle parsing errors. If already RuleSetJson, use directly.
-  - [ ] 7.3.4. Iterate through corresponding pages (matching URLs) in the loaded snapshots.
+  - [x] 7.3.4. Iterate through corresponding pages (matching URLs) in the loaded snapshots.
   - [ ] 7.3.5. For each page pair:
     - [ ] 7.3.5.1. Call DOM Processor with 'before' HTML and parsed rules.
     - [ ] 7.3.5.2. Call DOM Processor with 'after' HTML and parsed rules.
@@ -110,17 +110,18 @@
   - [ ] 8.4.4. Display progress/feedback to the user (potentially using Ink).
   - [x] 8.4.5. Report the SnapshotResult (success/failure, snapshot ID, errors) to the console.
 - [ ] 8.5. Implement the compare command logic:
-  - [ ] 8.5.1. Parse arguments into a ComparisonConfig object (reading rule file content if path provided).
-  - [ ] 8.5.2. Instantiate the API Layer implementation.
-  - [ ] 8.5.3. Call apiLayer.runComparison(config).
-  - [ ] 8.5.4. Display progress/feedback to the user.
-  - [ ] 8.5.5. Receive the ComparisonSummary from the API Layer.
-  - [ ] 8.5.6. Format and display the report based on ComparisonSummary to the console (summary and details of differences).
+  - [x] 8.5.1. Parse arguments into a ComparisonConfig object (reading rule file content if path provided).
+  - [x] 8.5.2. Instantiate the API Layer implementation.
+  - [x] 8.5.3. Call apiLayer.runComparison(config).
+  - [x] 8.5.4. Display progress/feedback to the user.
+  - [x] 8.5.5. Receive the ComparisonSummary from the API Layer.
+  - [x] 8.5.6. Format and display the report based on ComparisonSummary to the console (summary and details of differences).
   - [ ] 8.5.7. (Optional) Implement JSON report output (--output): Write the received ComparisonSummary object to a file.
-  - [ ] 8.5.8. (Optional) Implement HTML report output (--output): Generate HTML from the ComparisonSummary (may require a separate reporting utility called by the CLI).
+  - [x] 8.5.8. (Optional) Implement HTML report output (--output): Generate HTML from the ComparisonSummary (may require a separate reporting utility called by the CLI).
 - [ ] 8.6. Integrate Ink for enhanced progress reporting and potentially richer output formatting.
-- [ ] 8.7. Implement clear error reporting to the console based on errors received from the API Layer.
+- [x] 8.7. Implement clear error reporting to the console based on errors received from the API Layer.
 - [ ] 8.8. Write end-to-end tests simulating CLI usage with sample sites and rules, verifying console output and generated files.
+- [x] 8.9. Implement the view command logic.
 
 ## **9. Documentation & Finalization**
 
