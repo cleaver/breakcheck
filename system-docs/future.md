@@ -14,6 +14,8 @@
 - store and read config files
 - interactive config files
 - ability to set a snapshot as baseline
+- [ ] extract the file, directory, compression stuff to util modules
+- [ ] extract the mocks, especially in `compare` tests.
 
 # Things to check:
 
