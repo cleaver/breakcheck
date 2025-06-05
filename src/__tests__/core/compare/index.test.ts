@@ -3,6 +3,12 @@ import { comparePage, compareSnapshots } from "@core/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { SnapshotRepository } from "@core/snapshot";
 import { Dataset } from "crawlee";
+import { ComparisonRepository } from "@core/compare/classes/ComparisonRepository";
+import {
+  ComparisonIndex,
+  ComparisonMetadata,
+  PageDiff,
+} from "@project-types/compare";
 
 /**
  * Creates a mock SnapshotRepository for testing
@@ -29,11 +35,60 @@ class MockSnapshotRepository extends SnapshotRepository {
   }
 }
 
+/**
+ * Creates a mock ComparisonRepository for testing
+ */
+class MockComparisonRepository {
+  private index: ComparisonIndex = {
+    urls: {},
+    metadata: {
+      timestamp: new Date().toISOString(),
+      totalPages: 0,
+      pagesWithDifferences: 0,
+    } as any,
+  };
+
+  async startComparison(
+    name: string,
+    metadata: ComparisonMetadata
+  ): Promise<void> {
+    this.index.metadata = {
+      ...metadata,
+      timestamp: new Date().toISOString(),
+      totalPages: 0,
+      pagesWithDifferences: 0,
+    };
+  }
+
+  async savePageDiff(pageDiff: PageDiff): Promise<void> {
+    this.index.urls[pageDiff.url] = {
+      filename: `${pageDiff.url}.json.gz`,
+      hasDifferences: pageDiff.hasDifferences,
+    };
+    this.index.metadata.totalPages++;
+    if (pageDiff.hasDifferences) {
+      this.index.metadata.pagesWithDifferences++;
+    }
+  }
+
+  async finalizeComparison(): Promise<string> {
+    return "/mock/comparison/path";
+  }
+
+  getIndex(): ComparisonIndex {
+    return this.index;
+  }
+}
+
 function createMockSnapshotRepository(
   beforeSnapshot: any,
   afterSnapshot: any
 ): SnapshotRepository {
   return new MockSnapshotRepository(beforeSnapshot, afterSnapshot);
+}
+
+function createMockComparisonRepository(): ComparisonRepository {
+  return new MockComparisonRepository() as unknown as ComparisonRepository;
 }
 
 describe("Compare Functions", () => {
@@ -147,23 +202,24 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
+      const comparisonRepository = createMockComparisonRepository();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
           afterSnapshotId: "after",
+          comparisonName: "test-comparison",
           ruleset: "default",
         },
-        snapshotRepository
+        snapshotRepository,
+        comparisonRepository
       );
 
-      expect(result.pageDiffs).toHaveLength(1);
+      expect(result.status).toBe("completed");
+      expect(result.overallResult).toBe("fail");
+      expect(result.totalPagesCompared).toBe(1);
+      expect(result.pagesWithDifferences).toBe(1);
       expect(result.newUrls).toHaveLength(0);
       expect(result.removedUrls).toHaveLength(0);
-
-      const pageDiff = result.pageDiffs[0];
-      expect(pageDiff.url).toBe("https://example.com");
-      expect(pageDiff.hasDifferences).toBe(true);
-      expect(pageDiff.differences).toHaveLength(4);
     });
 
     it("should detect new and removed URLs between snapshots", async () => {
@@ -217,16 +273,22 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
+      const comparisonRepository = createMockComparisonRepository();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
           afterSnapshotId: "after",
+          comparisonName: "test-comparison",
           ruleset: "default",
         },
-        snapshotRepository
+        snapshotRepository,
+        comparisonRepository
       );
 
-      expect(result.pageDiffs).toHaveLength(0);
+      expect(result.status).toBe("completed");
+      expect(result.overallResult).toBe("pass");
+      expect(result.totalPagesCompared).toBe(0);
+      expect(result.pagesWithDifferences).toBe(0);
       expect(result.newUrls).toHaveLength(1);
       expect(result.newUrls[0]).toBe("https://example.com/new");
       expect(result.removedUrls).toHaveLength(1);
@@ -294,19 +356,23 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
+      const comparisonRepository = createMockComparisonRepository();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
           afterSnapshotId: "after",
+          comparisonName: "test-comparison",
           urls: ["https://example.com/page1"],
           ruleset: "default",
         },
-        snapshotRepository
+        snapshotRepository,
+        comparisonRepository
       );
 
-      expect(result.pageDiffs).toHaveLength(1);
-      expect(result.pageDiffs[0].url).toBe("https://example.com/page1");
-      expect(result.pageDiffs[0].hasDifferences).toBe(true);
+      expect(result.status).toBe("completed");
+      expect(result.overallResult).toBe("fail");
+      expect(result.totalPagesCompared).toBe(1);
+      expect(result.pagesWithDifferences).toBe(1);
       expect(result.newUrls).toHaveLength(0);
       expect(result.removedUrls).toHaveLength(0);
     });
@@ -339,17 +405,22 @@ describe("Compare Functions", () => {
         snapshot,
         snapshot
       );
+      const comparisonRepository = createMockComparisonRepository();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
           afterSnapshotId: "after",
+          comparisonName: "test-comparison",
           ruleset: "default",
         },
-        snapshotRepository
+        snapshotRepository,
+        comparisonRepository
       );
 
-      expect(result.pageDiffs).toHaveLength(1);
-      expect(result.pageDiffs[0].hasDifferences).toBe(false);
+      expect(result.status).toBe("completed");
+      expect(result.overallResult).toBe("pass");
+      expect(result.totalPagesCompared).toBe(1);
+      expect(result.pagesWithDifferences).toBe(0);
       expect(result.newUrls).toHaveLength(0);
       expect(result.removedUrls).toHaveLength(0);
     });
@@ -421,24 +492,24 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
+      const comparisonRepository = createMockComparisonRepository();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
           afterSnapshotId: "after",
+          comparisonName: "test-comparison",
           ruleset: "default",
         },
-        snapshotRepository
+        snapshotRepository,
+        comparisonRepository
       );
 
-      expect(result.pageDiffs).toHaveLength(3);
-
-      // Verify URLs are in ascending order
-      const urls = result.pageDiffs.map((diff) => diff.url);
-      expect(urls).toEqual([
-        "https://example.com/a",
-        "https://example.com/m",
-        "https://example.com/z",
-      ]);
+      expect(result.status).toBe("completed");
+      expect(result.overallResult).toBe("fail");
+      expect(result.totalPagesCompared).toBe(3);
+      expect(result.pagesWithDifferences).toBe(3);
+      expect(result.newUrls).toHaveLength(0);
+      expect(result.removedUrls).toHaveLength(0);
     });
   });
 });

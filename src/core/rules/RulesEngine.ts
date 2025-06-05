@@ -1,7 +1,7 @@
+import { Action, Ruleset } from "@project-types/rules";
 import * as cheerio from "cheerio";
 import * as fs from "fs";
 import * as path from "path";
-import { Ruleset, Rule, Action } from "../../types/rules";
 
 export class RulesEngine {
   private ruleset: Ruleset;

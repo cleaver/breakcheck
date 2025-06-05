@@ -42,13 +42,14 @@ export async function compareSnapshots(
   const beforeUrls = Object.keys(beforeSnapshot.index.urls);
   const afterUrls = new Set(Object.keys(afterSnapshot.index.urls));
   const urlsToCompare = config.urls || beforeUrls;
+  const rulesUsedIdentifier =
+    typeof config.ruleset === "string" ? config.ruleset : config.ruleset.name;
 
   // Start the comparison process in the repository
   await comparisonRepository.startComparison(config.comparisonName, {
     beforeSnapshotId: config.beforeSnapshotId,
     afterSnapshotId: config.afterSnapshotId,
-    rulesUsedIdentifier:
-      typeof config.ruleset === "string" ? config.ruleset : config.ruleset.name,
+    rulesUsedIdentifier,
   });
 
   // Find new and removed URLs
@@ -82,8 +83,7 @@ export async function compareSnapshots(
       finalIndex.metadata.pagesWithDifferences > 0 ? "fail" : "pass",
     beforeSnapshotId: config.beforeSnapshotId,
     afterSnapshotId: config.afterSnapshotId,
-    rulesUsedIdentifier:
-      typeof config.ruleset === "string" ? config.ruleset : config.ruleset.name,
+    rulesUsedIdentifier,
     timestamp: finalIndex.metadata.timestamp,
     totalPagesCompared: finalIndex.metadata.totalPages,
     pagesWithDifferences: finalIndex.metadata.pagesWithDifferences,

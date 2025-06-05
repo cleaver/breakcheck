@@ -136,9 +136,9 @@ describe("SnapshotRepository", () => {
       expect(loadedSnapshot.index.metadata.totalPages).toBe(1);
 
       // Test loading a specific page
-      const page = await loadedSnapshot.getPage("https://example.com");
+      const page = await loadedSnapshot.getPage("/");
       expect(page).not.toBeNull();
-      expect(page?.url).toBe("https://example.com");
+      expect(page?.url).toBe("/");
       expect(page?.statusCode).toBe(200);
     });
 
@@ -165,7 +165,7 @@ describe("SnapshotRepository", () => {
       );
 
       // Try to get a non-existent page
-      const page = await loadedSnapshot.getPage("https://nonexistent.com");
+      const page = await loadedSnapshot.getPage("/nonexistent");
       expect(page).toBeNull();
     });
   });
@@ -195,7 +195,7 @@ describe("SnapshotRepository", () => {
 
       // Verify file exists and contains correct content
       const content = await fs.readFile(outputPath, "utf-8");
-      expect(content.trim()).toBe("https://example.com");
+      expect(content.trim()).toBe("/");
     });
 
     it("should filter URLs based on status code", async () => {
@@ -235,7 +235,7 @@ describe("SnapshotRepository", () => {
       const content = await fs.readFile(outputPath, "utf-8");
       const urls = content.trim().split("\n");
       expect(urls).toHaveLength(1);
-      expect(urls[0]).toBe("https://example.com");
+      expect(urls[0]).toBe("/");
     });
   });
 
