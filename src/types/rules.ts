@@ -84,6 +84,7 @@ export interface Rule {
  * The root structure of the JSON rules document
  */
 export interface Ruleset {
+  name: string;
   mode: ProcessingMode;
   rules: Rule[];
 }

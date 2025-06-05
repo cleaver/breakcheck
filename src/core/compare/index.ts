@@ -14,7 +14,6 @@ export async function comparePage(
   before: PageSnapshot,
   after: PageSnapshot
 ): Promise<PageDiff> {
-  // ... existing implementation ...
   const url = before.url;
   const differences: LineDiff[] = diffLines(before.content, after.content);
   const hasDifferences = differences.some((diff) => diff.added || diff.removed);

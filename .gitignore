@@ -40,7 +40,7 @@ coverage/
 
 # Storage
 
-storage/
-snapshots/
-comparisons/
-rules/
+/storage/
+/snapshots/
+/comparisons/
+/rules/

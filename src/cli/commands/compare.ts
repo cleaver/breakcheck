@@ -15,7 +15,7 @@ export const compareCommand = new InteractiveCommand("compare")
   .option(
     "-r, --rules <path>",
     "Path to rules file (feature to be implemented)",
-    "rules/default"
+    "default"
   )
   .action(async (options) => {
     try {

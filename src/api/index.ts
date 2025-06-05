@@ -7,6 +7,8 @@ import type {
   SnapshotConfig,
   SnapshotResult,
 } from "@project-types/api";
+import { RulesEngine } from "@/core/rules/RulesEngine";
+import path from "path";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.
@@ -42,7 +44,12 @@ export async function runComparison(
   config: ComparisonConfig
 ): Promise<ComparisonSummary> {
   const snapshotRepository = new SnapshotRepository();
-  const comparisonRepository = new ComparisonRepository();
+  const rulesEngine = new RulesEngine(config.ruleset);
+  const comparisonRepository = new ComparisonRepository(
+    path.join(process.cwd(), "comparisons"),
+    rulesEngine
+  );
+
   const diff = await compareSnapshots(
     config,
     snapshotRepository,
