@@ -1,95 +1,94 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { startViewServer } from "../../../core/view";
-import express from "express";
-import path from "path";
-import fs from "fs";
-import zlib from "zlib";
+import { startViewServer } from "@core/view";
+import http from "http";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { promisify } from "util";
 
-const gunzip = promisify(zlib.gunzip);
+vi.mock("fs/promises", () => ({
+  default: {
+    readFile: vi.fn(async (path: string | Buffer | URL) => {
+      if (typeof path === "string" && path.includes("index.json")) {
+        return JSON.stringify({
+          urls: {
+            "/page1": { filename: "page1.json.gz", hasDifferences: true },
+            "/page2": { filename: "page2.json.gz", hasDifferences: false },
+          },
+        });
+      }
+      if (typeof path === "string" && path.includes("page1.json.gz")) {
+        return Buffer.from("compressed data");
+      }
+      throw new Error(`fs.readFile mock not implemented for ${path}`);
+    }),
+  },
+}));
 
-// Mock fs and zlib functions
-vi.mock("fs");
-vi.mock("zlib");
+vi.mock("zlib", () => ({
+  gunzip: vi.fn((_buffer, callback) => {
+    const decompressed = Buffer.from(
+      JSON.stringify({
+        url: "/page1",
+        differences: [],
+        hasDifferences: true,
+      })
+    );
+    callback(null, decompressed);
+  }),
+}));
 
 describe("View Server", () => {
   const mockComparisonName = "test-comparison";
   const mockPort = 8080;
+  let server: http.Server;
+  const closeServer = promisify(
+    (server: http.Server, cb: (err?: Error) => void) => server.close(cb)
+  );
 
-  beforeEach(() => {
-    // Reset all mocks
+  beforeEach(async () => {
     vi.clearAllMocks();
+    server = await startViewServer(mockComparisonName, mockPort);
+  });
 
-    // Mock fs.readFileSync for index.json
-    vi.mocked(fs.readFileSync).mockImplementation((path: string) => {
-      if (path.includes("index.json")) {
-        return JSON.stringify({
-          pages: [
-            { url: "/page1", diffFile: "page1.json.gz", hasDifferences: true },
-            { url: "/page2", diffFile: "page2.json.gz", hasDifferences: false },
-          ],
-        });
-      }
-      return Buffer.from("mock data");
-    });
+  afterEach(async () => {
+    await closeServer(server);
+  });
 
-    // Mock gunzip
-    vi.mocked(gunzip).mockResolvedValue(
-      Buffer.from(
-        JSON.stringify({
-          url: "/page1",
-          differences: [
-            { count: 1, added: false, removed: false, value: "unchanged" },
-            { count: 1, added: true, removed: false, value: "added" },
-            { count: 1, added: false, removed: true, value: "removed" },
-          ],
-          hasDifferences: true,
+  const makeRequest = (
+    path: string
+  ): Promise<{ statusCode: number; data: string }> => {
+    return new Promise((resolve, reject) => {
+      const options = {
+        host: "localhost",
+        path,
+        port: mockPort,
+        agent: new http.Agent({ keepAlive: false }),
+      };
+      http
+        .get(options, (res) => {
+          let data = "";
+          res.on("data", (chunk) => {
+            data += chunk;
+          });
+          res.on("end", () => {
+            resolve({ statusCode: res.statusCode || 500, data });
+          });
         })
-      )
-    );
-  });
-
-  it("should start the server on the specified port", async () => {
-    const server = await startViewServer(mockComparisonName, mockPort);
-    expect(server).toBeDefined();
-  });
-
-  it("should handle index route correctly", async () => {
-    const app = express();
-    const server = await startViewServer(mockComparisonName, mockPort);
-
-    const response = await new Promise((resolve) => {
-      app.get("/", (req, res) => {
-        resolve(res);
-      });
+        .on("error", reject);
     });
+  };
 
-    expect(response).toBeDefined();
+  it("should start the server and respond to the index route", async () => {
+    const response = await makeRequest("/");
+    expect(response.statusCode).toBe(200);
   });
 
   it("should handle diff route correctly", async () => {
-    const app = express();
-    const server = await startViewServer(mockComparisonName, mockPort);
-
-    const response = await new Promise((resolve) => {
-      app.get("/diff", (req, res) => {
-        resolve(res);
-      });
-    });
-
-    expect(response).toBeDefined();
+    const response = await makeRequest("/diff?page=/page1");
+    expect(response.statusCode).toBe(200);
   });
 
   it("should handle missing page parameter in diff route", async () => {
-    const app = express();
-    const server = await startViewServer(mockComparisonName, mockPort);
-
-    const response = await new Promise((resolve) => {
-      app.get("/diff", (req, res) => {
-        resolve(res);
-      });
-    });
-
-    expect(response).toBeDefined();
+    const response = await makeRequest("/diff");
+    expect(response.statusCode).toBe(400);
   });
 });

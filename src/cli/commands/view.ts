@@ -1,6 +1,6 @@
 import { InteractiveCommand } from "interactive-commander";
-import { startViewServer } from "@core/view";
 import { logger } from "@lib/logger";
+import { startCliViewServer } from "@/core/view";
 
 export const viewCommand = new InteractiveCommand("view")
   .description("View the results of a comparison")
@@ -18,8 +18,7 @@ export const viewCommand = new InteractiveCommand("view")
       if (isNaN(port) || port < 1 || port > 65535) {
         throw new Error("Port must be a number between 1 and 65535");
       }
-
-      await startViewServer(comparisonName, port);
+      await startCliViewServer(comparisonName, port);
     } catch (error) {
       logger.error({ err: error }, "❌ Error starting view server");
       process.exit(1);
