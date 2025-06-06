@@ -46,14 +46,14 @@ export async function runComparison(
   const snapshotRepository = new SnapshotRepository();
   const rulesEngine = new RulesEngine(config.ruleset);
   const comparisonRepository = new ComparisonRepository(
-    path.join(process.cwd(), "comparisons"),
-    rulesEngine
+    path.join(process.cwd(), "comparisons")
   );
 
   const diff = await compareSnapshots(
     config,
     snapshotRepository,
-    comparisonRepository
+    comparisonRepository,
+    rulesEngine
   );
 
   // Convert SnapshotDiff to ComparisonSummary

@@ -2,6 +2,7 @@ import { Action, Ruleset } from "@project-types/rules";
 import * as cheerio from "cheerio";
 import * as fs from "fs";
 import * as path from "path";
+import { logger } from "@/lib/logger";
 
 export class RulesEngine {
   private ruleset: Ruleset;
@@ -14,8 +15,32 @@ export class RulesEngine {
         rulesetOrName,
         "rules.json"
       );
-      const rulesetContent = fs.readFileSync(rulesetPath, "utf-8");
-      this.ruleset = JSON.parse(rulesetContent);
+      try {
+        const rulesetContent = fs.readFileSync(rulesetPath, "utf-8");
+        this.ruleset = JSON.parse(rulesetContent);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "ENOENT"
+        ) {
+          logger.warn(
+            { rulesetPath },
+            `⚠️  Ruleset file not found at '${rulesetOrName}'. Using empty ruleset.`
+          );
+          this.ruleset = {
+            name: rulesetOrName,
+            mode: "default_include",
+            rules: [],
+          };
+        } else {
+          logger.error(
+            { rulesetPath, error },
+            "Failed to load ruleset due to an error"
+          );
+          process.exit(1);
+        }
+      }
     } else {
       this.ruleset = rulesetOrName;
     }

@@ -5,6 +5,7 @@ import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
 import { ComparisonRepository } from "./classes/ComparisonRepository";
 import path from "path";
+import { RulesEngine } from "../rules/RulesEngine";
 
 /**
  * Compares two page snapshots and returns the differences found.
@@ -26,7 +27,8 @@ export async function comparePage(
 export async function compareSnapshots(
   config: ComparisonConfig,
   snapshotRepository: SnapshotRepository,
-  comparisonRepository: ComparisonRepository
+  comparisonRepository: ComparisonRepository,
+  rulesEngine: RulesEngine
 ): Promise<ComparisonSummary> {
   const startTime = Date.now();
 
@@ -64,9 +66,18 @@ export async function compareSnapshots(
 
     const beforePage = await beforeSnapshot.getPage(url);
     const afterPage = await afterSnapshot.getPage(url);
+    if (!beforePage || !afterPage) {
+      pagesWithErrors++;
+      continue;
+    }
+    const beforeContentWithRules = rulesEngine.process(beforePage.content);
+    const afterContentWithRules = rulesEngine.process(afterPage.content);
 
-    if (beforePage && afterPage) {
-      const diff = await comparePage(beforePage, afterPage);
+    if (beforeContentWithRules && afterContentWithRules) {
+      const diff = await comparePage(
+        { ...beforePage, content: beforeContentWithRules },
+        { ...afterPage, content: afterContentWithRules }
+      );
       await comparisonRepository.savePageDiff(diff);
     } else {
       pagesWithErrors++;

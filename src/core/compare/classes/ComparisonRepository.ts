@@ -1,4 +1,3 @@
-import { RulesEngine } from "@/core/rules/RulesEngine";
 import {
   ComparisonIndex,
   ComparisonMetadata,
@@ -18,8 +17,7 @@ export class ComparisonRepository {
   private index: ComparisonIndex = { urls: {}, metadata: {} as any };
 
   constructor(
-    comparisonsDir: string = path.join(process.cwd(), "comparisons"),
-    rulesEngine: RulesEngine
+    comparisonsDir: string = path.join(process.cwd(), "comparisons")
   ) {
     this.comparisonsDir = comparisonsDir;
   }
