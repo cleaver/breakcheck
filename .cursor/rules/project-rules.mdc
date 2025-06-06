@@ -6,3 +6,5 @@ alwaysApply: true
 # Rules to follow when adding code:
 
 - we use our custom wrapper of `pino` in `src/lib/logger.ts` for logging
+- our tests are written with vitest
+- avoid adding unnecessary dependencies
