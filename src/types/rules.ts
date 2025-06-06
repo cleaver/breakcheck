@@ -4,16 +4,6 @@
  */
 
 /**
- * The overall processing mode for the rules
- */
-export type ProcessingMode = "default_include" | "explicit_include";
-
-/**
- * The type of selector used in a rule
- */
-export type SelectorType = "css" | "xpath";
-
-/**
  * The type of action to perform
  */
 export type ActionType =
@@ -75,7 +65,6 @@ export interface Action {
  * Represents a single rule with a selector and its actions
  */
 export interface Rule {
-  selector_type: SelectorType;
   selector: string;
   actions: Action[];
 }
@@ -85,6 +74,5 @@ export interface Rule {
  */
 export interface Ruleset {
   name: string;
-  mode: ProcessingMode;
   rules: Rule[];
 }

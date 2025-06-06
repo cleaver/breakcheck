@@ -30,7 +30,6 @@ export class RulesEngine {
           );
           this.ruleset = {
             name: rulesetOrName,
-            mode: "default_include",
             rules: [],
           };
         } else {
@@ -49,12 +48,8 @@ export class RulesEngine {
   public process(html: string): string {
     const $ = cheerio.load(html);
 
-    // Process each rule in order
+    // Apply each rule in sequence
     for (const rule of this.ruleset.rules) {
-      if (rule.selector_type !== "css") {
-        continue; // Skip non-CSS selectors
-      }
-
       const elements = $(rule.selector);
       elements.each((_, element) => {
         if (element.type === "tag") {
@@ -90,7 +85,7 @@ export class RulesEngine {
         break;
 
       case "include":
-        // In default_include mode, we don't need to do anything for include
+        // No action needed for include
         break;
 
       case "remove_attr":

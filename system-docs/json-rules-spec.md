@@ -6,20 +6,16 @@ This document specifies the JSON format that represents the parsed rules from th
 
 ## **2. Top-Level Structure**
 
-The root of the JSON document is an object containing the overall configuration mode and a list of rules.
+The root of the JSON document is an object containing a list of rules.
 
 ```json
 {
-  "mode": "default_include" | "explicit_include",
   "rules": [
     // Array of Rule objects (see section 3)
   ]
 }
 ```
 
-- **mode** (String, Required): Specifies the overall processing mode.
-  - Value must be either "default_include" or "explicit_include".
-  - Defaults to "default_include" if omitted by the parser (though the parser should ideally always include it).
 - **rules** (Array, Required): An ordered list of rule objects. The order matters as rules might be applied sequentially, and conflict resolution (e.g., "last rule wins") depends on this order.
 
 ## **3. Rule Object Structure**
@@ -28,7 +24,6 @@ Each object within the rules array represents a single selector and the action(s
 
 ```json
 {
-  "selector_type": "css" | "xpath",
   "selector": "string",
   "actions": [
     // Array of Action objects (see section 4)
@@ -36,9 +31,7 @@ Each object within the rules array represents a single selector and the action(s
 }
 ```
 
-- **selector_type** (String, Required): Specifies the type of selector used.
-  - Value must be either "css" or "xpath".
-- **selector** (String, Required): The actual CSS selector or XPath expression string.
+- **selector** (String, Required): The CSS selector string defining the target element(s).
 - **actions** (Array, Required): An ordered list containing one or more action objects to be applied to the elements matching the selector. For single-line do: rules in the DSL, this array will contain exactly one action object. For do/end blocks, it will contain multiple action objects.
 
 ## **4. Action Object Structure**
@@ -85,7 +78,6 @@ css:.ad-container do: exclude
 
 ```json
 {
-  "selector_type": "css",
   "selector": ".ad-container",
   "actions": [
     {
@@ -98,7 +90,7 @@ css:.ad-container do: exclude
 **DSL Example 2 (Block Action):**
 
 ```
-xpath://img do
+css:"img" do
   remove_attr attr:srcset
   rewrite_attr attr:src regex://cdn\d+\.example\.com/ replace://cdn.example.com/
 end
@@ -108,8 +100,7 @@ end
 
 ```json
 {
-  "selector_type": "xpath",
-  "selector": "//img",
+  "selector": "img",
   "actions": [
     {
       "action": "remove_attr",
@@ -129,20 +120,16 @@ end
 }
 ```
 
-**DSL Example 3 (Mode and Content Regex):**
+**DSL Example 3 (Content Regex):**
 
 ```
-mode explicit_include
 css:.important-note do: include content_regex:"Warning:"
 ```
 
-**JSON Output 3 (Partial - showing only the rule):**
+**JSON Output 3:**
 
 ```json
-// Assuming this rule is within the main JSON structure like:
-// { "mode": "explicit_include", "rules": [ ... ] }
 {
-  "selector_type": "css",
   "selector": ".important-note",
   "actions": [
     {

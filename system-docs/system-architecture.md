@@ -60,8 +60,8 @@ F --> J[(File System / Snapshot Storage - LoadedSnapshot, SnapshotIndex)]
     - **Tech**: Compression (e.g., `zlib`), Storage (File system - local JSON/`gzip` compressed files for pages, `metadata.json`, `index.json` representing `SnapshotIndex`). Manages `LoadedSnapshot` for on-demand page access.
     - **Responsibility**: Storing/retrieving versioned site states (snapshots), managing metadata (`SnapshotMetadata`, `SnapshotIndex`). _Invoked by the API Layer._ Provides `SnapshotSummary` for listing.
 3.  **DOM Processor**
-    - **Tech**: Cheerio (`cheerio`), `xpath` (XPath library)
-    - **Responsibility**: Parsing HTML from `PageSnapshot.content`, applying normalization, applying rules (via CSS/XPath selectors) received from the API Layer. _Invoked by the API Layer during comparison._
+    - **Tech**: Cheerio (`cheerio`)
+    - **Responsibility**: Parsing HTML from `PageSnapshot.content`, applying normalization, applying rules (via CSS selectors) received from the API Layer. _Invoked by the API Layer during comparison._
 4.  **CompareManager/Diff Engine**
     - **Tech**: `diff` (specifically `diffLines` from the `diff` package)
     - **Responsibility**: Comparing two processed page contents (`PageSnapshot.content`) provided by the API Layer (via `SnapshotManager.getPage`), identifying differences (`LineDifference`). Aggregates `PageDiff` into `SnapshotDiff`. _Invoked by the API Layer._

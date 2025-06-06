@@ -83,15 +83,14 @@ _(Invoked by the API Layer)_
 - **FR-SNAP-06:** (Optional) Implement content fingerprinting (e.g., SHA hash of HTML) for quick identification of unchanged pages during snapshot creation or loading.
 - **FR-SNAP-07:** The snapshot manager will keep an index of all pages in the snapshot.
 
-### 3.4 DOM Processor (Cheerio, xpath)
+### 3.4 DOM Processor (Cheerio)
 
 _(Invoked by the API Layer during comparison)_
 
 - **FR-DOM-01:** The DOM processor must parse the raw HTML content of a page into a traversable DOM structure (using Cheerio).
 - **FR-DOM-02:** The DOM processor must apply baseline normalization rules (e.g., consistent whitespace handling - if configured).
-- **FR-DOM-03:** The DOM processor must apply the user-defined rules (provided as parsed JSON by the API Layer, originating from the Rules Engine) to modify the DOM _before_ comparison. This includes element/attribute exclusion, inclusion, and transformation based on CSS/XPath selectors and regex.
+- **FR-DOM-03:** The DOM processor must apply the user-defined rules (provided as parsed JSON by the API Layer, originating from the Rules Engine) to modify the DOM _before_ comparison. This includes element/attribute exclusion, inclusion, and transformation based on CSS selectors and regex.
 - **FR-DOM-04:** The DOM processor shall return the processed/modified DOM structure ready for diffing.
-- **FR-DOM-05:** Must support both CSS selectors (via Cheerio) and XPath expressions (via xpath library) for rule targeting.
 
 ### 3.5 Rules Engine & DSL (Chevrotain, JSON Schema)
 
@@ -99,11 +98,11 @@ _(Parsing invoked by API Layer, Application logic used by DOM Processor)_
 
 - **FR-RULE-01:** Provide a clear, documented DSL (Domain Specific Language) for users to define comparison rules (as specified in breakcheck_dsl_v2).
 - **FR-RULE-02:** The DSL must support rules for: include, exclude, remove_attr, rewrite_attr, rewrite_content.
-- **FR-RULE-03:** The DSL must support both CSS selectors and XPath expressions for targeting.
+- **FR-RULE-03:** The DSL must support CSS selectors for targeting.
 - **FR-RULE-04:** Rule definitions shall be readable from configuration files (e.g., .breakcheckrc, .rules) or passed as text to the API.
 - **FR-RULE-05:** The Rules Engine (or API Layer) must parse the DSL text into the intermediate JSON format (as specified in breakcheck_json_spec_v1).
 - **FR-RULE-06:** The Rules Engine must validate the rule definitions against the defined structure (e.g., using JSON Schema or parser validation).
-- **FR-RULE-07:** The rule application logic (within the DOM Processor) must correctly interpret the parsed JSON rules (mode, selectors, actions, modifiers) to modify the DOM.
+- **FR-RULE-07:** The rule application logic (within the DOM Processor) must correctly interpret the parsed JSON rules (selectors, actions, modifiers) to modify the DOM.
 - **FR-RULE-08:** The engine should handle rule order predictably (e.g., order of definition in the DSL/JSON array).
 
 ### 3.6 Diff Engine
@@ -120,7 +119,7 @@ _(Invoked by the API Layer)_
 
 - **FR-REP-01:** The **API Layer** must aggregate DiffResult objects from the Diff Engine and return a structured summary report object (number of pages compared, pages with differences, etc.).
 - **FR-REP-02:** The **API Layer** must write detailed differences to a file on disk and return the path to this file in the comparison result.
-- **FR-REP-03:** The differences file must contain structured data (e.g., JSON) with differences grouped by page URL, providing context (selector/XPath, type of change, before/after snippets).
+- ~~**FR-REP-03:** The differences file must contain structured data (e.g., JSON) with differences grouped by page URL, providing context (selector, type of change, before/after snippets).~~
 - **FR-REP-04:** The **CLI** must format the structured summary data received from the API into human-readable console output.
 - **FR-REP-05:** The **API Layer** should return the comparison result as structured data (e.g., JSON) containing the summary and path to the differences file. The **CLI** will handle writing this to a file if requested (--output).
 - **FR-REP-06:** (Optional) The **API Layer** could generate HTML diff report data. The **CLI** would handle saving this.
@@ -204,7 +203,7 @@ graph TD
     - **DOM Processor:** Parses HTML, applies normalization and parsed rules.
     - **Diff Engine:** Compares two processed DOMs.
   - _(The "Core Engine Facade" might be implicitly part of the API Layer's implementation)_
-- **Technologies:** Typescript, Crawlee, Cheerio, xpath, diff (jsdiff), Chevrotain, Commander.js, interactive-commander, Ink, zlib.
+- **Technologies:** Typescript, Crawlee, Cheerio, diff (jsdiff), Chevrotain, Commander.js, interactive-commander, Ink, zlib.
 - **Data Flow:** Interface -> API Layer -> (Rules Parser ->) Crawler/SnapshotMgr/DOMProcessor/DiffEngine -> File System/Results -> API Layer -> Interface.
 
 ## 6. Data Management
@@ -259,7 +258,6 @@ graph TD
 - **DSL (Domain Specific Language):** The specialized language used in Breakcheck rule files (.breakcheckrc) to define comparison behavior.
 - **Rules Engine:** The combination of the DSL Parser and the Rule Application Logic within the DOM Processor.
 - **CSS Selector:** A pattern used to select specific HTML elements.
-- **XPath (XML Path Language):** A query language for selecting nodes from an HTML document.
 - **Normalization:** Transforming data into a standard format before processing or comparison.
 - **Transformation:** Modifying specific parts of the content based on rules.
 - **CLI:** Command-Line Interface.

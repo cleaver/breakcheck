@@ -79,25 +79,6 @@ Represents the data for a single captured page within a snapshot.
 The structure of rules passed to the comparison endpoint. This would be the JSON representation of the Rules DSL.
 (Example based on PRD, actual structure to be finalized by `breakcheck_json_spec_v1`)
 
-```json
-[
-  {
-    "mode": "exclude",
-    "selectors": ["#dynamic-widget", ".ad-banner"],
-    "selectorType": "css" // or "xpath"
-  },
-  {
-    "mode": "rewrite_attr",
-    "selectors": ["script[src]"],
-    "selectorType": "css",
-    "attribute": "src",
-    "pattern": "\\?v=[0-9]+$",
-    "replacement": ""
-  }
-  // ... more rules
-]
-```
-
 ## 3. Snapshots API
 
 Resource: `/snapshots`
@@ -489,7 +470,6 @@ Manages comparisons between two snapshots. Adopts an asynchronous pattern for po
           // This should align with the 'differences' array in the API's ComparisonSummary type
           // {
           //   "type": "\"element\" | \"attribute\" | \"content\"",
-          //   "selector": "string (css or xpath)",
           //   "before": "string (optional, content before)",
           //   "after": "string (optional, content after)",
           //   "message": "string (description of change)"

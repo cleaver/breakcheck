@@ -12,32 +12,29 @@
 ## **2. Rules Engine & DSL**
 
 - [ ] 2.1. **DSL Parser (Chevrotain)**
-  - [x] 2.1.1. Define grammar for the object-first DSL (keywords: mode, do, end, actions, modifiers).
+  - [x] 2.1.1. Define grammar for the object-first DSL (keywords: do, end, actions, modifiers).
   - [ ] 2.1.2. Implement lexer and parser logic.
   - [ ] 2.1.3. Implement transformation from parse tree (CST) to the intermediate JSON format (AST - RuleSetJson).
-  - [ ] 2.1.4. Add validation for selector syntax (basic check, maybe integrate CSS/XPath validator later).
+  - [ ] 2.1.4. Add validation for selector syntax (basic check, maybe integrate CSS validator later).
   - [ ] 2.1.5. Implement robust error handling for parsing errors (clear messages, line numbers).
   - [ ] 2.1.6. Write unit tests for various valid and invalid DSL inputs, verifying JSON output.
 - [ ] 2.2. **Rule Application Logic (within DOM Processor)**
   - [ ] 2.2.1. Design function/class to take a DOM object (Cheerio) and the parsed JSON ruleset (RuleSetJson) as input.
-  - [ ] 2.2.2. Implement logic for default_include vs explicit_include modes.
-  - [ ] 2.2.3. Implement include action logic (for explicit_include mode).
-  - [ ] 2.2.4. Implement exclude action logic (element removal).
-  - [ ] 2.2.5. Implement remove_attr action logic.
-  - [ ] 2.2.6. Implement rewrite_attr action logic (using regex/replace).
-  - [ ] 2.2.7. Implement rewrite_content action logic (using regex/replace).
-  - [ ] 2.2.8. Implement content_regex modifier logic for include/exclude.
-  - [ ] 2.2.9. Define and implement rule application order/conflict resolution (e.g., "last matching rule wins").
-  - [ ] 2.2.10. Write unit tests using sample HTML snippets and rule JSON, verifying the modified DOM state.
+  - [ ] 2.2.2. Implement exclude action logic (element removal).
+  - [ ] 2.2.3. Implement remove_attr action logic.
+  - [ ] 2.2.4. Implement rewrite_attr action logic (using regex/replace).
+  - [ ] 2.2.5. Implement rewrite_content action logic (using regex/replace).
+  - [ ] 2.2.6. Implement content_regex modifier logic for exclude.
+  - [ ] 2.2.7. Define and implement rule application order/conflict resolution (e.g., "last matching rule wins").
+  - [ ] 2.2.8. Write unit tests using sample HTML snippets and rule JSON, verifying the modified DOM state.
 
-## **3. DOM Processor (Cheerio, xpath)**
+## **3. DOM Processor (Cheerio)**
 
 - [ ] 3.1. Implement HTML parsing using Cheerio.
 - [ ] 3.2. Implement basic DOM normalization (e.g., whitespace handling - configurable?).
 - [ ] 3.3. Integrate the Rule Application Logic: Create the processing pipeline (Parse -> Normalize -> Apply Rules). Input will be HTML content and parsed RuleSetJson.
 - [ ] 3.4. Implement support for selecting elements via CSS selectors (Cheerio default).
-- [ ] 3.5. Integrate xpath library for XPath selection.
-- [ ] 3.6. Write unit tests for normalization and the integration with the Rules Engine logic.
+- [ ] 3.5. Write unit tests for normalization and the integration with the Rules Engine logic.
 
 ## **4. Diff Engine (fast-diff, html-differ)**
 

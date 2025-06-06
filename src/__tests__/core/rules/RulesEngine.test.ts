@@ -7,7 +7,6 @@ describe("RulesEngine", () => {
     it("should create instance with ruleset object", () => {
       const ruleset: Ruleset = {
         name: "test-ruleset",
-        mode: "default_include",
         rules: [],
       };
       const engine = new RulesEngine(ruleset);
@@ -24,7 +23,6 @@ describe("RulesEngine", () => {
     it("should handle empty ruleset", () => {
       const ruleset: Ruleset = {
         name: "empty-ruleset",
-        mode: "default_include",
         rules: [],
       };
       const engine = new RulesEngine(ruleset);
@@ -36,10 +34,8 @@ describe("RulesEngine", () => {
     it("should exclude elements matching selector", () => {
       const ruleset: Ruleset = {
         name: "exclude-ruleset",
-        mode: "default_include",
         rules: [
           {
-            selector_type: "css",
             selector: ".ad",
             actions: [{ action: "exclude" }],
           },
@@ -55,10 +51,8 @@ describe("RulesEngine", () => {
     it("should remove attributes", () => {
       const ruleset: Ruleset = {
         name: "remove-attr-ruleset",
-        mode: "default_include",
         rules: [
           {
-            selector_type: "css",
             selector: "img",
             actions: [
               {
@@ -79,10 +73,8 @@ describe("RulesEngine", () => {
     it("should rewrite attributes", () => {
       const ruleset: Ruleset = {
         name: "rewrite-attr-ruleset",
-        mode: "default_include",
         rules: [
           {
-            selector_type: "css",
             selector: "a",
             actions: [
               {
@@ -107,10 +99,8 @@ describe("RulesEngine", () => {
     it("should rewrite content", () => {
       const ruleset: Ruleset = {
         name: "rewrite-content-ruleset",
-        mode: "default_include",
         rules: [
           {
-            selector_type: "css",
             selector: ".timestamp",
             actions: [
               {
@@ -134,10 +124,8 @@ describe("RulesEngine", () => {
     it("should apply content regex filter", () => {
       const ruleset: Ruleset = {
         name: "content-regex-ruleset",
-        mode: "default_include",
         rules: [
           {
-            selector_type: "css",
             selector: ".message",
             actions: [
               {
@@ -163,24 +151,6 @@ describe("RulesEngine", () => {
       expect(engine.process(html).replace(/\s+/g, " ").trim()).toBe(
         expected.replace(/\s+/g, " ").trim()
       );
-    });
-
-    it("should skip non-CSS selectors", () => {
-      const ruleset: Ruleset = {
-        name: "non-css-ruleset",
-        mode: "default_include",
-        rules: [
-          {
-            selector_type: "xpath",
-            selector: "//div",
-            actions: [{ action: "exclude" }],
-          },
-        ],
-      };
-      const engine = new RulesEngine(ruleset);
-      const html = "<div>Test</div>";
-      const expected = "<html><head></head><body><div>Test</div></body></html>";
-      expect(engine.process(html)).toBe(expected);
     });
   });
 });
