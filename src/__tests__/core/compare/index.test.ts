@@ -9,6 +9,7 @@ import {
   ComparisonMetadata,
   PageDiff,
 } from "@project-types/compare";
+import { RulesEngine } from "@core/rules/RulesEngine";
 
 /**
  * Creates a mock SnapshotRepository for testing
@@ -32,6 +33,19 @@ class MockSnapshotRepository extends SnapshotRepository {
 
   async listSnapshots() {
     return [];
+  }
+}
+
+/**
+ * Creates a mock RulesEngine for testing
+ */
+class MockRulesEngine {
+  constructor(rulesetOrName: string | any) {
+    // No-op constructor
+  }
+
+  process(html: string): string {
+    return html;
   }
 }
 
@@ -85,6 +99,10 @@ function createMockSnapshotRepository(
   afterSnapshot: any
 ): SnapshotRepository {
   return new MockSnapshotRepository(beforeSnapshot, afterSnapshot);
+}
+
+function createMockRulesEngine(): RulesEngine {
+  return new MockRulesEngine("default") as unknown as RulesEngine;
 }
 
 function createMockComparisonRepository(): ComparisonRepository {
@@ -203,6 +221,7 @@ describe("Compare Functions", () => {
         afterSnapshot
       );
       const comparisonRepository = createMockComparisonRepository();
+      const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
@@ -211,7 +230,8 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository
+        comparisonRepository,
+        rulesEngine
       );
 
       expect(result.status).toBe("completed");
@@ -274,6 +294,7 @@ describe("Compare Functions", () => {
         afterSnapshot
       );
       const comparisonRepository = createMockComparisonRepository();
+      const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
@@ -282,7 +303,8 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository
+        comparisonRepository,
+        rulesEngine
       );
 
       expect(result.status).toBe("completed");
@@ -357,6 +379,7 @@ describe("Compare Functions", () => {
         afterSnapshot
       );
       const comparisonRepository = createMockComparisonRepository();
+      const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
@@ -366,7 +389,8 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository
+        comparisonRepository,
+        rulesEngine
       );
 
       expect(result.status).toBe("completed");
@@ -406,6 +430,7 @@ describe("Compare Functions", () => {
         snapshot
       );
       const comparisonRepository = createMockComparisonRepository();
+      const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
@@ -414,7 +439,8 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository
+        comparisonRepository,
+        rulesEngine
       );
 
       expect(result.status).toBe("completed");
@@ -493,6 +519,7 @@ describe("Compare Functions", () => {
         afterSnapshot
       );
       const comparisonRepository = createMockComparisonRepository();
+      const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
           beforeSnapshotId: "before",
@@ -501,7 +528,8 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository
+        comparisonRepository,
+        rulesEngine
       );
 
       expect(result.status).toBe("completed");
