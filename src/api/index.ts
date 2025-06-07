@@ -8,7 +8,6 @@ import type {
     SnapshotConfig,
     SnapshotResult
 } from "@project-types/api";
-import path from "path";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.
@@ -45,16 +44,19 @@ export async function runComparison(
 ): Promise<ComparisonSummary> {
   const snapshotRepository = new SnapshotRepository();
   const rulesEngine = await RulesEngine.create(config.ruleset);
-  const comparisonRepository = new ComparisonRepository(
-    path.join(process.cwd(), "comparisons")
+  const comparisonRepository = await ComparisonRepository.create(
+    config.comparisonName,
+    {
+      beforeSnapshotId: config.beforeSnapshotId,
+      afterSnapshotId: config.afterSnapshotId,
+      rulesUsedIdentifier:
+        typeof config.ruleset === "string"
+          ? config.ruleset
+          : config.ruleset.name,
+    }
   );
 
-  const diff = await compareSnapshots(
-    config,
-    snapshotRepository,
-    comparisonRepository,
-    rulesEngine
-  );
+  const diff = await compareSnapshots(config, snapshotRepository, rulesEngine);
 
   // Convert SnapshotDiff to ComparisonSummary
   return {

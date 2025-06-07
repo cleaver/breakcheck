@@ -1,5 +1,4 @@
 import { comparePage, compareSnapshots } from "@core/compare";
-import { ComparisonRepository } from "@core/compare/classes/ComparisonRepository";
 import { RulesEngine } from "@core/rules/RulesEngine";
 import { SnapshotRepository } from "@core/snapshot";
 import {
@@ -62,16 +61,20 @@ class MockComparisonRepository {
     } as any,
   };
 
-  async startComparison(
+  private constructor() {}
+
+  static async create(
     name: string,
     metadata: ComparisonMetadata
-  ): Promise<void> {
-    this.index.metadata = {
+  ): Promise<MockComparisonRepository> {
+    const instance = new MockComparisonRepository();
+    instance.index.metadata = {
       ...metadata,
       timestamp: new Date().toISOString(),
       totalPages: 0,
       pagesWithDifferences: 0,
     };
+    return instance;
   }
 
   async savePageDiff(pageDiff: PageDiff): Promise<void> {
@@ -103,10 +106,6 @@ function createMockSnapshotRepository(
 
 function createMockRulesEngine(): RulesEngine {
   return new MockRulesEngine("default") as unknown as RulesEngine;
-}
-
-function createMockComparisonRepository(): ComparisonRepository {
-  return new MockComparisonRepository() as unknown as ComparisonRepository;
 }
 
 describe("Compare Functions", () => {
@@ -220,7 +219,6 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
-      const comparisonRepository = createMockComparisonRepository();
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -230,7 +228,6 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository,
         rulesEngine
       );
 
@@ -293,7 +290,6 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
-      const comparisonRepository = createMockComparisonRepository();
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -303,7 +299,6 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository,
         rulesEngine
       );
 
@@ -378,7 +373,6 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
-      const comparisonRepository = createMockComparisonRepository();
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -389,7 +383,6 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository,
         rulesEngine
       );
 
@@ -429,7 +422,6 @@ describe("Compare Functions", () => {
         snapshot,
         snapshot
       );
-      const comparisonRepository = createMockComparisonRepository();
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -439,7 +431,6 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository,
         rulesEngine
       );
 
@@ -518,7 +509,6 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
-      const comparisonRepository = createMockComparisonRepository();
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -528,7 +518,6 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
-        comparisonRepository,
         rulesEngine
       );
 

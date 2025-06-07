@@ -16,16 +16,29 @@ export class ComparisonRepository {
   private diffsDir!: string;
   private index: ComparisonIndex = { urls: {}, metadata: {} as any };
 
-  constructor(
+  private constructor(
     comparisonsDir: string = path.join(process.cwd(), "comparisons")
   ) {
     this.comparisonsDir = comparisonsDir;
   }
 
   /**
+   * Creates a new comparison repository instance and initializes it with the given name and metadata.
+   */
+  static async create(
+    name: string,
+    metadata: ComparisonMetadata,
+    comparisonsDir: string = path.join(process.cwd(), "comparisons")
+  ): Promise<ComparisonRepository> {
+    const instance = new ComparisonRepository(comparisonsDir);
+    await instance.initialize(name, metadata);
+    return instance;
+  }
+
+  /**
    * Initializes a new comparison, creating directories and saving initial metadata.
    */
-  async startComparison(
+  private async initialize(
     name: string,
     metadata: ComparisonMetadata
   ): Promise<void> {

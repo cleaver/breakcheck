@@ -27,7 +27,6 @@ export async function comparePage(
 export async function compareSnapshots(
   config: ComparisonConfig,
   snapshotRepository: SnapshotRepository,
-  comparisonRepository: ComparisonRepository,
   rulesEngine: RulesEngine
 ): Promise<ComparisonSummary> {
   const startTime = Date.now();
@@ -48,11 +47,14 @@ export async function compareSnapshots(
     typeof config.ruleset === "string" ? config.ruleset : config.ruleset.name;
 
   // Start the comparison process in the repository
-  await comparisonRepository.startComparison(config.comparisonName, {
-    beforeSnapshotId: config.beforeSnapshotId,
-    afterSnapshotId: config.afterSnapshotId,
-    rulesUsedIdentifier,
-  });
+  const comparisonRepository = await ComparisonRepository.create(
+    config.comparisonName,
+    {
+      beforeSnapshotId: config.beforeSnapshotId,
+      afterSnapshotId: config.afterSnapshotId,
+      rulesUsedIdentifier,
+    }
+  );
 
   // Find new and removed URLs
   const newUrls = [...afterUrls].filter((url) => !beforeUrls.includes(url));
