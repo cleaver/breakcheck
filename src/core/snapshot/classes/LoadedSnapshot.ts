@@ -4,6 +4,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
+import { logger } from "../../../lib/logger";
 
 const gunzip = promisify(zlib.gunzip);
 
@@ -36,7 +37,7 @@ export class LoadedSnapshot {
       return page;
     } catch (err) {
       // Could be file not found, decompression, or parse error
-      // Optionally, log or rethrow with more context
+      logger.error({ err, url, filePath }, "Failed to load page snapshot");
       return null;
     }
   }

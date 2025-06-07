@@ -27,19 +27,14 @@ export async function createSnapshot(
       throw new Error("name is required");
     }
 
-    // Initialize crawler with config
     const crawler = new BreakcheckCrawler(config.crawlSettings);
 
-    // Execute crawl
     const { datasetName, errors: crawlErrors } = await crawler.crawl();
 
-    // Convert crawl errors to result format
     errors.push(...crawlErrors);
 
-    // Open the dataset
     const dataset = await Dataset.open(datasetName);
 
-    // Save snapshot (streaming/iterative)
     const pageCount = await snapshotRepository.saveSnapshot(config.name, {
       dataset,
       metadata: {
@@ -49,7 +44,6 @@ export async function createSnapshot(
       },
     });
 
-    // Generate URL list if requested
     let urlListPath: string | undefined;
     if (config.urlListPath) {
       urlListPath = await snapshotRepository.generateUrlList(
@@ -58,10 +52,8 @@ export async function createSnapshot(
       );
     }
 
-    // Calculate duration
     const duration = Date.now() - startTime;
 
-    // Return result
     return {
       status: "success",
       snapshotId: config.name,
@@ -76,7 +68,6 @@ export async function createSnapshot(
       urlListPath,
     };
   } catch (error) {
-    // Handle any unexpected errors
     errors.push({
       url: config.baseUrl,
       message:

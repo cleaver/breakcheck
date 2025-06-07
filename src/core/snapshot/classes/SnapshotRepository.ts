@@ -1,8 +1,8 @@
 import { PageSnapshot } from "@project-types/crawler";
 import {
-    SnapshotData,
-    SnapshotIndex,
-    SnapshotSummary
+  SnapshotData,
+  SnapshotIndex,
+  SnapshotSummary,
 } from "@project-types/snapshot";
 import * as fs from "fs/promises";
 import * as path from "path";
@@ -39,27 +39,21 @@ export class SnapshotRepository {
    * Returns the number of non-error pages saved
    */
   async saveSnapshot(name: string, data: SnapshotData): Promise<number> {
-    // Ensure snapshots directory exists
     await fs.mkdir(this.snapshotsDir, { recursive: true });
 
-    // Create snapshot directory
     const snapshotDir = path.join(this.snapshotsDir, name);
 
-    // Remove existing snapshot directory if it exists
     try {
       await fs.rm(snapshotDir, { recursive: true, force: true });
     } catch (error) {
       // Ignore errors if directory doesn't exist
     }
 
-    // Create fresh snapshot directory
     await fs.mkdir(snapshotDir, { recursive: true });
 
-    // Save metadata
     const metadataPath = path.join(snapshotDir, "metadata.json");
     await fs.writeFile(metadataPath, JSON.stringify(data.metadata, null, 2));
 
-    // Save pages
     const pagesDir = path.join(snapshotDir, "pages");
     await fs.mkdir(pagesDir, { recursive: true });
 
@@ -204,7 +198,7 @@ export class SnapshotRepository {
             name: snapshot.name,
             date: metadata.timestamp,
             pageCount: index.metadata.totalPages,
-            errorCount: 0, // TODO: Track error count in metadata
+            errorCount: 0,
           });
         } catch (error) {
           // If we can't read the metadata or index, just include the name
