@@ -1,3 +1,4 @@
+import { logger } from "@lib/logger";
 import type { CrawlerConfig } from "@project-types/api";
 import type {
     CrawlerInstance,
@@ -56,6 +57,15 @@ export class BreakcheckCrawler {
         errors: this.errors,
       };
     } catch (error) {
+      logger.error(
+        {
+          error,
+          baseUrl: this.config.baseUrl,
+          crawlerType: this.config.crawlerType,
+          errors: this.errors,
+        },
+        "Crawling failed"
+      );
       throw new Error(
         `Crawling failed: ${
           error instanceof Error ? error.message : String(error)

@@ -1,4 +1,4 @@
-import { logger } from "@/lib/logger";
+import { logger } from "@lib/logger";
 import { Action, Ruleset } from "@project-types/rules";
 import * as cheerio from "cheerio";
 import * as fs from "fs/promises";

@@ -1,10 +1,10 @@
+import { logger } from "@lib/logger";
 import { PageSnapshot } from "@project-types/crawler";
 import { SnapshotIndex, SnapshotMetadata } from "@project-types/snapshot";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
-import { logger } from "../../../lib/logger";
 
 const gunzip = promisify(zlib.gunzip);
 

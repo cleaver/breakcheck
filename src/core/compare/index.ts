@@ -1,10 +1,10 @@
 import { ComparisonConfig, ComparisonSummary } from "@/types/api";
+import { RulesEngine } from "@core/rules/RulesEngine";
 import { SnapshotRepository } from "@core/snapshot";
 import { LineDiff, PageDiff } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
 import path from "path";
-import { RulesEngine } from "../rules/RulesEngine";
 import { ComparisonRepository } from "./classes/ComparisonRepository";
 
 /**

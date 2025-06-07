@@ -1,12 +1,10 @@
+import { logger } from "@lib/logger";
 import { Action, Rule, Ruleset } from "@project-types/rules";
-import {
-    createToken, CstNode, CstParser,
-    Lexer
-} from "chevrotain";
+import { createToken, CstNode, CstParser, Lexer } from "chevrotain";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-// --- LEXER (No changes here) ---
+// --- LEXER ---
 const Css = createToken({ name: "Css", pattern: /css:/i });
 const Do = createToken({ name: "Do", pattern: /do:/i });
 const DoBlock = createToken({ name: "DoBlock", pattern: /do/i });
@@ -160,7 +158,6 @@ class RulesParser extends CstParser {
 const parser = new RulesParser();
 
 // --- VISITOR ---
-// The new visitor class that correctly builds the JSON object from the CST
 class CstToAstVisitor extends parser.getBaseCstVisitorConstructor() {
   constructor() {
     super();
@@ -209,8 +206,11 @@ class CstToAstVisitor extends parser.getBaseCstVisitorConstructor() {
       ctx.rewriteAttrAction ||
       ctx.rewriteContentAction;
 
-    // Safely handle the case where no action is found
     if (!actionAlternative) {
+      logger.error(
+        { context: ctx },
+        "Invalid 'action' node in CST: No action alternative found"
+      );
       throw new Error(
         "Invalid 'action' node in CST: No action alternative found."
       );
@@ -280,6 +280,7 @@ export function processRulesDsl(rulesetName: string): Ruleset {
     rulesContent = readFileSync(rulesPath, "utf-8");
   } catch (error) {
     const shortPath = rulesPath.replace(process.cwd(), "").replace(/^\//, "");
+    logger.error({ error, rulesPath: shortPath }, "Rules file not found");
     throw new Error(`Rules file not found: ${shortPath}`);
   }
 
@@ -291,6 +292,10 @@ export function processRulesDsl(rulesetName: string): Ruleset {
           `Lexical error at line ${err.line}, column ${err.column}: ${err.message}`
       )
       .join("\n");
+    logger.error(
+      { errors: lexResult.errors, rulesetName },
+      "Lexical errors in rules file"
+    );
     throw new Error(`Lexical errors in rules file:\n${errors}`);
   }
 
@@ -303,6 +308,10 @@ export function processRulesDsl(rulesetName: string): Ruleset {
           `Syntax error at line ${err.token.startLine}, column ${err.token.startColumn}: ${err.message}`
       )
       .join("\n");
+    logger.error(
+      { errors: parser.errors, rulesetName },
+      "Syntax errors in rules file"
+    );
     throw new Error(`Syntax errors in rules file:\n${errors}`);
   }
 

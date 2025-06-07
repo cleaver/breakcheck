@@ -1,8 +1,8 @@
 import { PageSnapshot } from "@project-types/crawler";
 import {
-  SnapshotData,
-  SnapshotIndex,
-  SnapshotSummary,
+    SnapshotData,
+    SnapshotIndex,
+    SnapshotSummary
 } from "@project-types/snapshot";
 import * as fs from "fs/promises";
 import * as path from "path";

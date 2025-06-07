@@ -16,7 +16,8 @@ export const viewCommand = new InteractiveCommand("view")
       const port = parseInt(options.port, 10);
 
       if (isNaN(port) || port < 1 || port > 65535) {
-        throw new Error("Port must be a number between 1 and 65535");
+        logger.error("Port must be a number between 1 and 65535");
+        process.exit(1);
       }
       await startCliViewServer(comparisonName, port);
     } catch (error) {

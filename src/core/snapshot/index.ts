@@ -1,4 +1,5 @@
 import { BreakcheckCrawler } from "@core/crawler";
+import { logger } from "@lib/logger";
 import { SnapshotConfig, SnapshotResult } from "@project-types/api";
 import { CrawlError } from "@project-types/crawler";
 import { Dataset } from "crawlee";
@@ -21,9 +22,11 @@ export async function createSnapshot(
   try {
     // Validate input config
     if (!config.baseUrl) {
+      logger.error({ config }, "Snapshot creation failed: baseUrl is required");
       throw new Error("baseUrl is required");
     }
     if (!config.name) {
+      logger.error({ config }, "Snapshot creation failed: name is required");
       throw new Error("name is required");
     }
 
