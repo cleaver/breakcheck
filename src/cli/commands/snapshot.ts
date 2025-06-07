@@ -1,7 +1,7 @@
 import { createSnapshotFromConfig } from "@api/index";
+import { logger } from "@lib/logger";
 import type { SnapshotConfig } from "@project-types/api";
 import { InteractiveCommand } from "interactive-commander";
-import { logger } from "@lib/logger";
 
 export const snapshotCommand = new InteractiveCommand("snapshot")
   .description("Create a snapshot of a website")

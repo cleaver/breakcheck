@@ -1,8 +1,8 @@
 import type { CrawlerConfig } from "@project-types/api";
 import type {
-  CrawlerInstance,
-  CrawlError,
-  PageSnapshot,
+    CrawlerInstance,
+    CrawlError,
+    PageSnapshot
 } from "@project-types/crawler";
 import { Dataset, PlaywrightCrawler } from "crawlee";
 

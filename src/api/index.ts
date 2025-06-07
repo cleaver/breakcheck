@@ -1,13 +1,13 @@
-import { compareSnapshots } from "@core/compare";
-import { createSnapshot, SnapshotRepository } from "@core/snapshot";
-import { ComparisonRepository } from "@core/compare/classes/ComparisonRepository";
-import type {
-  ComparisonConfig,
-  ComparisonSummary,
-  SnapshotConfig,
-  SnapshotResult,
-} from "@project-types/api";
 import { RulesEngine } from "@/core/rules/RulesEngine";
+import { compareSnapshots } from "@core/compare";
+import { ComparisonRepository } from "@core/compare/classes/ComparisonRepository";
+import { createSnapshot, SnapshotRepository } from "@core/snapshot";
+import type {
+    ComparisonConfig,
+    ComparisonSummary,
+    SnapshotConfig,
+    SnapshotResult
+} from "@project-types/api";
 import path from "path";
 
 /**

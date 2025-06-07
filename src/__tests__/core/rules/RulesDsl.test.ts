@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { processRulesDsl } from "@core/rules/RulesDsl";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { Ruleset } from "@project-types/rules";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock fs and path modules
 vi.mock("fs", () => ({

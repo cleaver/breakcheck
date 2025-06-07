@@ -1,8 +1,8 @@
+import { logger } from "@/lib/logger";
 import { Action, Ruleset } from "@project-types/rules";
 import * as cheerio from "cheerio";
 import * as fs from "fs/promises";
 import * as path from "path";
-import { logger } from "@/lib/logger";
 
 export class RulesEngine {
   private ruleset: Ruleset;

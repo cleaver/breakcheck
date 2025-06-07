@@ -1,7 +1,7 @@
 import { runComparison } from "@api/index";
+import { logger } from "@lib/logger";
 import type { ComparisonConfig } from "@project-types/api";
 import { InteractiveCommand } from "interactive-commander";
-import { logger } from "@lib/logger";
 
 export const compareCommand = new InteractiveCommand("compare")
   .description("Compare two snapshots and save the results to disk")

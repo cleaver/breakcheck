@@ -3,9 +3,9 @@ import { SnapshotRepository } from "@core/snapshot";
 import { LineDiff, PageDiff } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { diffLines } from "diff";
-import { ComparisonRepository } from "./classes/ComparisonRepository";
 import path from "path";
 import { RulesEngine } from "../rules/RulesEngine";
+import { ComparisonRepository } from "./classes/ComparisonRepository";
 
 /**
  * Compares two page snapshots and returns the differences found.

@@ -1,6 +1,6 @@
-import { InteractiveCommand } from "interactive-commander";
-import { logger } from "@lib/logger";
 import { startCliViewServer } from "@/core/view";
+import { logger } from "@lib/logger";
+import { InteractiveCommand } from "interactive-commander";
 
 export const viewCommand = new InteractiveCommand("view")
   .description("View the results of a comparison")

@@ -1,15 +1,10 @@
+import { Action, Rule, Ruleset } from "@project-types/rules";
 import {
-  CstParser,
-  Lexer,
-  createToken,
-  ILexingError,
-  IRecognitionException,
-  ICstVisitor,
-  CstNode,
+    createToken, CstNode, CstParser,
+    Lexer
 } from "chevrotain";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { Ruleset, Rule, Action } from "@project-types/rules";
 
 // --- LEXER (No changes here) ---
 const Css = createToken({ name: "Css", pattern: /css:/i });

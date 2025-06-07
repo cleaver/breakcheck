@@ -1,6 +1,6 @@
 import { listSnapshots } from "@api/index";
-import { InteractiveCommand } from "interactive-commander";
 import { logger } from "@lib/logger";
+import { InteractiveCommand } from "interactive-commander";
 
 export const listSnapshotsCommand = new InteractiveCommand("list-snapshots")
   .description("List all available snapshots")

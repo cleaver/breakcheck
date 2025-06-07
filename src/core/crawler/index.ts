@@ -1,10 +1,10 @@
 import type { CrawlerConfig } from "@project-types/api";
 import type {
-  CrawlerInstance,
-  CrawlError,
-  CrawlResult,
+    CrawlerInstance,
+    CrawlError,
+    CrawlResult
 } from "@project-types/crawler";
-import { Dataset, purgeDefaultStorages, Configuration } from "crawlee";
+import { Configuration, Dataset, purgeDefaultStorages } from "crawlee";
 import { createCheerioCrawler } from "./implementations/cheerio";
 import { createPlaywrightCrawler } from "./implementations/playwright";
 

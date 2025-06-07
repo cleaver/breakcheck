@@ -1,7 +1,7 @@
 import {
-  ComparisonIndex,
-  ComparisonMetadata,
-  PageDiff,
+    ComparisonIndex,
+    ComparisonMetadata,
+    PageDiff
 } from "@project-types/compare";
 import * as fs from "fs/promises";
 import * as path from "path";

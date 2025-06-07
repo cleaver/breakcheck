@@ -1,8 +1,8 @@
 #!/usr/bin/env npx tsx
 
 import { compareCommand } from "@cli/commands/compare.js";
-import { snapshotCommand } from "@cli/commands/snapshot.js";
 import { listSnapshotsCommand } from "@cli/commands/list-snapshots.js";
+import { snapshotCommand } from "@cli/commands/snapshot.js";
 import { viewCommand } from "@cli/commands/view.js";
 import { Command } from "commander";
 
