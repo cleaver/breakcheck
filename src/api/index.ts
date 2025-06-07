@@ -44,7 +44,7 @@ export async function runComparison(
   config: ComparisonConfig
 ): Promise<ComparisonSummary> {
   const snapshotRepository = new SnapshotRepository();
-  const rulesEngine = new RulesEngine(config.ruleset);
+  const rulesEngine = await RulesEngine.create(config.ruleset);
   const comparisonRepository = new ComparisonRepository(
     path.join(process.cwd(), "comparisons")
   );

@@ -1,13 +1,21 @@
 import { Action, Ruleset } from "@project-types/rules";
 import * as cheerio from "cheerio";
-import * as fs from "fs";
+import * as fs from "fs/promises";
 import * as path from "path";
 import { logger } from "@/lib/logger";
 
 export class RulesEngine {
   private ruleset: Ruleset;
 
-  constructor(rulesetOrName: string | Ruleset) {
+  private constructor(ruleset: Ruleset) {
+    this.ruleset = ruleset;
+  }
+
+  public static async create(
+    rulesetOrName: string | Ruleset
+  ): Promise<RulesEngine> {
+    let ruleset: Ruleset;
+
     if (typeof rulesetOrName === "string") {
       const rulesetPath = path.join(
         process.cwd(),
@@ -16,8 +24,8 @@ export class RulesEngine {
         "rules.json"
       );
       try {
-        const rulesetContent = fs.readFileSync(rulesetPath, "utf-8");
-        this.ruleset = JSON.parse(rulesetContent);
+        const rulesetContent = await fs.readFile(rulesetPath, "utf-8");
+        ruleset = JSON.parse(rulesetContent);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -28,7 +36,7 @@ export class RulesEngine {
             { rulesetPath },
             `⚠️  Ruleset file not found at '${rulesetOrName}'. Using empty ruleset.`
           );
-          this.ruleset = {
+          ruleset = {
             name: rulesetOrName,
             rules: [],
           };
@@ -41,8 +49,10 @@ export class RulesEngine {
         }
       }
     } else {
-      this.ruleset = rulesetOrName;
+      ruleset = rulesetOrName;
     }
+
+    return new RulesEngine(ruleset);
   }
 
   public process(html: string): string {
