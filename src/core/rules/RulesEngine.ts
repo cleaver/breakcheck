@@ -1,8 +1,7 @@
 import { logger } from "@lib/logger";
 import { Action, Ruleset } from "@project-types/rules";
 import * as cheerio from "cheerio";
-import * as fs from "fs/promises";
-import * as path from "path";
+import { processRulesDsl } from "./RulesDsl";
 
 export class RulesEngine {
   private ruleset: Ruleset;
@@ -17,36 +16,17 @@ export class RulesEngine {
     let ruleset: Ruleset;
 
     if (typeof rulesetOrName === "string") {
-      const rulesetPath = path.join(
-        process.cwd(),
-        "rules",
-        rulesetOrName,
-        "rules.json"
-      );
       try {
-        const rulesetContent = await fs.readFile(rulesetPath, "utf-8");
-        ruleset = JSON.parse(rulesetContent);
+        ruleset = processRulesDsl(rulesetOrName);
       } catch (error) {
-        if (
-          error instanceof Error &&
-          "code" in error &&
-          error.code === "ENOENT"
-        ) {
-          logger.warn(
-            { rulesetPath },
-            `⚠️  Ruleset file not found at '${rulesetOrName}'. Using empty ruleset.`
-          );
-          ruleset = {
-            name: rulesetOrName,
-            rules: [],
-          };
-        } else {
+        if (error instanceof Error) {
           logger.error(
-            { rulesetPath, error },
-            "Failed to load ruleset due to an error"
+            { error, rulesetName: rulesetOrName },
+            "Failed to process ruleset DSL"
           );
           process.exit(1);
         }
+        throw error;
       }
     } else {
       ruleset = rulesetOrName;
