@@ -109,6 +109,41 @@ function createMockRulesEngine(): RulesEngine {
   return new MockRulesEngine("default") as unknown as RulesEngine;
 }
 
+interface TestSetup {
+  snapshotRepository: SnapshotRepository;
+  comparisonRepository: ComparisonRepository;
+  rulesEngine: RulesEngine;
+  comparisonParams: {
+    beforeSnapshotId: string;
+    afterSnapshotId: string;
+    comparisonName: string;
+    ruleset: string;
+  };
+}
+
+function createMockSnapshot(
+  urls: Record<string, { filename: string; statusCode: number }>,
+  content: string
+) {
+  return {
+    index: {
+      urls,
+      metadata: {
+        baseUrl: "https://example.com",
+        timestamp: new Date().toISOString(),
+        totalPages: Object.keys(urls).length,
+      },
+    },
+    getPage: async (url: string) => ({
+      url,
+      finalUrl: url,
+      content,
+      statusCode: 200,
+      headers: { "content-type": "text/html" },
+    }),
+  };
+}
+
 describe("Compare Functions", () => {
   describe("comparePage", () => {
     it("should detect content differences between snapshots", async () => {
@@ -169,76 +204,65 @@ describe("Compare Functions", () => {
   });
 
   describe("compareSnapshots", () => {
-    it("should detect content differences between snapshots", async () => {
-      const beforeSnapshot = {
-        index: {
-          urls: {
-            "https://example.com": {
-              filename: "example.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-01",
-            totalPages: 1,
-          },
-        },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: "<html>\n<body>Hello World</body>\n</html>",
-          statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
-      };
-
-      const afterSnapshot = {
-        index: {
-          urls: {
-            "https://example.com": {
-              filename: "example.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-02",
-            totalPages: 1,
-          },
-        },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: "<html>\n<body>Hello New World</body>\n</html>",
-          statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
-      };
-
+    function createSetup(
+      beforeUrls: Record<string, { filename: string; statusCode: number }>,
+      afterUrls: Record<string, { filename: string; statusCode: number }>,
+      beforeContent: string,
+      afterContent: string
+    ): Promise<TestSetup> {
+      const beforeSnapshot = createMockSnapshot(beforeUrls, beforeContent);
+      const afterSnapshot = createMockSnapshot(afterUrls, afterContent);
       const snapshotRepository = createMockSnapshotRepository(
         beforeSnapshot,
         afterSnapshot
       );
-      const comparisonRepository = await ComparisonRepository.create(
-        "test-comparison",
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          rulesUsedIdentifier: "default",
-        }
-      );
-      const rulesEngine = createMockRulesEngine();
-      const result = await compareSnapshots(
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          comparisonName: "test-comparison",
-          ruleset: "default",
+      return ComparisonRepository.create("test-comparison", {
+        beforeSnapshotId: "before",
+        afterSnapshotId: "after",
+        rulesUsedIdentifier: "default",
+      }).then((comparisonRepository) => {
+        const rulesEngine = createMockRulesEngine();
+        return {
+          snapshotRepository,
+          comparisonRepository,
+          rulesEngine,
+          comparisonParams: {
+            beforeSnapshotId: "before",
+            afterSnapshotId: "after",
+            comparisonName: "test-comparison",
+            ruleset: "default",
+          },
+        };
+      });
+    }
+
+    it("should detect content differences between snapshots", async () => {
+      const beforeUrls = {
+        "https://example.com": {
+          filename: "example.html",
+          statusCode: 200,
         },
-        snapshotRepository,
-        comparisonRepository,
-        rulesEngine
+      };
+      const afterUrls = {
+        "https://example.com": {
+          filename: "example.html",
+          statusCode: 200,
+        },
+      };
+      const beforeContent = "<html>\n<body>Hello World</body>\n</html>";
+      const afterContent = "<html>\n<body>Hello New World</body>\n</html>";
+      const setup = await createSetup(
+        beforeUrls,
+        afterUrls,
+        beforeContent,
+        afterContent
+      );
+
+      const result = await compareSnapshots(
+        setup.comparisonParams,
+        setup.snapshotRepository,
+        setup.comparisonRepository,
+        setup.rulesEngine
       );
 
       expect(result.status).toBe("completed");
@@ -250,75 +274,32 @@ describe("Compare Functions", () => {
     });
 
     it("should detect new and removed URLs between snapshots", async () => {
-      const beforeSnapshot = {
-        index: {
-          urls: {
-            "https://example.com/old": {
-              filename: "old.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-01",
-            totalPages: 1,
-          },
-        },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: "<html><body>Old Page</body></html>",
+      const beforeUrls = {
+        "https://example.com/old": {
+          filename: "old.html",
           statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
-      };
-
-      const afterSnapshot = {
-        index: {
-          urls: {
-            "https://example.com/new": {
-              filename: "new.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-02",
-            totalPages: 1,
-          },
         },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: "<html><body>New Page</body></html>",
-          statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
       };
+      const afterUrls = {
+        "https://example.com/new": {
+          filename: "new.html",
+          statusCode: 200,
+        },
+      };
+      const beforeContent = "<html><body>Old Page</body></html>";
+      const afterContent = "<html><body>New Page</body></html>";
+      const setup = await createSetup(
+        beforeUrls,
+        afterUrls,
+        beforeContent,
+        afterContent
+      );
 
-      const snapshotRepository = createMockSnapshotRepository(
-        beforeSnapshot,
-        afterSnapshot
-      );
-      const comparisonRepository = await ComparisonRepository.create(
-        "test-comparison",
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          rulesUsedIdentifier: "default",
-        }
-      );
-      const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          comparisonName: "test-comparison",
-          ruleset: "default",
-        },
-        snapshotRepository,
-        comparisonRepository,
-        rulesEngine
+        setup.comparisonParams,
+        setup.snapshotRepository,
+        setup.comparisonRepository,
+        setup.rulesEngine
       );
 
       expect(result.status).toBe("completed");
@@ -332,86 +313,43 @@ describe("Compare Functions", () => {
     });
 
     it("should filter URLs when specified", async () => {
-      const beforeSnapshot = {
-        index: {
-          urls: {
-            "https://example.com/page1": {
-              filename: "page1.html",
-              statusCode: 200,
-            },
-            "https://example.com/page2": {
-              filename: "page2.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-01",
-            totalPages: 2,
-          },
-        },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: "<html><body>Original Content</body></html>",
+      const beforeUrls = {
+        "https://example.com/page1": {
+          filename: "page1.html",
           statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
-      };
-
-      const afterSnapshot = {
-        index: {
-          urls: {
-            "https://example.com/page1": {
-              filename: "page1.html",
-              statusCode: 200,
-            },
-            "https://example.com/page2": {
-              filename: "page2.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-02",
-            totalPages: 2,
-          },
         },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: url.includes("page1")
-            ? "<html><body>Modified Content</body></html>"
-            : "<html><body>Original Content</body></html>",
+        "https://example.com/page2": {
+          filename: "page2.html",
           statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
+        },
       };
+      const afterUrls = {
+        "https://example.com/page1": {
+          filename: "page1.html",
+          statusCode: 200,
+        },
+        "https://example.com/page2": {
+          filename: "page2.html",
+          statusCode: 200,
+        },
+      };
+      const beforeContent = "<html><body>Original Content</body></html>";
+      const afterContent = "<html><body>Modified Content</body></html>";
+      const setup = await createSetup(
+        beforeUrls,
+        afterUrls,
+        beforeContent,
+        afterContent
+      );
 
-      const snapshotRepository = createMockSnapshotRepository(
-        beforeSnapshot,
-        afterSnapshot
-      );
-      const comparisonRepository = await ComparisonRepository.create(
-        "test-comparison",
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          rulesUsedIdentifier: "default",
-        }
-      );
-      const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          comparisonName: "test-comparison",
+          ...setup.comparisonParams,
           urls: ["https://example.com/page1"],
-          ruleset: "default",
         },
-        snapshotRepository,
-        comparisonRepository,
-        rulesEngine
+        setup.snapshotRepository,
+        setup.comparisonRepository,
+        setup.rulesEngine
       );
 
       expect(result.status).toBe("completed");
@@ -423,52 +361,32 @@ describe("Compare Functions", () => {
     });
 
     it("should return no differences for identical snapshots", async () => {
-      const snapshot = {
-        index: {
-          urls: {
-            "https://example.com": {
-              filename: "example.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-01",
-            totalPages: 1,
-          },
-        },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: "<html><body>Hello World</body></html>",
+      const beforeUrls = {
+        "https://example.com": {
+          filename: "example.html",
           statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
-      };
-
-      const snapshotRepository = createMockSnapshotRepository(
-        snapshot,
-        snapshot
-      );
-      const comparisonRepository = await ComparisonRepository.create(
-        "test-comparison",
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          rulesUsedIdentifier: "default",
-        }
-      );
-      const rulesEngine = createMockRulesEngine();
-      const result = await compareSnapshots(
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          comparisonName: "test-comparison",
-          ruleset: "default",
         },
-        snapshotRepository,
-        comparisonRepository,
-        rulesEngine
+      };
+      const afterUrls = {
+        "https://example.com": {
+          filename: "example.html",
+          statusCode: 200,
+        },
+      };
+      const beforeContent = "<html><body>Hello World</body></html>";
+      const afterContent = "<html><body>Hello World</body></html>";
+      const setup = await createSetup(
+        beforeUrls,
+        afterUrls,
+        beforeContent,
+        afterContent
+      );
+
+      const result = await compareSnapshots(
+        setup.comparisonParams,
+        setup.snapshotRepository,
+        setup.comparisonRepository,
+        setup.rulesEngine
       );
 
       expect(result.status).toBe("completed");
@@ -480,91 +398,48 @@ describe("Compare Functions", () => {
     });
 
     it("should return URLs in ascending sorted order regardless of input order", async () => {
-      const beforeSnapshot = {
-        index: {
-          urls: {
-            "https://example.com/m": {
-              filename: "m.html",
-              statusCode: 200,
-            },
-            "https://example.com/a": {
-              filename: "a.html",
-              statusCode: 200,
-            },
-            "https://example.com/z": {
-              filename: "z.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-01",
-            totalPages: 3,
-          },
-        },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: "<html><body>Original Content</body></html>",
+      const beforeUrls = {
+        "https://example.com/m": {
+          filename: "m.html",
           statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
-      };
-
-      const afterSnapshot = {
-        index: {
-          urls: {
-            "https://example.com/m": {
-              filename: "m.html",
-              statusCode: 200,
-            },
-            "https://example.com/a": {
-              filename: "a.html",
-              statusCode: 200,
-            },
-            "https://example.com/z": {
-              filename: "z.html",
-              statusCode: 200,
-            },
-          },
-          metadata: {
-            baseUrl: "https://example.com",
-            timestamp: "2024-01-02",
-            totalPages: 3,
-          },
         },
-        getPage: async (url: string) => ({
-          url,
-          finalUrl: url,
-          content: "<html><body>Modified Content</body></html>",
+        "https://example.com/a": {
+          filename: "a.html",
           statusCode: 200,
-          headers: { "content-type": "text/html" },
-        }),
+        },
+        "https://example.com/z": {
+          filename: "z.html",
+          statusCode: 200,
+        },
       };
+      const afterUrls = {
+        "https://example.com/m": {
+          filename: "m.html",
+          statusCode: 200,
+        },
+        "https://example.com/a": {
+          filename: "a.html",
+          statusCode: 200,
+        },
+        "https://example.com/z": {
+          filename: "z.html",
+          statusCode: 200,
+        },
+      };
+      const beforeContent = "<html><body>Original Content</body></html>";
+      const afterContent = "<html><body>Modified Content</body></html>";
+      const setup = await createSetup(
+        beforeUrls,
+        afterUrls,
+        beforeContent,
+        afterContent
+      );
 
-      const snapshotRepository = createMockSnapshotRepository(
-        beforeSnapshot,
-        afterSnapshot
-      );
-      const comparisonRepository = await ComparisonRepository.create(
-        "test-comparison",
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          rulesUsedIdentifier: "default",
-        }
-      );
-      const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
-        {
-          beforeSnapshotId: "before",
-          afterSnapshotId: "after",
-          comparisonName: "test-comparison",
-          ruleset: "default",
-        },
-        snapshotRepository,
-        comparisonRepository,
-        rulesEngine
+        setup.comparisonParams,
+        setup.snapshotRepository,
+        setup.comparisonRepository,
+        setup.rulesEngine
       );
 
       expect(result.status).toBe("completed");
