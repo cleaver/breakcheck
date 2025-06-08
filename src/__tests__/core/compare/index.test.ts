@@ -1,10 +1,11 @@
+import { ComparisonRepository } from "@/core/compare/classes/ComparisonRepository";
 import { comparePage, compareSnapshots } from "@core/compare";
 import { RulesEngine } from "@core/rules/RulesEngine";
 import { SnapshotRepository } from "@core/snapshot";
 import {
-    ComparisonIndex,
-    ComparisonMetadata,
-    PageDiff
+  ComparisonIndex,
+  ComparisonMetadata,
+  PageDiff,
 } from "@project-types/compare";
 import { PageSnapshot } from "@project-types/crawler";
 import { Dataset } from "crawlee";
@@ -219,6 +220,14 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
+      const comparisonRepository = await ComparisonRepository.create(
+        "test-comparison",
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          rulesUsedIdentifier: "default",
+        }
+      );
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -228,6 +237,7 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
+        comparisonRepository,
         rulesEngine
       );
 
@@ -290,6 +300,14 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
+      const comparisonRepository = await ComparisonRepository.create(
+        "test-comparison",
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          rulesUsedIdentifier: "default",
+        }
+      );
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -299,6 +317,7 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
+        comparisonRepository,
         rulesEngine
       );
 
@@ -373,6 +392,14 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
+      const comparisonRepository = await ComparisonRepository.create(
+        "test-comparison",
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          rulesUsedIdentifier: "default",
+        }
+      );
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -383,6 +410,7 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
+        comparisonRepository,
         rulesEngine
       );
 
@@ -422,6 +450,14 @@ describe("Compare Functions", () => {
         snapshot,
         snapshot
       );
+      const comparisonRepository = await ComparisonRepository.create(
+        "test-comparison",
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          rulesUsedIdentifier: "default",
+        }
+      );
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -431,6 +467,7 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
+        comparisonRepository,
         rulesEngine
       );
 
@@ -509,6 +546,14 @@ describe("Compare Functions", () => {
         beforeSnapshot,
         afterSnapshot
       );
+      const comparisonRepository = await ComparisonRepository.create(
+        "test-comparison",
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          rulesUsedIdentifier: "default",
+        }
+      );
       const rulesEngine = createMockRulesEngine();
       const result = await compareSnapshots(
         {
@@ -518,6 +563,7 @@ describe("Compare Functions", () => {
           ruleset: "default",
         },
         snapshotRepository,
+        comparisonRepository,
         rulesEngine
       );
 

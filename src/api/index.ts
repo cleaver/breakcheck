@@ -3,10 +3,10 @@ import { compareSnapshots } from "@core/compare";
 import { ComparisonRepository } from "@core/compare/classes/ComparisonRepository";
 import { createSnapshot, SnapshotRepository } from "@core/snapshot";
 import type {
-    ComparisonConfig,
-    ComparisonSummary,
-    SnapshotConfig,
-    SnapshotResult
+  ComparisonConfig,
+  ComparisonSummary,
+  SnapshotConfig,
+  SnapshotResult,
 } from "@project-types/api";
 
 /**
@@ -56,7 +56,12 @@ export async function runComparison(
     }
   );
 
-  const diff = await compareSnapshots(config, snapshotRepository, rulesEngine);
+  const diff = await compareSnapshots(
+    config,
+    snapshotRepository,
+    comparisonRepository,
+    rulesEngine
+  );
 
   // Convert SnapshotDiff to ComparisonSummary
   return {
