@@ -2,6 +2,8 @@
 
 **A command-line tool for comparing website states to detect unintended content and structural changes after upgrades, deployments, or migrations.**
 
+![Breakcheck Logo](./breakcheck-logo-notext-sm.png)
+
 Breakcheck helps developers and QA testers automate visual and structural regression testing. It works by taking a "snapshot" of a website before a change, another snapshot after, and then intelligently comparing them. You can define fine-grained rules to ignore dynamic content like ads, session IDs, or timestamps, ensuring you only get alerted to the changes that matter.
 
 ## Core Workflow
