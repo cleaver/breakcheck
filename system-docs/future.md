@@ -1,25 +1,25 @@
 # Features for the future:
 
-- `breakcheck clean snapshot|comparison` - delete snapshot|comparison
-  - `--name` option for name of snapshot|comparison to delete
-  - `--all` to nuke everything
-  - omit name for interactive
-  - add `--force` to skip confirmation
-- `breakcheck list/ls` - list snapshots
+- [ ] `breakcheck compile` - to compile a DSL to JSON
+- [ ] `breakcheck clean snapshot|comparison` - delete snapshot|comparison
+  - [ ] `--name` option for name of snapshot|comparison to delete
+  - [ ] `--all` to nuke everything
+  - [ ] omit name for interactive
+  - [ ] add `--force` to skip confirmation
+- [ ] `breakcheck list/ls` - list snapshots
   - [x] show name, date, number of pages, number of errors
   - [ ] in future, maybe add list diffs?
-- `breakcheck snapshot --url-file` - to use the url list text file.
-- `breakcheck init` - to initialize a new project
-- `breakcheck new rule <name>` - to create a new rule file.
-- store and read config files
-- interactive config files
-- ability to set a snapshot as baseline
+- [ ] `breakcheck snapshot --url-file` - to use the url list text file.
+- [ ] project configuration -- common settings for the project
+  - [ ] store and read config files
+  - [ ] `breakcheck init` - to initialize a new project
+  - [ ] interactive config files
+- [ ] `breakcheck new rule <name>` - to create a new rule file.
+- **ability to set a snapshot as baseline** ???? forget what this is
 - [ ] extract the file, directory, compression stuff to util modules
-- [ ] extract the mocks, especially in `compare` tests.
+- [x] extract the mocks, especially in `compare` tests.
 
 # Things to check:
-
-- [q] ~~Does `CompareConfig` have too many options. `normalizeHtml` will probably be done elsewhere.~~
 
 # **Feature Idea: Conditional Rule Application by URL**
 
