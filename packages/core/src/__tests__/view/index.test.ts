@@ -1,4 +1,4 @@
-import { startViewServer } from "@core/view";
+import { startViewServer } from "@/core/view";
 import http from "http";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

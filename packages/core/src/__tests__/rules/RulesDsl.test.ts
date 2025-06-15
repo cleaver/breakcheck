@@ -1,4 +1,4 @@
-import { processRulesDsl } from "@core/rules/RulesDsl";
+import { processRulesDsl } from "@/core/rules/RulesDsl";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

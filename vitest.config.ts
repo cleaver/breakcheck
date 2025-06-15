@@ -13,10 +13,32 @@ export default defineConfig({
     include: ["packages/**/*.test.ts"],
   },
   resolve: {
-    alias: {
-      "breakcheck-core": resolve(__dirname, "./packages/core/src"),
-      "breakcheck-cli": resolve(__dirname, "./packages/cli/src"),
-      "breakcheck-server": resolve(__dirname, "./packages/server/src"),
+    alias: [
+      {
+        find: "@",
+        replacement: resolve(__dirname, "./packages/core/src"),
+      },
+      {
+        find: "breakcheck-core",
+        replacement: resolve(__dirname, "./packages/core/src"),
+      },
+      {
+        find: "breakcheck-cli",
+        replacement: resolve(__dirname, "./packages/cli/src"),
+      },
+      {
+        find: "breakcheck-server",
+        replacement: resolve(__dirname, "./packages/server/src"),
+      },
+    ],
+  },
+  esbuild: {
+    tsconfigRaw: {
+      compilerOptions: {
+        paths: {
+          "@/*": ["./packages/core/src/*"],
+        },
+      },
     },
   },
 });
