@@ -194,8 +194,8 @@ describe("Compare Functions", () => {
       expect(result.url).toBe("https://example.com");
       expect(result.hasDifferences).toBe(false);
       expect(result.differences).toHaveLength(1);
-      expect(result.differences[0].added).toBe(false);
-      expect(result.differences[0].removed).toBe(false);
+      expect(result.differences[0].added).toBeUndefined();
+      expect(result.differences[0].removed).toBeUndefined();
     });
   });
 

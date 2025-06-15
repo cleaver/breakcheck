@@ -16,7 +16,7 @@ export function startViewServer(
   const comparisonDir = path.join(process.cwd(), "comparisons", comparisonName);
 
   app.set("view engine", "ejs");
-  app.set("views", path.join(__dirname, "..", "..", "views"));
+  app.set("views", path.join(process.cwd(), "packages", "cli", "src", "views"));
   app.use(express.static(path.join(__dirname, "..", "..", "public")));
 
   app.get("/", createIndexHandler(comparisonDir));

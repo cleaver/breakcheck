@@ -7,16 +7,18 @@ import { promisify } from "util";
 vi.mock("fs/promises", () => ({
   default: {
     readFile: vi.fn(async (path: string | Buffer | URL) => {
-      if (typeof path === "string" && path.includes("index.json")) {
-        return JSON.stringify({
-          urls: {
-            "/page1": { filename: "page1.json.gz", hasDifferences: true },
-            "/page2": { filename: "page2.json.gz", hasDifferences: false },
-          },
-        });
-      }
-      if (typeof path === "string" && path.includes("page1.json.gz")) {
-        return Buffer.from("compressed data");
+      if (typeof path === "string") {
+        if (path.includes("index.json")) {
+          return JSON.stringify({
+            urls: {
+              "/page1": { filename: "page1.json.gz", hasDifferences: true },
+              "/page2": { filename: "page2.json.gz", hasDifferences: false },
+            },
+          });
+        }
+        if (path.includes("diffs/page1.json.gz")) {
+          return Buffer.from("compressed data");
+        }
       }
       throw new Error(`fs.readFile mock not implemented for ${path}`);
     }),
