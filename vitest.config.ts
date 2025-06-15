@@ -1,5 +1,5 @@
-import { coverageConfigDefaults, defineConfig } from "vitest/config";
 import { resolve } from "path";
+import { coverageConfigDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
@@ -8,18 +8,15 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      exclude: [...coverageConfigDefaults.exclude, "src/__test_server__/**/*"],
+      exclude: [...coverageConfigDefaults.exclude, "**/__test_server__/**"],
     },
-    include: ["src/**/*.test.ts"],
+    include: ["packages/**/*.test.ts"],
   },
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src"),
-      "@api": resolve(__dirname, "./src/api"),
-      "@cli": resolve(__dirname, "./src/cli"),
-      "@core": resolve(__dirname, "./src/core"),
-      "@lib": resolve(__dirname, "./src/lib"),
-      "@project-types": resolve(__dirname, "./src/types"),
+      "breakcheck-core": resolve(__dirname, "./packages/core/src"),
+      "breakcheck-cli": resolve(__dirname, "./packages/cli/src"),
+      "breakcheck-server": resolve(__dirname, "./packages/server/src"),
     },
   },
 });
