@@ -1,10 +1,9 @@
 import express from "express";
-import { findUp, pathExists } from "find-up";
-import fs from "fs/promises";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { logger } from "../../lib/logger";
+import { findRootDir } from "../../lib/root";
 import { createDiffHandler, createIndexHandler } from "./index.handlers";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,25 +15,7 @@ export async function startViewServer(
 ): Promise<http.Server> {
   const app = express();
 
-  const rootPackageJsonPath = await findUp(
-    async (directory) => {
-      const packageJsonPath = path.join(directory, "package.json");
-      const exists = await pathExists(packageJsonPath);
-      if (exists) {
-        const packageJson = JSON.parse(
-          await fs.readFile(packageJsonPath, "utf8")
-        );
-        if (packageJson.workspaces) {
-          return packageJsonPath;
-        }
-      }
-    },
-    { type: "file" }
-  );
-
-  const rootDir = rootPackageJsonPath
-    ? path.dirname(rootPackageJsonPath)
-    : process.cwd();
+  const rootDir = await findRootDir();
   const comparisonDir = path.join(rootDir, "comparisons", comparisonName);
 
   app.set("view engine", "ejs");
