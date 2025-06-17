@@ -14,10 +14,14 @@ import { PageSnapshot } from "../../types/crawler";
 /**
  * Creates a mock SnapshotRepository for testing
  */
-class MockSnapshotRepository extends SnapshotRepository {
-  constructor(private beforeSnapshot: any, private afterSnapshot: any) {
-    super();
-  }
+class MockSnapshotRepository
+  implements
+    Pick<
+      SnapshotRepository,
+      "loadSnapshot" | "saveSnapshot" | "generateUrlList" | "listSnapshots"
+    >
+{
+  constructor(private beforeSnapshot: any, private afterSnapshot: any) {}
 
   async loadSnapshot(name: string) {
     return name === "before" ? this.beforeSnapshot : this.afterSnapshot;
@@ -98,11 +102,14 @@ class MockComparisonRepository {
   }
 }
 
-function createMockSnapshotRepository(
+async function createMockSnapshotRepository(
   beforeSnapshot: any,
   afterSnapshot: any
-): SnapshotRepository {
-  return new MockSnapshotRepository(beforeSnapshot, afterSnapshot);
+): Promise<SnapshotRepository> {
+  return new MockSnapshotRepository(
+    beforeSnapshot,
+    afterSnapshot
+  ) as unknown as SnapshotRepository;
 }
 
 function createMockRulesEngine(): RulesEngine {
@@ -204,7 +211,7 @@ describe("Compare Functions", () => {
   });
 
   describe("compareSnapshots", () => {
-    function createSetup(
+    async function createSetup(
       beforeUrls: Record<string, { filename: string; statusCode: number }>,
       afterUrls: Record<string, { filename: string; statusCode: number }>,
       beforeContent: string,
@@ -212,28 +219,30 @@ describe("Compare Functions", () => {
     ): Promise<TestSetup> {
       const beforeSnapshot = createMockSnapshot(beforeUrls, beforeContent);
       const afterSnapshot = createMockSnapshot(afterUrls, afterContent);
-      const snapshotRepository = createMockSnapshotRepository(
+      const snapshotRepository = await createMockSnapshotRepository(
         beforeSnapshot,
         afterSnapshot
       );
-      return ComparisonRepository.create("test-comparison", {
-        beforeSnapshotId: "before",
-        afterSnapshotId: "after",
-        rulesUsedIdentifier: "default",
-      }).then((comparisonRepository) => {
-        const rulesEngine = createMockRulesEngine();
-        return {
-          snapshotRepository,
-          comparisonRepository,
-          rulesEngine,
-          comparisonParams: {
-            beforeSnapshotId: "before",
-            afterSnapshotId: "after",
-            comparisonName: "test-comparison",
-            ruleset: "default",
-          },
-        };
-      });
+      const comparisonRepository = await ComparisonRepository.create(
+        "test-comparison",
+        {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          rulesUsedIdentifier: "default",
+        }
+      );
+      const rulesEngine = createMockRulesEngine();
+      return {
+        snapshotRepository,
+        comparisonRepository,
+        rulesEngine,
+        comparisonParams: {
+          beforeSnapshotId: "before",
+          afterSnapshotId: "after",
+          comparisonName: "test-comparison",
+          ruleset: "default",
+        },
+      };
     }
 
     it("should detect content differences between snapshots", async () => {

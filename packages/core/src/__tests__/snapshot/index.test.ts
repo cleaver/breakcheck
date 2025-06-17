@@ -16,7 +16,9 @@ describe("SnapshotRepository", () => {
 
     // Create a fresh test snapshots directory
     await fs.mkdir(TEST_SNAPSHOTS_DIR, { recursive: true });
-    snapshotRepository = new SnapshotRepository(TEST_SNAPSHOTS_DIR);
+    snapshotRepository = await SnapshotRepository.createWithCustomDir(
+      TEST_SNAPSHOTS_DIR
+    );
 
     // Create a test dataset
     testDataset = await Dataset.open("test-dataset");

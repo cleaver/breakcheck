@@ -17,7 +17,7 @@ import type {
 export async function createSnapshotFromConfig(
   config: SnapshotConfig
 ): Promise<SnapshotResult> {
-  const snapshotRepository = new SnapshotRepository();
+  const snapshotRepository = await SnapshotRepository.create();
   return createSnapshot(config, snapshotRepository);
 }
 
@@ -43,7 +43,7 @@ export async function createSnapshotFromConfig(
 export async function runComparison(
   config: ComparisonConfig
 ): Promise<ComparisonSummary> {
-  const snapshotRepository = new SnapshotRepository();
+  const snapshotRepository = await SnapshotRepository.create();
   const rulesEngine = await RulesEngine.create(config.ruleset);
   const comparisonRepository = await ComparisonRepository.create(
     config.comparisonName,
@@ -88,7 +88,7 @@ export async function runComparison(
  * Lists all available snapshots with their details
  */
 export async function listSnapshots() {
-  const snapshotRepository = new SnapshotRepository();
+  const snapshotRepository = await SnapshotRepository.create();
   return snapshotRepository.listSnapshots();
 }
 

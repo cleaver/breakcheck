@@ -2,6 +2,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
+import { findRootDir } from "../../../lib/root";
 import { PageSnapshot } from "../../../types/crawler";
 import {
   SnapshotData,
@@ -15,8 +16,29 @@ const gzip = promisify(zlib.gzip);
 export class SnapshotRepository {
   private readonly snapshotsDir: string;
 
-  constructor(snapshotsDir: string = path.join(process.cwd(), "snapshots")) {
+  private constructor(snapshotsDir: string) {
     this.snapshotsDir = snapshotsDir;
+  }
+
+  /**
+   * Creates a new SnapshotRepository instance using the project root directory
+   * @returns Promise<SnapshotRepository>
+   */
+  static async create(): Promise<SnapshotRepository> {
+    const rootDir = await findRootDir();
+    const snapshotsDir = path.join(rootDir, "snapshots");
+    return new SnapshotRepository(snapshotsDir);
+  }
+
+  /**
+   * Creates a new SnapshotRepository instance with a custom snapshots directory
+   * @param snapshotsDir Custom directory path for snapshots
+   * @returns Promise<SnapshotRepository>
+   */
+  static async createWithCustomDir(
+    snapshotsDir: string
+  ): Promise<SnapshotRepository> {
+    return new SnapshotRepository(snapshotsDir);
   }
 
   /**
