@@ -17,7 +17,7 @@ export class RulesEngine {
 
     if (typeof rulesetOrName === "string") {
       try {
-        ruleset = processRulesDsl(rulesetOrName);
+        ruleset = await processRulesDsl(rulesetOrName);
       } catch (error) {
         if (error instanceof Error) {
           logger.error(

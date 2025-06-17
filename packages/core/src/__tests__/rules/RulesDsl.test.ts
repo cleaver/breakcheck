@@ -12,6 +12,11 @@ vi.mock("path", () => ({
   join: vi.fn(),
 }));
 
+// Mock the findRootDir function to return a predictable path
+vi.mock("../../lib/root", () => ({
+  findRootDir: vi.fn().mockResolvedValue("/mock/root"),
+}));
+
 describe("RulesDsl", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -23,17 +28,17 @@ describe("RulesDsl", () => {
   });
 
   describe("processRulesDsl", () => {
-    it("should throw error if rules file not found", () => {
+    it("should throw error if rules file not found", async () => {
       (readFileSync as any).mockImplementation(() => {
         throw new Error("File not found");
       });
 
-      expect(() => processRulesDsl("non-existent")).toThrow(
+      await expect(processRulesDsl("non-existent")).rejects.toThrow(
         "Rules file not found: rules/non-existent/rules.breakcheck"
       );
     });
 
-    it("should parse single action rules", () => {
+    it("should parse single action rules", async () => {
       const rulesContent = `
                 css:.ad-container do: exclude
                 css:#session-id do: exclude
@@ -41,7 +46,7 @@ describe("RulesDsl", () => {
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
 
-      const result = processRulesDsl("test-rules");
+      const result = await processRulesDsl("test-rules");
 
       expect(result).toEqual({
         name: "test-rules",
@@ -67,7 +72,7 @@ describe("RulesDsl", () => {
       });
     });
 
-    it("should parse action blocks", () => {
+    it("should parse action blocks", async () => {
       const rulesContent = `
                 css:img do
                     remove_attr attr:"srcset"
@@ -77,7 +82,7 @@ describe("RulesDsl", () => {
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
 
-      const result = processRulesDsl("test-rules");
+      const result = await processRulesDsl("test-rules");
 
       expect(result).toEqual({
         name: "test-rules",
@@ -101,14 +106,14 @@ describe("RulesDsl", () => {
       });
     });
 
-    it("should parse rewrite content rules", () => {
+    it("should parse rewrite content rules", async () => {
       const rulesContent = `
                 css:.timestamp do: rewrite_content regex:"\\d{2}/\\d{2}/\\d{4}" replace:"DATE_STAMP"
                 css:.view-count do: rewrite_content regex:"\\d{1,3}(,\\d{3})* views" replace:"VIEW_COUNT views"
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
 
-      const result = processRulesDsl("test-rules");
+      const result = await processRulesDsl("test-rules");
 
       expect(result).toEqual({
         name: "test-rules",
@@ -141,7 +146,7 @@ describe("RulesDsl", () => {
       });
     });
 
-    it("should handle comments and whitespace", () => {
+    it("should handle comments and whitespace", async () => {
       const rulesContent = `
 -- This is a comment
 css:.ad-container do: exclude
@@ -151,7 +156,7 @@ css:.important-note do: include content_regex:"Warning:"
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
 
-      const result = processRulesDsl("test-rules");
+      const result = await processRulesDsl("test-rules");
 
       expect(result).toEqual({
         name: "test-rules",
@@ -173,47 +178,47 @@ css:.important-note do: include content_regex:"Warning:"
       });
     });
 
-    it("should throw error for invalid syntax", () => {
+    it("should throw error for invalid syntax", async () => {
       const rulesContent = `
                 css:.ad-container do exclude  # Missing colon after do
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
 
-      expect(() => processRulesDsl("test-rules")).toThrow(
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
         "Syntax errors in rules file"
       );
     });
 
-    it("should throw error for invalid action", () => {
+    it("should throw error for invalid action", async () => {
       const rulesContent = `
                 css:.ad-container do: invalid_action
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
 
-      expect(() => processRulesDsl("test-rules")).toThrow(
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
         "Syntax errors in rules file"
       );
     });
 
-    it("should throw error for unclosed action block", () => {
+    it("should throw error for unclosed action block", async () => {
       const rulesContent = `
                 css:img do
                     remove_attr attr:"srcset"
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
 
-      expect(() => processRulesDsl("test-rules")).toThrow(
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
         "Syntax errors in rules file"
       );
     });
 
-    it("should throw error for missing required modifiers", () => {
+    it("should throw error for missing required modifiers", async () => {
       const rulesContent = `
                 css:img do: remove_attr
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
 
-      expect(() => processRulesDsl("test-rules")).toThrow(
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
         "Syntax errors in rules file"
       );
     });

@@ -2,6 +2,7 @@ import { createToken, CstNode, CstParser, Lexer } from "chevrotain";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { logger } from "../../lib/logger";
+import { findRootDir } from "../../lib/root";
 import { Action, Rule, Ruleset } from "../../types/rules";
 
 // --- LEXER ---
@@ -268,18 +269,14 @@ class CstToAstVisitor extends parser.getBaseCstVisitorConstructor() {
 const visitor = new CstToAstVisitor();
 
 // --- Main processing function ---
-export function processRulesDsl(rulesetName: string): Ruleset {
-  const rulesPath = join(
-    process.cwd(),
-    "rules",
-    rulesetName,
-    "rules.breakcheck"
-  );
+export async function processRulesDsl(rulesetName: string): Promise<Ruleset> {
+  const rootDir = await findRootDir();
+  const rulesPath = join(rootDir, "rules", rulesetName, "rules.breakcheck");
   let rulesContent: string;
   try {
     rulesContent = readFileSync(rulesPath, "utf-8");
   } catch (error) {
-    const shortPath = rulesPath.replace(process.cwd(), "").replace(/^\//, "");
+    const shortPath = rulesPath.replace(rootDir, "").replace(/^\//, "");
     logger.error({ error, rulesPath: shortPath }, "Rules file not found");
     throw new Error(`Rules file not found: ${shortPath}`);
   }
