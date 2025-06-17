@@ -12,8 +12,11 @@
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "dev:cli": "npm run dev --workspace=cli",
-    "start:server": "npm run start --workspace=server"
+    "dev:cli": "LOG_LEVEL=debug NODE_ENV=development cd packages/cli && tsx src/index.ts",
+    "dev:debug": "LOG_LEVEL=debug NODE_ENV=development cd packages/cli && tsx --inspect-brk src/index.ts",
+    "start:server": "npm run start --workspace=server",
+    "test-server:before": "npm run start:test-server:before -w breakcheck",
+    "test-server:after": "npm run start:test-server:after -w breakcheck"
   },
   "author": "Cleaver Barnes",
   "license": "Apache-2.0",

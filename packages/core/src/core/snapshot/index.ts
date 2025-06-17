@@ -1,8 +1,8 @@
-import { BreakcheckCrawler } from "@/core/crawler";
-import { logger } from "@/lib/logger";
-import { SnapshotConfig, SnapshotResult } from "@/types/api";
-import { CrawlError } from "@/types/crawler";
 import { Dataset } from "crawlee";
+import { logger } from "../../lib/logger";
+import { SnapshotConfig, SnapshotResult } from "../../types/api";
+import { CrawlError } from "../../types/crawler";
+import { BreakcheckCrawler } from "../crawler";
 import { SnapshotRepository } from "./classes/SnapshotRepository";
 
 export { LoadedSnapshot } from "./classes/LoadedSnapshot";

@@ -1,6 +1,6 @@
-import { logger } from "@/lib/logger";
-import { Action, Ruleset } from "@/types/rules";
 import * as cheerio from "cheerio";
+import { logger } from "../../lib/logger";
+import { Action, Ruleset } from "../../types/rules";
 import { processRulesDsl } from "./RulesDsl";
 
 export class RulesEngine {

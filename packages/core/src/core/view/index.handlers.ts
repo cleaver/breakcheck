@@ -1,9 +1,9 @@
-import { logger } from "@/lib/logger";
-import { ComparisonIndex, PageDiff } from "@/types/compare";
 import { Request, RequestHandler, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
 import { gunzip } from "zlib";
+import { logger } from "../../lib/logger";
+import { ComparisonIndex, PageDiff } from "../../types/compare";
 
 export const createIndexHandler = (comparisonDir: string): RequestHandler => {
   return async (req: Request, res: Response) => {

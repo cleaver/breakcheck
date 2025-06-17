@@ -1,6 +1,6 @@
-import { startViewServer } from "@/core/view";
 import http from "http";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { startViewServer } from "../../core/view";
 
 import { promisify } from "util";
 
@@ -8,6 +8,12 @@ vi.mock("fs/promises", () => ({
   default: {
     readFile: vi.fn(async (path: string | Buffer | URL) => {
       if (typeof path === "string") {
+        if (path.includes("package.json")) {
+          return JSON.stringify({
+            workspaces: ["packages/*"],
+            name: "breakcheck-monorepo",
+          });
+        }
         if (path.includes("index.json")) {
           return JSON.stringify({
             urls: {
@@ -41,18 +47,25 @@ vi.mock("zlib", () => ({
 describe("View Server", () => {
   const mockComparisonName = "test-comparison";
   const mockPort = 8080;
-  let server: http.Server;
+  let server: http.Server | undefined;
   const closeServer = promisify(
     (server: http.Server, cb: (err?: Error) => void) => server.close(cb)
   );
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    server = await startViewServer(mockComparisonName, mockPort);
+    try {
+      server = await startViewServer(mockComparisonName, mockPort);
+    } catch (error) {
+      console.error("Failed to start server:", error);
+      throw error;
+    }
   });
 
   afterEach(async () => {
-    await closeServer(server);
+    if (server) {
+      await closeServer(server);
+    }
   });
 
   const makeRequest = (

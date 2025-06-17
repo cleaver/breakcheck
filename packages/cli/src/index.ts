@@ -22,4 +22,4 @@ program.addCommand(listSnapshotsCommand);
 program.addCommand(viewCommand);
 
 // Parse command line arguments
-program.parse();
+await program.parseAsync();

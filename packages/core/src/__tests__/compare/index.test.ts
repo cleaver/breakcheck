@@ -1,11 +1,15 @@
-import { comparePage, compareSnapshots } from "@/core/compare";
-import { ComparisonRepository } from "@/core/compare/classes/ComparisonRepository";
-import { RulesEngine } from "@/core/rules/RulesEngine";
-import { SnapshotRepository } from "@/core/snapshot";
-import { ComparisonIndex, ComparisonMetadata, PageDiff } from "@/types/compare";
-import { PageSnapshot } from "@/types/crawler";
 import { Dataset } from "crawlee";
 import { describe, expect, it } from "vitest";
+import { comparePage, compareSnapshots } from "../../core/compare";
+import { ComparisonRepository } from "../../core/compare/classes/ComparisonRepository";
+import { RulesEngine } from "../../core/rules/RulesEngine";
+import { SnapshotRepository } from "../../core/snapshot";
+import {
+  ComparisonIndex,
+  ComparisonMetadata,
+  PageDiff,
+} from "../../types/compare";
+import { PageSnapshot } from "../../types/crawler";
 
 /**
  * Creates a mock SnapshotRepository for testing

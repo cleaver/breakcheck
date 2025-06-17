@@ -1,14 +1,14 @@
-import { compareSnapshots } from "@/core/compare";
-import { ComparisonRepository } from "@/core/compare/classes/ComparisonRepository";
-import { RulesEngine } from "@/core/rules/RulesEngine";
-import { createSnapshot, SnapshotRepository } from "@/core/snapshot";
-import { logger } from "@/lib/logger";
+import { compareSnapshots } from "../core/compare";
+import { ComparisonRepository } from "../core/compare/classes/ComparisonRepository";
+import { RulesEngine } from "../core/rules/RulesEngine";
+import { createSnapshot, SnapshotRepository } from "../core/snapshot";
+import { logger } from "../lib/logger";
 import type {
   ComparisonConfig,
   ComparisonSummary,
   SnapshotConfig,
   SnapshotResult,
-} from "@/types/api";
+} from "../types/api";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.

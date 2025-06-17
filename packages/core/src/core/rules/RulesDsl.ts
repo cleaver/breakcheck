@@ -1,8 +1,8 @@
-import { logger } from "@/lib/logger";
-import { Action, Rule, Ruleset } from "@/types/rules";
 import { createToken, CstNode, CstParser, Lexer } from "chevrotain";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { logger } from "../../lib/logger";
+import { Action, Rule, Ruleset } from "../../types/rules";
 
 // --- LEXER ---
 const Css = createToken({ name: "Css", pattern: /css:/i });

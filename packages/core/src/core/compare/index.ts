@@ -1,10 +1,10 @@
-import { RulesEngine } from "@/core/rules/RulesEngine";
-import { SnapshotRepository } from "@/core/snapshot";
-import { ComparisonConfig, ComparisonSummary } from "@/types/api";
-import { LineDiff, PageDiff } from "@/types/compare";
-import { PageSnapshot } from "@/types/crawler";
 import { diffLines } from "diff";
 import path from "path";
+import { ComparisonConfig, ComparisonSummary } from "../../types/api";
+import { LineDiff, PageDiff } from "../../types/compare";
+import { PageSnapshot } from "../../types/crawler";
+import { RulesEngine } from "../rules/RulesEngine";
+import { SnapshotRepository } from "../snapshot";
 import { ComparisonRepository } from "./classes/ComparisonRepository";
 
 /**

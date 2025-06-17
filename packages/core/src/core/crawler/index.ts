@@ -1,7 +1,11 @@
-import { logger } from "@/lib/logger";
-import type { CrawlerConfig } from "@/types/api";
-import type { CrawlerInstance, CrawlError, CrawlResult } from "@/types/crawler";
 import { Configuration, Dataset, purgeDefaultStorages } from "crawlee";
+import { logger } from "../../lib/logger";
+import type { CrawlerConfig } from "../../types/api";
+import type {
+  CrawlerInstance,
+  CrawlError,
+  CrawlResult,
+} from "../../types/crawler";
 import { createCheerioCrawler } from "./implementations/cheerio";
 import { createPlaywrightCrawler } from "./implementations/playwright";
 

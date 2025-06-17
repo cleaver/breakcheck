@@ -1,9 +1,13 @@
-import { PageSnapshot } from "@/types/crawler";
-import { SnapshotData, SnapshotIndex, SnapshotSummary } from "@/types/snapshot";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
+import { PageSnapshot } from "../../../types/crawler";
+import {
+  SnapshotData,
+  SnapshotIndex,
+  SnapshotSummary,
+} from "../../../types/snapshot";
 import { LoadedSnapshot } from "./LoadedSnapshot";
 
 const gzip = promisify(zlib.gzip);

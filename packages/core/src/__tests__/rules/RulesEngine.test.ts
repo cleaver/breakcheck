@@ -1,6 +1,6 @@
-import { RulesEngine } from "@/core/rules/RulesEngine";
-import { Ruleset } from "@/types/rules";
 import { describe, expect, it } from "vitest";
+import { RulesEngine } from "../../core/rules/RulesEngine";
+import { Ruleset } from "../../types/rules";
 
 describe("RulesEngine", () => {
   describe("create", () => {
