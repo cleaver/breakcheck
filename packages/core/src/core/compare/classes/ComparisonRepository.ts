@@ -2,6 +2,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
+import { findRootDir } from "../../../lib/root";
 import {
   ComparisonIndex,
   ComparisonMetadata,
@@ -16,9 +17,7 @@ export class ComparisonRepository {
   private diffsDir!: string;
   private index: ComparisonIndex = { urls: {}, metadata: {} as any };
 
-  private constructor(
-    comparisonsDir: string = path.join(process.cwd(), "comparisons")
-  ) {
+  private constructor(comparisonsDir: string) {
     this.comparisonsDir = comparisonsDir;
   }
 
@@ -28,9 +27,13 @@ export class ComparisonRepository {
   static async create(
     name: string,
     metadata: ComparisonMetadata,
-    comparisonsDir: string = path.join(process.cwd(), "comparisons")
+    comparisonsDir?: string
   ): Promise<ComparisonRepository> {
-    const instance = new ComparisonRepository(comparisonsDir);
+    const rootDir = await findRootDir();
+    const defaultComparisonsDir = path.join(rootDir, "comparisons");
+    const instance = new ComparisonRepository(
+      comparisonsDir || defaultComparisonsDir
+    );
     await instance.initialize(name, metadata);
     return instance;
   }
