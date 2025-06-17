@@ -1,0 +1,21 @@
+{
+  "name": "breakcheck",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "breakcheck": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start:test-server:before": "node src/__test_server__/server-before.js",
+    "start:test-server:after": "node src/__test_server__/server-after.js"
+  },
+  "dependencies": {
+    "breakcheck-core": "*",
+    "commander": "^12.1.0",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "interactive-commander": "^0.6.0",
+    "pino-pretty": "^11.2.1"
+  }
+}

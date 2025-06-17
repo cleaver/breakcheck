@@ -1,0 +1,24 @@
+{
+  "name": "breakcheck-core",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && cpx \"src/views/**/*\" dist/views",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "cheerio": "1.0.0-rc.12",
+    "chevrotain": "^11.0.3",
+    "crawlee": "^3.8.4",
+    "diff": "^5.2.0",
+    "express": "^5.1.0",
+    "find-up": "^7.0.0",
+    "pino": "^9.6.0",
+    "playwright": "^1.44.1"
+  },
+  "devDependencies": {
+    "cpx": "^1.5.0"
+  }
+}
