@@ -122,7 +122,7 @@
 
 ## **9. Documentation & Finalization**
 
-- [ ] 9.1. Write README documentation (installation, usage, CLI commands/options, DSL syntax, examples).
+- [x] 9.1. Write README documentation (installation, usage, CLI commands/options, DSL syntax, examples).
 - [ ] 9.2. Add code comments (especially for the API Layer interface and core components) and generate API documentation (e.g., TypeDoc).
 - [ ] 9.3. Refine error messages and user feedback (both from API Layer and CLI presentation).
 - [ ] 9.4. Perform final testing and bug fixing across all layers.
