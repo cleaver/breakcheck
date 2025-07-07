@@ -1,4 +1,5 @@
 import { diffLines } from "diff";
+import jsbeautify from "js-beautify";
 import path from "path";
 import { ComparisonConfig, ComparisonSummary } from "../../types/api";
 import { LineDiff, PageDiff } from "../../types/compare";
@@ -9,14 +10,25 @@ import { ComparisonRepository } from "./classes/ComparisonRepository";
 
 /**
  * Compares two page snapshots and returns the differences found.
- * (This function remains unchanged)
  */
 export async function comparePage(
   before: PageSnapshot,
   after: PageSnapshot
 ): Promise<PageDiff> {
   const url = before.url;
-  const differences: LineDiff[] = diffLines(before.content, after.content);
+
+  const beautify = jsbeautify.html;
+
+  const beautifyOptions = {
+    indent_size: 2,
+    preserve_newlines: true,
+    max_preserve_newlines: 2,
+    unformatted: ["a", "span", "b", "strong", "i", "em"],
+  };
+  const beforeContent = beautify(before.content, beautifyOptions);
+  const afterContent = beautify(after.content, beautifyOptions);
+
+  const differences: LineDiff[] = diffLines(beforeContent, afterContent);
   const hasDifferences = differences.some((diff) => diff.added || diff.removed);
   return { url, differences, hasDifferences };
 }
@@ -46,16 +58,6 @@ export async function compareSnapshots(
   const urlsToCompare = config.urls || beforeUrls;
   const rulesUsedIdentifier =
     typeof config.ruleset === "string" ? config.ruleset : config.ruleset.name;
-
-  // Start the comparison process in the repository
-  // const comparisonRepository = await ComparisonRepository.create(
-  //   config.comparisonName,
-  //   {
-  //     beforeSnapshotId: config.beforeSnapshotId,
-  //     afterSnapshotId: config.afterSnapshotId,
-  //     rulesUsedIdentifier,
-  //   }
-  // );
 
   // Find new and removed URLs
   const newUrls = [...afterUrls].filter((url) => !beforeUrls.includes(url));
@@ -104,7 +106,7 @@ export async function compareSnapshots(
     pagesWithErrors,
     newUrls,
     removedUrls,
-    comparisonProcessErrors: [], // Can be enhanced later
+    comparisonProcessErrors: [],
     comparisonId: config.comparisonName,
     durationMs: Date.now() - startTime,
     summaryFilePath: path.join(resultsPath, "index.json"),
