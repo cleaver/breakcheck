@@ -128,6 +128,8 @@ breakcheck snapshot [options]
 | `-e, --exclude <patterns...>` | Glob patterns for URLs to exclude.                                    |                                 |
 | `-t, --type <type>`           | The crawler to use (`cheerio` or `playwright`).                       | `cheerio`                       |
 | `-w, --write-urls <path>`     | Generate a plain text file of all crawled URLs at the specified path. |                                 |
+| `--json-logs`                 | Output logs in JSON format (useful for automation).                   |                                 |
+| `--no-json-logs`              | Output logs in pretty format (default, user-friendly).                |                                 |
 
 ### `compare`
 
@@ -143,6 +145,8 @@ breakcheck compare [options]
 | `-a, --after <name>`  | **(Required)** The name of the "after" snapshot.              |                   |
 | `-o, --output <name>` | A name for the comparison output directory.                   | `compare_default` |
 | `-r, --rules <path>`  | Path to the directory containing the `rules.breakcheck` file. | `default`         |
+| `--json-logs`         | Output logs in JSON format (useful for automation).           |                   |
+| `--no-json-logs`      | Output logs in pretty format (default, user-friendly).        |                   |
 
 ### `view`
 
@@ -156,9 +160,11 @@ breakcheck view [comparison-name] [options]
 | :---------------- | :---------------------------------- | :---------------- |
 | `comparison-name` | The name of the comparison to view. | `compare_default` |
 
-| Option                | Description                         | Default |
-| :-------------------- | :---------------------------------- | :------ |
-| `-p, --port <number>` | The port to run the view server on. | `8080`  |
+| Option                | Description                                            | Default |
+| :-------------------- | :----------------------------------------------------- | :------ |
+| `-p, --port <number>` | The port to run the view server on.                    | `8080`  |
+| `--json-logs`         | Output logs in JSON format (useful for automation).    |         |
+| `--no-json-logs`      | Output logs in pretty format (default, user-friendly). |         |
 
 ### `list-snapshots`
 
@@ -178,3 +184,42 @@ Name                | Date                      | Pages | Errors
 production-live     | 2025-06-10T16:05:40.123Z  | 152   | 0
 after-deployment    | 2025-06-10T17:10:15.456Z  | 153   | 1
 ```
+
+---
+
+## Logging Options
+
+Breakcheck provides flexible logging options to suit different use cases:
+
+### Pretty Logging (Default)
+
+By default, Breakcheck uses pretty-printed logs that are human-readable and include colors and formatting:
+
+```bash
+breakcheck snapshot --url https://example.com
+# Output: ✅ Snapshot created successfully: snapshot_2025-01-15_10-30-45Z
+```
+
+### JSON Logging
+
+For automation and integration with log aggregation systems, you can use JSON-formatted logs:
+
+```bash
+breakcheck snapshot --url https://example.com --json-logs
+# Output: {"level":30,"time":1705315845000,"msg":"✅ Snapshot created successfully: snapshot_2025-01-15_10-30-45Z"}
+```
+
+### Logging Options
+
+All commands support these logging options:
+
+| Option           | Description                                        | Default |
+| :--------------- | :------------------------------------------------- | :------ |
+| `--json-logs`    | Output logs in JSON format (useful for automation) |         |
+| `--no-json-logs` | Output logs in pretty format (user-friendly)       | ✓       |
+
+### Use Cases
+
+- **Interactive use**: Use the default pretty logging for easy reading during development and testing
+- **CI/CD pipelines**: Use `--json-logs` for structured logging that can be parsed by log aggregation tools
+- **REST API**: The upcoming REST API will always use JSON logging for consistency

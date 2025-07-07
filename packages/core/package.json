@@ -16,6 +16,7 @@
     "express": "^5.1.0",
     "find-up": "^7.0.0",
     "pino": "^9.6.0",
+    "pino-pretty": "^11.2.1",
     "playwright": "^1.44.1"
   },
   "devDependencies": {

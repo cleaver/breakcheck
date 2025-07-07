@@ -1,4 +1,4 @@
-export * from "./api";
+export * from "./api/index.js";
 export * from "./core/view";
 export * from "./lib/logger";
 export * from "./types/api";

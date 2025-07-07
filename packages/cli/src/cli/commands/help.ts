@@ -1,29 +1,34 @@
-import { logger } from "breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
+import { configureLogger } from "../utils.js";
 
 export const helpCommand = new InteractiveCommand("help")
   .description("Show detailed help for a specific command")
   .argument("[command]", "The command to show help for")
-  .action(async (commandName) => {
+  .option("--json-logs", "Output logs in JSON format")
+  .option("--no-json-logs", "Output logs in pretty format (default)")
+  .action(async (commandName, options) => {
+    // Configure logger based on options
+    const logger = configureLogger(options);
+
     try {
       if (!commandName) {
-        showGeneralHelp();
+        showGeneralHelp(logger);
         return;
       }
 
       switch (commandName.toLowerCase()) {
         case "snapshot":
-          showSnapshotHelp();
+          showSnapshotHelp(logger);
           break;
         case "compare":
-          showCompareHelp();
+          showCompareHelp(logger);
           break;
         case "view":
-          showViewHelp();
+          showViewHelp(logger);
           break;
         case "list-snapshots":
         case "lss":
-          showListSnapshotsHelp();
+          showListSnapshotsHelp(logger);
           break;
         default:
           logger.error(`Unknown command: ${commandName}`);
@@ -38,7 +43,7 @@ export const helpCommand = new InteractiveCommand("help")
     }
   });
 
-function showGeneralHelp() {
+function showGeneralHelp(logger: any) {
   logger.info(
     "Breakcheck - A tool for comparing website states before and after changes"
   );
@@ -65,6 +70,14 @@ function showGeneralHelp() {
   logger.info("  list-snapshots  List all available snapshots");
   logger.info("  help            Show detailed help for a specific command");
   logger.info("");
+  logger.info("Global Options:");
+  logger.info(
+    "  --json-logs     Output logs in JSON format (useful for automation)"
+  );
+  logger.info(
+    "  --no-json-logs  Output logs in pretty format (default, user-friendly)"
+  );
+  logger.info("");
   logger.info("Examples:");
   logger.info("  breakcheck help snapshot");
   logger.info("  breakcheck help compare");
@@ -75,7 +88,7 @@ function showGeneralHelp() {
   );
 }
 
-function showSnapshotHelp() {
+function showSnapshotHelp(logger: any) {
   logger.info("📸 SNAPSHOT COMMAND");
   logger.info("===================");
   logger.info("");
@@ -112,6 +125,10 @@ function showSnapshotHelp() {
   logger.info(
     "  -w, --write-urls <path>     Generate a plain text file of all crawled URLs"
   );
+  logger.info("  --json-logs                Output logs in JSON format");
+  logger.info(
+    "  --no-json-logs             Output logs in pretty format (default)"
+  );
   logger.info("");
   logger.info("Examples:");
   logger.info("  # Basic snapshot");
@@ -136,9 +153,12 @@ function showSnapshotHelp() {
   logger.info(
     "  breakcheck snapshot --url https://my-website.com --write-urls ./crawled-urls.txt"
   );
+  logger.info("");
+  logger.info("  # Use JSON logging for automation");
+  logger.info("  breakcheck snapshot --url https://my-website.com --json-logs");
 }
 
-function showCompareHelp() {
+function showCompareHelp(logger: any) {
   logger.info("🔍 COMPARE COMMAND");
   logger.info("==================");
   logger.info("");
@@ -162,6 +182,10 @@ function showCompareHelp() {
   logger.info(
     "  -r, --rules <path>          Path to the directory containing the rules.breakcheck file (default: default)"
   );
+  logger.info("  --json-logs                Output logs in JSON format");
+  logger.info(
+    "  --no-json-logs             Output logs in pretty format (default)"
+  );
   logger.info("");
   logger.info("Examples:");
   logger.info("  # Basic comparison");
@@ -179,6 +203,11 @@ function showCompareHelp() {
     "  breakcheck compare --before production-live --after after-deployment --rules ./my-rules"
   );
   logger.info("");
+  logger.info("  # Use JSON logging for automation");
+  logger.info(
+    "  breakcheck compare --before production-live --after after-deployment --json-logs"
+  );
+  logger.info("");
   logger.info("Rules File:");
   logger.info(
     "  The rules file (rules.breakcheck) contains DSL rules to ignore dynamic content."
@@ -191,7 +220,7 @@ function showCompareHelp() {
   );
 }
 
-function showViewHelp() {
+function showViewHelp(logger: any) {
   logger.info("📊 VIEW COMMAND");
   logger.info("===============");
   logger.info("");
@@ -211,6 +240,10 @@ function showViewHelp() {
   logger.info(
     "  -p, --port <number>          The port to run the view server on (default: 8080)"
   );
+  logger.info("  --json-logs                Output logs in JSON format");
+  logger.info(
+    "  --no-json-logs             Output logs in pretty format (default)"
+  );
   logger.info("");
   logger.info("Examples:");
   logger.info("  # View default comparison");
@@ -222,6 +255,9 @@ function showViewHelp() {
   logger.info("  # View on custom port");
   logger.info("  breakcheck view my-comparison --port 3000");
   logger.info("");
+  logger.info("  # Use JSON logging for automation");
+  logger.info("  breakcheck view my-comparison --json-logs");
+  logger.info("");
   logger.info("After running this command:");
   logger.info("  1. A local web server will start");
   logger.info("  2. Your default browser will open automatically");
@@ -229,7 +265,7 @@ function showViewHelp() {
   logger.info("  4. Press Ctrl+C to stop the server");
 }
 
-function showListSnapshotsHelp() {
+function showListSnapshotsHelp(logger: any) {
   logger.info("📋 LIST-SNAPSHOTS COMMAND");
   logger.info("=========================");
   logger.info("");
@@ -241,6 +277,12 @@ function showListSnapshotsHelp() {
   logger.info("");
   logger.info("Aliases:");
   logger.info("  lss                          Short alias for list-snapshots");
+  logger.info("");
+  logger.info("Options:");
+  logger.info("  --json-logs                  Output logs in JSON format");
+  logger.info(
+    "  --no-json-logs               Output logs in pretty format (default)"
+  );
   logger.info("");
   logger.info("Output Format:");
   logger.info("  The command outputs a table showing:");
@@ -265,4 +307,7 @@ function showListSnapshotsHelp() {
   logger.info("");
   logger.info("  # Using the short alias");
   logger.info("  breakcheck lss");
+  logger.info("");
+  logger.info("  # Use JSON logging for automation");
+  logger.info("  breakcheck list-snapshots --json-logs");
 }

@@ -1,5 +1,6 @@
-import { logger, startCliViewServer } from "breakcheck-core";
+import { startCliViewServer } from "breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
+import { configureLogger } from "../utils.js";
 
 export const viewCommand = new InteractiveCommand("view")
   .description("View the results of a comparison")
@@ -9,7 +10,12 @@ export const viewCommand = new InteractiveCommand("view")
     "compare_default"
   )
   .option("-p, --port <number>", "Port to run the view server on", "8080")
+  .option("--json-logs", "Output logs in JSON format")
+  .option("--no-json-logs", "Output logs in pretty format (default)")
   .action(async (comparisonName, options) => {
+    // Configure logger based on options
+    const logger = configureLogger(options);
+
     try {
       logger.info(`🔍 Viewing comparison: ${comparisonName}`);
       const port = parseInt(options.port, 10);

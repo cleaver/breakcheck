@@ -1,6 +1,7 @@
 import type { ComparisonConfig } from "breakcheck-core";
-import { logger, runComparison } from "breakcheck-core";
+import { runComparison } from "breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
+import { configureLogger } from "../utils.js";
 
 export const compareCommand = new InteractiveCommand("compare")
   .description("Compare two snapshots and save the results to disk")
@@ -16,7 +17,12 @@ export const compareCommand = new InteractiveCommand("compare")
     "Path to rules file (feature to be implemented)",
     "default"
   )
+  .option("--json-logs", "Output logs in JSON format")
+  .option("--no-json-logs", "Output logs in pretty format (default)")
   .action(async (options) => {
+    // Configure logger based on options
+    const logger = configureLogger(options);
+
     try {
       const comparisonName =
         options.output || `compare_${options.before}_vs_${options.after}`;

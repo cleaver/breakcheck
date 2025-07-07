@@ -1,10 +1,16 @@
-import { listSnapshots, logger } from "breakcheck-core";
+import { listSnapshots } from "breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
+import { configureLogger } from "../utils.js";
 
 export const listSnapshotsCommand = new InteractiveCommand("list-snapshots")
   .description("List all available snapshots")
   .alias("lss")
-  .action(async () => {
+  .option("--json-logs", "Output logs in JSON format")
+  .option("--no-json-logs", "Output logs in pretty format (default)")
+  .action(async (options) => {
+    // Configure logger based on options
+    const logger = configureLogger(options);
+
     try {
       // Get snapshots
       const snapshots = await listSnapshots();

@@ -1,6 +1,7 @@
 import type { SnapshotConfig } from "breakcheck-core";
-import { createSnapshotFromConfig, logger } from "breakcheck-core";
+import { createSnapshotFromConfig } from "breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
+import { configureLogger } from "../utils.js";
 
 export const snapshotCommand = new InteractiveCommand("snapshot")
   .description("Create a snapshot of a website")
@@ -19,7 +20,12 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
     "-w, --write-urls <path>",
     "Generate a URL list file at the specified path"
   )
+  .option("--json-logs", "Output logs in JSON format")
+  .option("--no-json-logs", "Output logs in pretty format (default)")
   .action(async (options) => {
+    // Configure logger based on options
+    const logger = configureLogger(options);
+
     try {
       // Map CLI options to SnapshotConfig
       const config: SnapshotConfig = {

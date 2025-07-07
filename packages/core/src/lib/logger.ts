@@ -6,21 +6,34 @@ type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 // Determine the log level from the environment variable, defaulting to 'info'
 const logLevel: LogLevel = (process.env.LOG_LEVEL as LogLevel) || "info";
 
-// Configure pino-pretty for development, otherwise use standard JSON logging
-const transport =
-  process.env.NODE_ENV === "development"
-    ? {
+// Logger configuration options
+export interface LoggerConfig {
+  useJsonLogs?: boolean;
+  level?: LogLevel;
+}
+
+// Create a logger with the specified configuration
+export function createLogger(config: LoggerConfig = {}) {
+  const { useJsonLogs = false, level = logLevel } = config;
+
+  // Configure transport based on useJsonLogs flag
+  const transport = useJsonLogs
+    ? undefined // Use standard JSON logging
+    : {
         target: "pino-pretty",
         options: {
           colorize: true,
           translateTime: "SYS:standard",
           ignore: "pid,hostname",
         },
-      }
-    : undefined;
+      };
 
-// Create the shared logger instance
-export const logger = pino({
-  level: logLevel,
-  transport,
-});
+  return pino({
+    level,
+    transport,
+  });
+}
+
+// Create the default shared logger instance (for backward compatibility)
+// This will use pretty logging by default for CLI, but can be overridden
+export const logger = createLogger({ useJsonLogs: false });
