@@ -1,10 +1,10 @@
 #!/usr/bin/env npx tsx
 
-import { compareCommand } from "@/cli/commands/compare";
-import { listSnapshotsCommand } from "@/cli/commands/list-snapshots";
-import { snapshotCommand } from "@/cli/commands/snapshot";
-import { viewCommand } from "@/cli/commands/view";
 import { InteractiveCommand } from "interactive-commander";
+import { compareCommand } from "./cli/commands/compare.js";
+import { listSnapshotsCommand } from "./cli/commands/list-snapshots.js";
+import { snapshotCommand } from "./cli/commands/snapshot.js";
+import { viewCommand } from "./cli/commands/view.js";
 
 // Create the main program
 const program = new InteractiveCommand();
