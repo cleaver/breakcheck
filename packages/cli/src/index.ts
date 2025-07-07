@@ -2,6 +2,7 @@
 
 import { InteractiveCommand } from "interactive-commander";
 import { compareCommand } from "./cli/commands/compare.js";
+import { helpCommand } from "./cli/commands/help.js";
 import { listSnapshotsCommand } from "./cli/commands/list-snapshots.js";
 import { snapshotCommand } from "./cli/commands/snapshot.js";
 import { viewCommand } from "./cli/commands/view.js";
@@ -20,6 +21,7 @@ program.addCommand(snapshotCommand);
 program.addCommand(compareCommand);
 program.addCommand(listSnapshotsCommand);
 program.addCommand(viewCommand);
+program.addCommand(helpCommand);
 
 // Parse command line arguments
 await program.parseAsync();
