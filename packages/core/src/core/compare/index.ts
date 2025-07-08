@@ -1,4 +1,4 @@
-import { diffLines } from "diff";
+import { createPatch, diffLines } from "diff";
 import jsbeautify from "js-beautify";
 import path from "path";
 import { ComparisonConfig, ComparisonSummary } from "../../types/api";
@@ -22,15 +22,15 @@ export async function comparePage(
   const beautifyOptions = {
     indent_size: 2,
     preserve_newlines: true,
-    max_preserve_newlines: 2,
     unformatted: ["a", "span", "b", "strong", "i", "em"],
   };
   const beforeContent = beautify(before.content, beautifyOptions);
   const afterContent = beautify(after.content, beautifyOptions);
 
+  const patch = createPatch(url, beforeContent, afterContent);
   const differences: LineDiff[] = diffLines(beforeContent, afterContent);
   const hasDifferences = differences.some((diff) => diff.added || diff.removed);
-  return { url, differences, hasDifferences };
+  return { url, differences, hasDifferences, patch };
 }
 
 /**

@@ -16,6 +16,8 @@ export interface PageDiff {
   url: string;
   /** List of differences found */
   differences: LineDiff[];
+  /** The patch of the diff */
+  patch: string;
   /** Whether the page had any differences */
   hasDifferences: boolean;
 }

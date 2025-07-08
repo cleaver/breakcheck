@@ -13,6 +13,7 @@
     "chevrotain": "^11.0.3",
     "crawlee": "^3.8.4",
     "diff": "^5.2.0",
+    "diff2html": "^3.4.52",
     "express": "^5.1.0",
     "find-up": "^7.0.0",
     "js-beautify": "^1.15.4",

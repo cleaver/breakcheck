@@ -1,79 +1,59 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>BreakCheck - Diff for <%= pageUrl %>
-    </title>
+    <title>BreakCheck - Diff for <%= pageUrl %></title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css" />
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            line-height: 1.6;
-        }
-
-        h1 {
-            color: #333;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 0.5rem;
-        }
-
-        .diff-container {
-            background: #f8f8f8;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 1rem;
-            overflow-x: auto;
-        }
-
-        pre {
-            margin: 0;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-        }
-
-        .line {
-            padding: 0 0.5rem;
-        }
-
-        .removed {
-            background-color: #ffebee;
-            color: #c62828;
-        }
-
-        .added {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 1rem;
-            color: #0066cc;
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .diff-controls { margin-bottom: 1rem; }
+        .diff-controls button { padding: 0.5rem 1rem; border: 1px solid #ccc; background-color: #f0f0f0; cursor: pointer; }
+        .diff-controls button.active { border-bottom-color: #333; font-weight: bold; background-color: #fff; }
+        .back-link { display: inline-block; margin-bottom: 1rem; }
     </style>
 </head>
-
 <body>
     <a href="/" class="back-link">← Back to Comparison</a>
-    <h1>Diff for <%= pageUrl %>
-    </h1>
+    <h1>Diff for <%= pageUrl %></h1>
 
-    <div class="diff-container">
-        <% diffData.differences.forEach(function(diff) { %>
-            <div class="line <%= diff.removed ? 'removed' : diff.added ? 'added' : '' %>">
-                <pre><%= diff.value %></pre>
-            </div>
-            <% }); %>
+    <div class="diff-controls">
+        <button id="unified-btn" class="active">Unified</button>
+        <button id="side-by-side-btn">Side-by-Side</button>
     </div>
-</body>
 
+    <div id="diff-output"></div>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html.min.js"></script>
+
+    <script>
+        const patchData = <%- JSON.stringify(diffData.patch) %>;
+        const diffOutput = document.getElementById('diff-output');
+        const unifiedBtn = document.getElementById('unified-btn');
+        const sideBySideBtn = document.getElementById('side-by-side-btn');
+
+        function renderDiff(viewType) {
+            if (!patchData || patchData.trim() === '') {
+                diffOutput.innerHTML = '<p>No changes to display.</p>';
+                return;
+            }
+            
+            const configuration = {
+                drawFileList: false,
+                matching: 'lines',
+                outputFormat: viewType, // 'line-by-line' or 'side-by-side'
+            };
+
+            const diffHtml = Diff2Html.html(patchData, configuration);
+            diffOutput.innerHTML = diffHtml;
+
+            unifiedBtn.classList.toggle('active', viewType === 'line-by-line');
+            sideBySideBtn.classList.toggle('active', viewType === 'side-by-side');
+        }
+
+        unifiedBtn.addEventListener('click', () => renderDiff('line-by-line'));
+        sideBySideBtn.addEventListener('click', () => renderDiff('side-by-side'));
+
+        // Initial render
+        renderDiff('line-by-line');
+    </script>
+</body>
 </html>
