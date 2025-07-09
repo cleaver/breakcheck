@@ -20,16 +20,30 @@ export async function startViewServer(
 
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "..", "..", "views"));
-  app.use(express.static(path.join(__dirname, "..", "..", "public")));
 
   app.get("/", createIndexHandler(comparisonDir));
   app.get("/diff", createDiffHandler(comparisonDir));
 
-  return new Promise<http.Server>((resolve) => {
+  app.use(express.static(path.join(__dirname, "..", "..", "public")));
+
+  return new Promise<http.Server>((resolve, reject) => {
     const server = app.listen(port, () => {
+      // Once listening, we no longer need the startup error handler
+      server.removeListener('error', startupErrorHandler);
       logger.info(`🌐 View server started at http://localhost:${port}`);
       resolve(server);
     });
+
+    // Define a specific error handler for startup
+    const startupErrorHandler = (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        reject(new Error(`Port ${port} is already in use.`));
+      } else {
+        reject(err);
+      }
+    };
+
+    server.on('error', startupErrorHandler);
   });
 }
 

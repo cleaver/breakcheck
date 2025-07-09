@@ -1,9 +1,8 @@
 import http from "http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { startViewServer } from "../../core/view";
-
 import { promisify } from "util";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// Mock fs/promises before importing the module
 vi.mock("fs/promises", () => ({
   default: {
     readFile: vi.fn(async (path: string | Buffer | URL) => {
@@ -44,6 +43,9 @@ vi.mock("zlib", () => ({
   }),
 }));
 
+// Import after mocks
+import { startViewServer } from "../../core/view";
+
 describe("View Server", () => {
   const mockComparisonName = "test-comparison";
   const mockPort = 8080;
@@ -64,7 +66,11 @@ describe("View Server", () => {
 
   afterEach(async () => {
     if (server) {
-      await closeServer(server);
+      try {
+        await closeServer(server);
+      } catch (error) {
+        // Ignore errors when server is already closed
+      }
     }
   });
 
