@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run a quick check - you can add linting here later
+# For now, we'll just echo a message since tests are in pre-push
+echo "Pre-commit hook: Ready for linting/formatting checks"

@@ -16,7 +16,8 @@
     "dev:debug": "LOG_LEVEL=debug NODE_ENV=development cd packages/cli && tsx --inspect-brk src/index.ts",
     "start:server": "npm run start --workspace=server",
     "test-server:before": "npm run start:test-server:before -w breakcheck",
-    "test-server:after": "npm run start:test-server:after -w breakcheck"
+    "test-server:after": "npm run start:test-server:after -w breakcheck",
+    "prepare": "husky"
   },
   "author": "Cleaver Barnes",
   "license": "Apache-2.0",
@@ -28,6 +29,7 @@
     "@types/js-beautify": "^1.14.3",
     "@types/node": "^20.14.2",
     "@vitest/coverage-v8": "^1.6.0",
+    "husky": "^9.1.7",
     "tsx": "^4.15.5",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
