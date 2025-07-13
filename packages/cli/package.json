@@ -6,7 +6,7 @@
   "author": "Cleaver Barnes",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cleaver/breakcheck.git"
+    "url": "git+https://github.com/cleaver/breakcheck.git"
   },
   "homepage": "https://github.com/cleaver/breakcheck",
   "bugs": "https://github.com/cleaver/breakcheck/issues",
@@ -14,7 +14,7 @@
     "dist"
   ],
   "bin": {
-    "breakcheck": "./dist/index.js"
+    "breakcheck": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",

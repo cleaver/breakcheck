@@ -8,7 +8,7 @@
   "author": "Cleaver Barnes",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cleaver/breakcheck.git"
+    "url": "git+https://github.com/cleaver/breakcheck.git"
   },
   "homepage": "https://github.com/cleaver/breakcheck",
   "bugs": "https://github.com/cleaver/breakcheck/issues",
