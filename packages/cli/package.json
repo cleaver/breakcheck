@@ -1,7 +1,18 @@
 {
   "name": "breakcheck",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
+  "license": "Apache-2.0",
+  "author": "Cleaver Barnes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cleaver/breakcheck.git"
+  },
+  "homepage": "https://github.com/cleaver/breakcheck",
+  "bugs": "https://github.com/cleaver/breakcheck/issues",
+  "files": [
+    "dist"
+  ],
   "bin": {
     "breakcheck": "./dist/index.js"
   },
@@ -11,7 +22,7 @@
     "start:test-server:after": "node src/__test_server__/server-after.js"
   },
   "dependencies": {
-    "breakcheck-core": "*",
+    "breakcheck-core": "^0.1.0",
     "commander": "^12.1.0",
     "ejs": "^3.1.10",
     "express": "^4.19.2",

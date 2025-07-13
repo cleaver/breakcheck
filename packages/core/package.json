@@ -1,9 +1,20 @@
 {
   "name": "breakcheck-core",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "author": "Cleaver Barnes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cleaver/breakcheck.git"
+  },
+  "homepage": "https://github.com/cleaver/breakcheck",
+  "bugs": "https://github.com/cleaver/breakcheck/issues",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc && cpx \"src/views/**/*\" dist/views && cpx \"src/public/**/*\" dist/public",
     "dev": "tsc -w"
