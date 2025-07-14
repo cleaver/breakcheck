@@ -1,4 +1,8 @@
-import type { SnapshotConfig } from "breakcheck-core";
+import type {
+    CrawlError,
+    SnapshotConfig,
+    SnapshotResult
+} from "breakcheck-core";
 import { createSnapshotFromConfig } from "breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
 import { configureLogger } from "../utils.js";
@@ -49,7 +53,7 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
       };
 
       // Call API to create snapshot
-      const result = await createSnapshotFromConfig(config);
+      const result: SnapshotResult = await createSnapshotFromConfig(config);
 
       // Display results
       if (result.status === "success") {
@@ -59,7 +63,7 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
 
         if (result.errors.length > 0) {
           logger.warn("\n⚠️ Some pages had errors:");
-          result.errors.forEach((error) => {
+          (result.errors as CrawlError[]).forEach((error) => {
             logger.warn(`  - ${error.url}: ${error.message}`);
           });
         }
@@ -69,9 +73,11 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
         }
       } else {
         logger.error("❌ Failed to create snapshot");
-        result.errors.forEach((error) => {
-          logger.error(`  - ${error.message}`);
-        });
+        result.errors.forEach(
+          (error: { statusCode?: number; message: string }) => {
+            logger.error(`  - ${error.message}`);
+          }
+        );
       }
     } catch (error) {
       logger.error({ err: error }, "❌ Error creating snapshot");

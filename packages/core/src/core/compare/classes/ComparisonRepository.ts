@@ -4,9 +4,9 @@ import { promisify } from "util";
 import * as zlib from "zlib";
 import { findRootDir } from "../../../lib/root";
 import {
-  ComparisonIndex,
-  ComparisonMetadata,
-  PageDiff,
+    ComparisonIndex,
+    ComparisonMetadata,
+    PageDiff
 } from "../../../types/compare";
 
 const gzip = promisify(zlib.gzip);

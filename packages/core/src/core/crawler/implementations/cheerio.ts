@@ -1,9 +1,9 @@
 import { CheerioCrawler, Dataset } from "crawlee";
 import type { CrawlerConfig } from "../../../types/api";
 import type {
-  CrawlerInstance,
-  CrawlError,
-  PageSnapshot,
+    CrawlerInstance,
+    CrawlError,
+    PageSnapshot
 } from "../../../types/crawler";
 
 export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {

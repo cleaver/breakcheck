@@ -5,9 +5,9 @@ import { ComparisonRepository } from "../../core/compare/classes/ComparisonRepos
 import { RulesEngine } from "../../core/rules/RulesEngine";
 import { SnapshotRepository } from "../../core/snapshot";
 import {
-  ComparisonIndex,
-  ComparisonMetadata,
-  PageDiff,
+    ComparisonIndex,
+    ComparisonMetadata,
+    PageDiff
 } from "../../types/compare";
 import { PageSnapshot } from "../../types/crawler";
 

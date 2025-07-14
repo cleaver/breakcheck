@@ -1,3 +1,4 @@
+import type { SnapshotSummary } from "breakcheck-core";
 import { listSnapshots } from "breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
 import { configureLogger } from "../utils.js";
@@ -13,7 +14,7 @@ export const listSnapshotsCommand = new InteractiveCommand("list-snapshots")
 
     try {
       // Get snapshots
-      const snapshots = await listSnapshots();
+      const snapshots: SnapshotSummary[] = await listSnapshots();
 
       // Display results
       if (snapshots.length === 0) {

@@ -5,9 +5,9 @@ import * as zlib from "zlib";
 import { findRootDir } from "../../../lib/root";
 import { PageSnapshot } from "../../../types/crawler";
 import {
-  SnapshotData,
-  SnapshotIndex,
-  SnapshotSummary,
+    SnapshotData,
+    SnapshotIndex,
+    SnapshotSummary
 } from "../../../types/snapshot";
 import { LoadedSnapshot } from "./LoadedSnapshot";
 

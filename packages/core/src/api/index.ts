@@ -4,10 +4,10 @@ import { RulesEngine } from "../core/rules/RulesEngine";
 import { createSnapshot, SnapshotRepository } from "../core/snapshot";
 import { logger } from "../lib/logger";
 import type {
-  ComparisonConfig,
-  ComparisonSummary,
-  SnapshotConfig,
-  SnapshotResult,
+    ComparisonConfig,
+    ComparisonSummary,
+    SnapshotConfig,
+    SnapshotResult
 } from "../types/api";
 
 /**
