@@ -4,6 +4,9 @@
   "type": "module",
   "license": "Apache-2.0",
   "author": "Cleaver Barnes",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cleaver/breakcheck.git"
