@@ -1,7 +1,7 @@
 /** Types for API users. */
 
-import { CrawlError } from "./crawler";
-import { Ruleset } from "./rules";
+import { CrawlError } from "./crawler.js";
+import { Ruleset } from "./rules.js";
 
 export type CrawlerType = "cheerio" | "playwright";
 
@@ -119,8 +119,8 @@ export interface ComparisonConfig {
   afterSnapshotId: string;
   /** Name/identifier of the comparison */
   comparisonName: string;
-  /** Name/identifier of the ruleset to use */
-  ruleset: RulesetName | Ruleset;
+  /** Optional directory containing rules.breakcheck, or an inline ruleset. */
+  ruleset?: RulesetName | Ruleset;
   /** Optional list of URLs to compare */
   urls?: string[];
 }

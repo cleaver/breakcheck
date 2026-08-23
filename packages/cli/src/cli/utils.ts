@@ -1,4 +1,4 @@
-import { createLogger, logger } from "breakcheck-core";
+import { createLogger, logger } from "@cleaver/breakcheck-core";
 
 // Global logger instance that can be reconfigured
 let cliLogger = logger;

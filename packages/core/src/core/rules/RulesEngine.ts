@@ -1,7 +1,6 @@
 import * as cheerio from "cheerio";
-import { logger } from "../../lib/logger";
-import { Action, Ruleset } from "../../types/rules";
-import { processRulesDsl } from "./RulesDsl";
+import { Action, Ruleset } from "../../types/rules.js";
+import { processRulesDsl } from "./RulesDsl.js";
 
 export class RulesEngine {
   private ruleset: Ruleset;
@@ -11,26 +10,12 @@ export class RulesEngine {
   }
 
   public static async create(
-    rulesetOrName: string | Ruleset
+    rulesDirectoryOrRuleset?: string | Ruleset
   ): Promise<RulesEngine> {
-    let ruleset: Ruleset;
-
-    if (typeof rulesetOrName === "string") {
-      try {
-        ruleset = await processRulesDsl(rulesetOrName);
-      } catch (error) {
-        if (error instanceof Error) {
-          logger.error(
-            { error, rulesetName: rulesetOrName },
-            "Failed to process ruleset DSL"
-          );
-          process.exit(1);
-        }
-        throw error;
-      }
-    } else {
-      ruleset = rulesetOrName;
-    }
+    const ruleset =
+      typeof rulesDirectoryOrRuleset === "string"
+        ? await processRulesDsl(rulesDirectoryOrRuleset)
+        : rulesDirectoryOrRuleset ?? { name: "none", rules: [] };
 
     return new RulesEngine(ruleset);
   }

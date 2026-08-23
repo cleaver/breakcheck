@@ -1,9 +1,9 @@
 import { createToken, CstNode, CstParser, Lexer } from "chevrotain";
 import { readFileSync } from "fs";
-import { join } from "path";
-import { logger } from "../../lib/logger";
-import { findRootDir } from "../../lib/root";
-import { Action, Rule, Ruleset } from "../../types/rules";
+import { resolve } from "path";
+import { logger } from "../../lib/logger.js";
+import { findRootDir } from "../../lib/root.js";
+import { Action, Rule, Ruleset } from "../../types/rules.js";
 
 // --- LEXER ---
 const Css = createToken({ name: "Css", pattern: /css:/i });
@@ -269,16 +269,15 @@ class CstToAstVisitor extends parser.getBaseCstVisitorConstructor() {
 const visitor = new CstToAstVisitor();
 
 // --- Main processing function ---
-export async function processRulesDsl(rulesetName: string): Promise<Ruleset> {
+export async function processRulesDsl(rulesDirectory: string): Promise<Ruleset> {
   const rootDir = await findRootDir();
-  const rulesPath = join(rootDir, "rules", rulesetName, "rules.breakcheck");
+  const rulesPath = resolve(rootDir, rulesDirectory, "rules.breakcheck");
   let rulesContent: string;
   try {
     rulesContent = readFileSync(rulesPath, "utf-8");
   } catch (error) {
-    const shortPath = rulesPath.replace(rootDir, "").replace(/^\//, "");
-    logger.error({ error, rulesPath: shortPath }, "Rules file not found");
-    throw new Error(`Rules file not found: ${shortPath}`);
+    logger.error({ error, rulesPath }, "Rules file not found");
+    throw new Error(`Rules file not found: ${rulesPath}`);
   }
 
   const lexResult = RulesLexer.tokenize(rulesContent);
@@ -290,7 +289,7 @@ export async function processRulesDsl(rulesetName: string): Promise<Ruleset> {
       )
       .join("\n");
     logger.error(
-      { errors: lexResult.errors, rulesetName },
+      { errors: lexResult.errors, rulesDirectory },
       "Lexical errors in rules file"
     );
     throw new Error(`Lexical errors in rules file:\n${errors}`);
@@ -306,7 +305,7 @@ export async function processRulesDsl(rulesetName: string): Promise<Ruleset> {
       )
       .join("\n");
     logger.error(
-      { errors: parser.errors, rulesetName },
+      { errors: parser.errors, rulesDirectory },
       "Syntax errors in rules file"
     );
     throw new Error(`Syntax errors in rules file:\n${errors}`);
@@ -314,5 +313,5 @@ export async function processRulesDsl(rulesetName: string): Promise<Ruleset> {
 
   // Use the visitor to transform the CST to the final AST
   const result = visitor.visit(cst) as Ruleset;
-  return { ...result, name: rulesetName };
+  return { ...result, name: rulesDirectory };
 }

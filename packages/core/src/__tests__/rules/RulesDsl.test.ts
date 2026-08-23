@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
-import { join } from "path";
+import { resolve } from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { processRulesDsl } from "../../core/rules/RulesDsl";
+import { processRulesDsl } from "../../core/rules/RulesDsl.js";
 
 // Mock fs and path modules
 vi.mock("fs", () => ({
@@ -9,7 +9,7 @@ vi.mock("fs", () => ({
 }));
 
 vi.mock("path", () => ({
-  join: vi.fn(),
+  resolve: vi.fn(),
 }));
 
 // Mock the findRootDir function to return a predictable path
@@ -20,7 +20,7 @@ vi.mock("../../lib/root", () => ({
 describe("RulesDsl", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (join as any).mockImplementation((...args: string[]) => args.join("/"));
+    (resolve as any).mockImplementation((...args: string[]) => args.join("/"));
   });
 
   afterEach(() => {
@@ -34,7 +34,7 @@ describe("RulesDsl", () => {
       });
 
       await expect(processRulesDsl("non-existent")).rejects.toThrow(
-        "Rules file not found: rules/non-existent/rules.breakcheck"
+        "Rules file not found: /mock/root/non-existent/rules.breakcheck"
       );
     });
 

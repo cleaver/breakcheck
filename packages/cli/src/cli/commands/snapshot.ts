@@ -2,8 +2,8 @@ import type {
     CrawlError,
     SnapshotConfig,
     SnapshotResult
-} from "breakcheck-core";
-import { createSnapshotFromConfig } from "breakcheck-core";
+} from "@cleaver/breakcheck-core";
+import { createSnapshotFromConfig } from "@cleaver/breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
 import { configureLogger } from "../utils.js";
 

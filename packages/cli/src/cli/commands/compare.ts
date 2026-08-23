@@ -1,5 +1,5 @@
-import type { ComparisonConfig } from "breakcheck-core";
-import { runComparison } from "breakcheck-core";
+import type { ComparisonConfig } from "@cleaver/breakcheck-core";
+import { runComparison } from "@cleaver/breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
 import { configureLogger } from "../utils.js";
 
@@ -13,9 +13,8 @@ export const compareCommand = new InteractiveCommand("compare")
     "compare_default"
   )
   .option(
-    "-r, --rules <path>",
-    "Path to rules file (feature to be implemented)",
-    "default"
+    "-r, --rules <directory>",
+    "Path to a directory containing rules.breakcheck"
   )
   .option("--json-logs", "Output logs in JSON format")
   .option("--no-json-logs", "Output logs in pretty format (default)")

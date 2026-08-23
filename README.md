@@ -8,6 +8,24 @@
 
 Breakcheck helps developers and QA testers automate visual and structural regression testing. It works by taking a "snapshot" of a website before a change, another snapshot after, and then intelligently comparing them. You can define fine-grained rules to ignore dynamic content like ads, session IDs, or timestamps, ensuring you only get alerted to the changes that matter.
 
+## Install from npm
+
+```bash
+npm install --save-dev @cleaver/breakcheck
+npx --no-install breakcheck --help
+npx --no-install breakcheck --version
+```
+
+## Development and tests
+
+```bash
+npm test
+npm run test:integration
+npm run test:packaging
+```
+
+`test:integration` starts the repository's before/after fixture servers, runs both snapshot and comparison paths, and checks the local viewer. It uses a temporary workspace and cleans it up automatically. `test:packaging` additionally packs both workspaces and verifies a fresh consumer can run the installed CLI without `tsx`.
+
 ## Core Workflow
 
 The typical workflow for using Breakcheck involves five main steps:
@@ -29,7 +47,7 @@ breakcheck snapshot --url https://my-website.com --name production-live
 # 2. Snapshot the "after" state
 breakcheck snapshot --url https://my-website.com --name after-deployment
 
-# 3. Compare the two snapshots using a rules file
+# 3. Compare the two snapshots using a rules directory
 breakcheck compare --before production-live --after after-deployment --rules ./my-rules --output my-first-comparison
 
 # 4. View the results in your browser
@@ -144,7 +162,7 @@ breakcheck compare [options]
 | `-b, --before <name>` | **(Required)** The name of the "before" snapshot.             |                   |
 | `-a, --after <name>`  | **(Required)** The name of the "after" snapshot.              |                   |
 | `-o, --output <name>` | A name for the comparison output directory.                   | `compare_default` |
-| `-r, --rules <path>`  | Path to the directory containing the `rules.breakcheck` file. | `default`         |
+| `-r, --rules <directory>`  | Path to a directory containing the `rules.breakcheck` file. | None (unfiltered comparison) |
 | `--json-logs`         | Output logs in JSON format (useful for automation).           |                   |
 | `--no-json-logs`      | Output logs in pretty format (default, user-friendly).        |                   |
 

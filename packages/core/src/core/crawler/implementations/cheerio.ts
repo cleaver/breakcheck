@@ -1,10 +1,10 @@
 import { CheerioCrawler, Dataset } from "crawlee";
-import type { CrawlerConfig } from "../../../types/api";
+import type { CrawlerConfig } from "../../../types/api.js";
 import type {
     CrawlerInstance,
     CrawlError,
     PageSnapshot
-} from "../../../types/crawler";
+} from "../../../types/crawler.js";
 
 export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
   const { maxDepth, includePatterns, excludePatterns } = config;

@@ -2,12 +2,12 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
-import { findRootDir } from "../../../lib/root";
+import { findRootDir } from "../../../lib/root.js";
 import {
     ComparisonIndex,
     ComparisonMetadata,
     PageDiff
-} from "../../../types/compare";
+} from "../../../types/compare.js";
 
 const gzip = promisify(zlib.gzip);
 

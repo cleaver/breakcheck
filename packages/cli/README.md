@@ -29,7 +29,7 @@ breakcheck snapshot --url https://my-website.com --name production-live
 # 2. Snapshot the "after" state
 breakcheck snapshot --url https://my-website.com --name after-deployment
 
-# 3. Compare the two snapshots using a rules file
+# 3. Compare the two snapshots using a rules directory
 breakcheck compare --before production-live --after after-deployment --rules ./my-rules --output my-first-comparison
 
 # 4. View the results in your browser
@@ -144,7 +144,7 @@ breakcheck compare [options]
 | `-b, --before <name>` | **(Required)** The name of the "before" snapshot.             |                   |
 | `-a, --after <name>`  | **(Required)** The name of the "after" snapshot.              |                   |
 | `-o, --output <name>` | A name for the comparison output directory.                   | `compare_default` |
-| `-r, --rules <path>`  | Path to the directory containing the `rules.breakcheck` file. | `default`         |
+| `-r, --rules <directory>`  | Path to a directory containing the `rules.breakcheck` file. | None (unfiltered comparison) |
 | `--json-logs`         | Output logs in JSON format (useful for automation).           |                   |
 | `--no-json-logs`      | Output logs in pretty format (default, user-friendly).        |                   |
 

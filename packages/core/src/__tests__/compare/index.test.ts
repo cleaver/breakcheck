@@ -1,15 +1,15 @@
 import { Dataset } from "crawlee";
 import { describe, expect, it } from "vitest";
-import { comparePage, compareSnapshots } from "../../core/compare";
-import { ComparisonRepository } from "../../core/compare/classes/ComparisonRepository";
-import { RulesEngine } from "../../core/rules/RulesEngine";
-import { SnapshotRepository } from "../../core/snapshot";
+import { comparePage, compareSnapshots } from "../../core/compare/index.js";
+import { ComparisonRepository } from "../../core/compare/classes/ComparisonRepository.js";
+import { RulesEngine } from "../../core/rules/RulesEngine.js";
+import { SnapshotRepository } from "../../core/snapshot/index.js";
 import {
     ComparisonIndex,
     ComparisonMetadata,
     PageDiff
-} from "../../types/compare";
-import { PageSnapshot } from "../../types/crawler";
+} from "../../types/compare.js";
+import { PageSnapshot } from "../../types/crawler.js";
 
 /**
  * Creates a mock SnapshotRepository for testing

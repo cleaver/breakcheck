@@ -1,6 +1,9 @@
+import { mkdtemp, rm, writeFile } from "fs/promises";
+import { tmpdir } from "os";
+import { join } from "path";
 import { describe, expect, it } from "vitest";
-import { RulesEngine } from "../../core/rules/RulesEngine";
-import { Ruleset } from "../../types/rules";
+import { RulesEngine } from "../../core/rules/RulesEngine.js";
+import { Ruleset } from "../../types/rules.js";
 
 describe("RulesEngine", () => {
   describe("create", () => {
@@ -13,9 +16,30 @@ describe("RulesEngine", () => {
       expect(engine).toBeInstanceOf(RulesEngine);
     });
 
-    it("should create instance with ruleset name", async () => {
-      // This test would require a mock filesystem or actual rules file
-      // We'll skip this for now as it requires more setup
+    it("should load rules.breakcheck from a supplied directory", async () => {
+      const rulesDirectory = await mkdtemp(join(tmpdir(), "breakcheck-rules-"));
+      await writeFile(
+        join(rulesDirectory, "rules.breakcheck"),
+        "css:.dynamic do: exclude"
+      );
+
+      try {
+        const engine = await RulesEngine.create(rulesDirectory);
+
+        expect(engine.process("<div class=\"dynamic\">ignored</div>")).toBe(
+          "<html><head></head><body></body></html>"
+        );
+      } finally {
+        await rm(rulesDirectory, { recursive: true, force: true });
+      }
+    });
+
+    it("should create an empty rules engine when no rules are supplied", async () => {
+      const engine = await RulesEngine.create();
+
+      expect(engine.process("<div>Before</div>")).toBe(
+        "<html><head></head><body><div>Before</div></body></html>"
+      );
     });
   });
 

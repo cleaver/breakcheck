@@ -1,13 +1,13 @@
 import { Configuration, Dataset, purgeDefaultStorages } from "crawlee";
-import { logger } from "../../lib/logger";
-import type { CrawlerConfig } from "../../types/api";
+import { logger } from "../../lib/logger.js";
+import type { CrawlerConfig } from "../../types/api.js";
 import type {
     CrawlerInstance,
     CrawlError,
     CrawlResult
-} from "../../types/crawler";
-import { createCheerioCrawler } from "./implementations/cheerio";
-import { createPlaywrightCrawler } from "./implementations/playwright";
+} from "../../types/crawler.js";
+import { createCheerioCrawler } from "./implementations/cheerio.js";
+import { createPlaywrightCrawler } from "./implementations/playwright.js";
 
 export class BreakcheckCrawler {
   private config: CrawlerConfig;

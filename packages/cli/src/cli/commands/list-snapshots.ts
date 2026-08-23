@@ -1,5 +1,5 @@
-import type { SnapshotSummary } from "breakcheck-core";
-import { listSnapshots } from "breakcheck-core";
+import type { SnapshotSummary } from "@cleaver/breakcheck-core";
+import { listSnapshots } from "@cleaver/breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
 import { configureLogger } from "../utils.js";
 

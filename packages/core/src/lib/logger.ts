@@ -1,4 +1,4 @@
-import pino from "pino";
+import { pino } from "pino";
 
 // Define valid log levels
 type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace";

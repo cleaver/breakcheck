@@ -1,14 +1,14 @@
-import { compareSnapshots } from "../core/compare";
-import { ComparisonRepository } from "../core/compare/classes/ComparisonRepository";
-import { RulesEngine } from "../core/rules/RulesEngine";
-import { createSnapshot, SnapshotRepository } from "../core/snapshot";
-import { logger } from "../lib/logger";
+import { compareSnapshots } from "../core/compare/index.js";
+import { ComparisonRepository } from "../core/compare/classes/ComparisonRepository.js";
+import { RulesEngine } from "../core/rules/RulesEngine.js";
+import { createSnapshot, SnapshotRepository } from "../core/snapshot/index.js";
+import { logger } from "../lib/logger.js";
 import type {
     ComparisonConfig,
     ComparisonSummary,
     SnapshotConfig,
     SnapshotResult
-} from "../types/api";
+} from "../types/api.js";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.
@@ -53,7 +53,7 @@ export async function runComparison(
       rulesUsedIdentifier:
         typeof config.ruleset === "string"
           ? config.ruleset
-          : config.ruleset.name,
+          : config.ruleset?.name,
     }
   );
 

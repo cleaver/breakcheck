@@ -9,14 +9,14 @@ This package is intended for developers who need to build custom automation or t
 ## Installation
 
 ```bash
-npm install breakcheck-core
+npm install @cleaver/breakcheck-core
 ```
 
 ---
 
 ## API Usage
 
-The `breakcheck-core` library exposes a set of simple, asynchronous functions to manage the entire workflow.
+The `@cleaver/breakcheck-core` library exposes a set of simple, asynchronous functions to manage the entire workflow.
 
 ### Creating a Snapshot
 
@@ -25,7 +25,7 @@ To begin, you need to create a "snapshot" of a website. A snapshot is a record o
 The `createSnapshotFromConfig` function takes a configuration object and returns the results of the crawl.
 
 ```javascript
-import { createSnapshotFromConfig } from "breakcheck-core";
+import { createSnapshotFromConfig } from "@cleaver/breakcheck-core";
 
 async function takeSnapshot() {
   const snapshotConfig = {
@@ -65,7 +65,7 @@ takeSnapshot();
 You can get a list of all locally saved snapshots using the `listSnapshots` function.
 
 ```javascript
-import { listSnapshots } from "breakcheck-core";
+import { listSnapshots } from "@cleaver/breakcheck-core";
 
 async function showSnapshots() {
   const snapshots = await listSnapshots();
@@ -91,7 +91,7 @@ showSnapshots();
 The core of the tool is comparing two snapshots. The `runComparison` function compares a "before" and "after" snapshot, applies rules to ignore dynamic content, and saves a detailed diff report.
 
 ```javascript
-import { runComparison } from "breakcheck-core";
+import { runComparison } from "@cleaver/breakcheck-core";
 
 async function compareStates() {
   const comparisonConfig = {
@@ -104,9 +104,9 @@ async function compareStates() {
     // A unique name for the comparison results directory
     comparisonName: "v1-vs-v2-comparison",
 
-    // The ruleset to apply. 'default' uses built-in baseline rules.
-    // You can also provide a path to a rules file or a ruleset object.
-    ruleset: "default",
+    // Optional directory containing rules.breakcheck, or an inline ruleset.
+    // Omit ruleset for an unfiltered comparison.
+    ruleset: "./my-rules",
   };
 
   const summary = await runComparison(comparisonConfig);
@@ -129,7 +129,7 @@ compareStates();
 After a comparison is complete, you can launch a local web server to view the results in your browser. The `startViewServer` function starts an Express server that renders the diffs.
 
 ```javascript
-import { startViewServer } from "breakcheck-core";
+import { startViewServer } from "@cleaver/breakcheck-core";
 
 async function viewResults() {
   const comparisonName = "v1-vs-v2-comparison"; // The name of the comparison to view

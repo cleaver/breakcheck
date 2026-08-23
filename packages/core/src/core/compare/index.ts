@@ -1,12 +1,12 @@
 import { createPatch, diffLines } from "diff";
 import jsbeautify from "js-beautify";
 import path from "path";
-import { ComparisonConfig, ComparisonSummary } from "../../types/api";
-import { LineDiff, PageDiff } from "../../types/compare";
-import { PageSnapshot } from "../../types/crawler";
-import { RulesEngine } from "../rules/RulesEngine";
-import { SnapshotRepository } from "../snapshot";
-import { ComparisonRepository } from "./classes/ComparisonRepository";
+import { ComparisonConfig, ComparisonSummary } from "../../types/api.js";
+import { LineDiff, PageDiff } from "../../types/compare.js";
+import { PageSnapshot } from "../../types/crawler.js";
+import { RulesEngine } from "../rules/RulesEngine.js";
+import { SnapshotRepository } from "../snapshot/index.js";
+import { ComparisonRepository } from "./classes/ComparisonRepository.js";
 
 /**
  * Compares two page snapshots and returns the differences found.
@@ -57,7 +57,7 @@ export async function compareSnapshots(
   const afterUrls = new Set(Object.keys(afterSnapshot.index.urls));
   const urlsToCompare = config.urls || beforeUrls;
   const rulesUsedIdentifier =
-    typeof config.ruleset === "string" ? config.ruleset : config.ruleset.name;
+    typeof config.ruleset === "string" ? config.ruleset : config.ruleset?.name;
 
   // Find new and removed URLs
   const newUrls = [...afterUrls].filter((url) => !beforeUrls.includes(url));

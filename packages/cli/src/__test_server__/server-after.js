@@ -1,6 +1,6 @@
 import http from "http";
 
-const PORT = 3000;
+const PORT = Number(process.env.BREAKCHECK_TEST_PORT ?? 3000);
 
 // Simple routing table
 const routes = {

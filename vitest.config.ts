@@ -19,7 +19,7 @@ export default defineConfig({
         replacement: resolve(__dirname, "./packages/core/src"),
       },
       {
-        find: "breakcheck-core",
+        find: "@cleaver/breakcheck-core",
         replacement: resolve(__dirname, "./packages/core/src"),
       },
       {
