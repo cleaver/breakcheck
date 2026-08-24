@@ -2,6 +2,8 @@
 
 **A command-line tool for comparing website states to detect unintended content and structural changes after upgrades, deployments, or migrations.**
 
+[![CI](https://github.com/cleaver/breakcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/cleaver/breakcheck/actions/workflows/ci.yml)
+
 <p align="center">
 <img src="./breakcheck-logo-notext-sm.png" alt="Breakcheck Logo" width="300">
 </p>
