@@ -26,11 +26,12 @@ npx --no-install breakcheck --version
 
 ```bash
 npm test
+npm run test:cli-bin
 npm run test:integration
 npm run test:packaging
 ```
 
-`test:integration` starts the repository's before/after fixture servers, runs both snapshot and comparison paths, and checks the local viewer. It uses a temporary workspace and cleans it up automatically. `test:packaging` additionally packs both workspaces and verifies a fresh consumer can run the installed CLI without `tsx`.
+`test:cli-bin` rebuilds the CLI and runs its compiled entrypoint directly with native Node. `test:integration` starts the repository's before/after fixture servers, runs both snapshot and comparison paths, and checks the local viewer. It uses a temporary workspace and cleans it up automatically. `test:packaging` additionally packs both workspaces and verifies a fresh consumer can run the installed CLI without `tsx`.
 
 ## Core Workflow
 
