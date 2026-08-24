@@ -257,9 +257,17 @@ try {
   assert.equal(comparisonIndex.metadata.pagesWithDifferences, 0);
 
   const viewPort = await getFreePort();
+  const installedCliEntry = path.join(
+    consumerDir,
+    "node_modules",
+    "@cleaver",
+    "breakcheck",
+    "dist",
+    "index.js"
+  );
   const viewProcess = spawn(
-    npxCommand,
-    ["--no-install", "breakcheck", "view", "comparison", "--port", String(viewPort)],
+    process.execPath,
+    [installedCliEntry, "view", "comparison", "--port", String(viewPort)],
     {
       cwd: consumerDir,
       env: { ...process.env, NODE_OPTIONS: undefined },
