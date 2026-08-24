@@ -16,6 +16,8 @@ This package is intended for developers who need to build custom automation or t
 npm install @cleaver/breakcheck-core
 ```
 
+Node.js 22 or newer is required.
+
 ---
 
 ## API Usage

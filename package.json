@@ -4,6 +4,9 @@
   "private": true,
   "description": "A tool for comparing website states before and after changes",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "workspaces": [
     "packages/*"
   ],

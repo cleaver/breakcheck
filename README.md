@@ -18,6 +18,8 @@ npx --no-install breakcheck --help
 npx --no-install breakcheck --version
 ```
 
+Breakcheck requires Node.js 22 or newer.
+
 ## Upgrading to 0.2.0
 
 `0.2.0` is a breaking release. String `ComparisonConfig.ruleset` values now name a directory containing `rules.breakcheck`, and relative directories resolve from the directory where Breakcheck is invoked. In a monorepo, run the command from the package that owns the rules or pass an absolute path. The old `startCliViewServer` export was removed; library users should use `startViewServer`, while CLI users should use `breakcheck view`. Import the core package through its public root entrypoint; deep imports are no longer supported.

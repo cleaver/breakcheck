@@ -2,6 +2,9 @@
   "name": "@cleaver/breakcheck-core",
   "version": "0.2.2",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
