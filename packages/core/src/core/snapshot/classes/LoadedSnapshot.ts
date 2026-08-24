@@ -2,9 +2,9 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
-import { logger } from "../../../lib/logger";
-import { PageSnapshot } from "../../../types/crawler";
-import { SnapshotIndex, SnapshotMetadata } from "../../../types/snapshot";
+import { logger } from "../../../lib/logger.js";
+import { PageSnapshot } from "../../../types/crawler.js";
+import { SnapshotIndex, SnapshotMetadata } from "../../../types/snapshot.js";
 
 const gunzip = promisify(zlib.gunzip);
 

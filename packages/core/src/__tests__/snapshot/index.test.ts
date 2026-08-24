@@ -2,8 +2,8 @@ import { Dataset, purgeDefaultStorages } from "crawlee";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { LoadedSnapshot, SnapshotRepository } from "../../core/snapshot";
-import { CrawlerType } from "../../types/api";
+import { LoadedSnapshot, SnapshotRepository } from "../../core/snapshot/index.js";
+import { CrawlerType } from "../../types/api.js";
 
 describe("SnapshotRepository", () => {
   const TEST_SNAPSHOTS_DIR = path.join(process.cwd(), "test-snapshots");

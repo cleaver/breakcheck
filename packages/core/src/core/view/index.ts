@@ -2,9 +2,9 @@ import express from "express";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
-import { logger } from "../../lib/logger";
-import { findRootDir } from "../../lib/root";
-import { createDiffHandler, createIndexHandler } from "./index.handlers";
+import { logger } from "../../lib/logger.js";
+import { findRootDir } from "../../lib/root.js";
+import { createDiffHandler, createIndexHandler } from "./index.handlers.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,20 +45,4 @@ export async function startViewServer(
 
     server.on('error', startupErrorHandler);
   });
-}
-
-export async function startCliViewServer(comparisonName: string, port: number) {
-  const server = await startViewServer(comparisonName, port);
-  logger.info("Press Ctrl+C to stop the server");
-
-  const shutdown = () => {
-    logger.info("\nGracefully shutting down. Please wait...");
-    server.close(() => {
-      logger.info("✅ Server has been shut down.");
-      process.exit(0);
-    });
-  };
-
-  process.on("SIGINT", shutdown);
-  process.on("SIGTERM", shutdown);
 }

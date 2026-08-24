@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
-import { join } from "path";
+import { resolve } from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { processRulesDsl } from "../../core/rules/RulesDsl";
+import { processRulesDsl } from "../../core/rules/RulesDsl.js";
 
 // Mock fs and path modules
 vi.mock("fs", () => ({
@@ -9,18 +9,16 @@ vi.mock("fs", () => ({
 }));
 
 vi.mock("path", () => ({
-  join: vi.fn(),
+  resolve: vi.fn(),
 }));
 
-// Mock the findRootDir function to return a predictable path
-vi.mock("../../lib/root", () => ({
-  findRootDir: vi.fn().mockResolvedValue("/mock/root"),
-}));
+const cwdSpy = vi.spyOn(process, "cwd");
 
 describe("RulesDsl", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (join as any).mockImplementation((...args: string[]) => args.join("/"));
+    cwdSpy.mockReturnValue("/mock/cwd");
+    (resolve as any).mockImplementation((...args: string[]) => args.join("/"));
   });
 
   afterEach(() => {
@@ -34,7 +32,20 @@ describe("RulesDsl", () => {
       });
 
       await expect(processRulesDsl("non-existent")).rejects.toThrow(
-        "Rules file not found: rules/non-existent/rules.breakcheck"
+        "Rules file not found: /mock/cwd/non-existent/rules.breakcheck"
+      );
+    });
+
+    it("resolves relative rules directories from the current working directory", async () => {
+      cwdSpy.mockReturnValue("/consumer/packages/site");
+      (readFileSync as any).mockReturnValue("css:.dynamic do: exclude");
+
+      await processRulesDsl("./rules");
+
+      expect(resolve).toHaveBeenCalledWith(
+        "/consumer/packages/site",
+        "./rules",
+        "rules.breakcheck"
       );
     });
 

@@ -1,4 +1,4 @@
-import { startCliViewServer } from "breakcheck-core";
+import { startViewServer } from "@cleaver/breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
 import { configureLogger } from "../utils.js";
 
@@ -24,7 +24,22 @@ export const viewCommand = new InteractiveCommand("view")
         logger.error("Port must be a number between 1 and 65535");
         process.exit(1);
       }
-      await startCliViewServer(comparisonName, port);
+      const server = await startViewServer(comparisonName, port);
+      logger.info("Press Ctrl+C to stop the server");
+
+      await new Promise<void>((resolve) => {
+        const shutdown = () => {
+          logger.info("\nGracefully shutting down. Please wait...");
+          server.close(() => {
+            logger.info("✅ Server has been shut down.");
+            resolve();
+            process.exit(0);
+          });
+        };
+
+        process.once("SIGINT", shutdown);
+        process.once("SIGTERM", shutdown);
+      });
     } catch (error) {
       logger.error({ err: error }, "❌ Error starting view server");
       process.exit(1);

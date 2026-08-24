@@ -2,14 +2,14 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
-import { findRootDir } from "../../../lib/root";
-import { PageSnapshot } from "../../../types/crawler";
+import { findRootDir } from "../../../lib/root.js";
+import { PageSnapshot } from "../../../types/crawler.js";
 import {
     SnapshotData,
     SnapshotIndex,
     SnapshotSummary
-} from "../../../types/snapshot";
-import { LoadedSnapshot } from "./LoadedSnapshot";
+} from "../../../types/snapshot.js";
+import { LoadedSnapshot } from "./LoadedSnapshot.js";
 
 const gzip = promisify(zlib.gzip);
 

@@ -44,12 +44,13 @@ vi.mock("zlib", () => ({
 }));
 
 // Import after mocks
-import { startViewServer } from "../../core/view";
+import { startViewServer } from "../../core/view/index.js";
 
 describe("View Server", () => {
   const mockComparisonName = "test-comparison";
-  const mockPort = 8080;
+  const mockPort = 0;
   let server: http.Server | undefined;
+  let serverPort: number;
   const closeServer = promisify(
     (server: http.Server, cb: (err?: Error) => void) => server.close(cb)
   );
@@ -58,6 +59,11 @@ describe("View Server", () => {
     vi.clearAllMocks();
     try {
       server = await startViewServer(mockComparisonName, mockPort);
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        throw new Error("View server did not expose a TCP address");
+      }
+      serverPort = address.port;
     } catch (error) {
       console.error("Failed to start server:", error);
       throw error;
@@ -79,9 +85,9 @@ describe("View Server", () => {
   ): Promise<{ statusCode: number; data: string }> => {
     return new Promise((resolve, reject) => {
       const options = {
-        host: "localhost",
+        host: "127.0.0.1",
         path,
-        port: mockPort,
+        port: serverPort,
         agent: new http.Agent({ keepAlive: false }),
       };
       http

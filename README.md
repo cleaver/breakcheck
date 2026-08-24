@@ -2,11 +2,35 @@
 
 **A command-line tool for comparing website states to detect unintended content and structural changes after upgrades, deployments, or migrations.**
 
+[![CI](https://github.com/cleaver/breakcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/cleaver/breakcheck/actions/workflows/ci.yml)
+
 <p align="center">
 <img src="./breakcheck-logo-notext-sm.png" alt="Breakcheck Logo" width="300">
 </p>
 
 Breakcheck helps developers and QA testers automate visual and structural regression testing. It works by taking a "snapshot" of a website before a change, another snapshot after, and then intelligently comparing them. You can define fine-grained rules to ignore dynamic content like ads, session IDs, or timestamps, ensuring you only get alerted to the changes that matter.
+
+## Install from npm
+
+```bash
+npm install --save-dev @cleaver/breakcheck
+npx --no-install breakcheck --help
+npx --no-install breakcheck --version
+```
+
+## Upgrading to 0.2.0
+
+`0.2.0` is a breaking release. String `ComparisonConfig.ruleset` values now name a directory containing `rules.breakcheck`, and relative directories resolve from the directory where Breakcheck is invoked. In a monorepo, run the command from the package that owns the rules or pass an absolute path. The old `startCliViewServer` export was removed; library users should use `startViewServer`, while CLI users should use `breakcheck view`. Import the core package through its public root entrypoint; deep imports are no longer supported.
+
+## Development and tests
+
+```bash
+npm test
+npm run test:integration
+npm run test:packaging
+```
+
+`test:integration` starts the repository's before/after fixture servers, runs both snapshot and comparison paths, and checks the local viewer. It uses a temporary workspace and cleans it up automatically. `test:packaging` additionally packs both workspaces and verifies a fresh consumer can run the installed CLI without `tsx`.
 
 ## Core Workflow
 
@@ -29,7 +53,7 @@ breakcheck snapshot --url https://my-website.com --name production-live
 # 2. Snapshot the "after" state
 breakcheck snapshot --url https://my-website.com --name after-deployment
 
-# 3. Compare the two snapshots using a rules file
+# 3. Compare the two snapshots using a rules directory
 breakcheck compare --before production-live --after after-deployment --rules ./my-rules --output my-first-comparison
 
 # 4. View the results in your browser
@@ -144,7 +168,7 @@ breakcheck compare [options]
 | `-b, --before <name>` | **(Required)** The name of the "before" snapshot.             |                   |
 | `-a, --after <name>`  | **(Required)** The name of the "after" snapshot.              |                   |
 | `-o, --output <name>` | A name for the comparison output directory.                   | `compare_default` |
-| `-r, --rules <path>`  | Path to the directory containing the `rules.breakcheck` file. | `default`         |
+| `-r, --rules <directory>`  | Directory containing `rules.breakcheck`; relative paths resolve from the directory where Breakcheck is invoked. | None (unfiltered comparison) |
 | `--json-logs`         | Output logs in JSON format (useful for automation).           |                   |
 | `--no-json-logs`      | Output logs in pretty format (default, user-friendly).        |                   |
 

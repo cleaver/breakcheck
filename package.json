@@ -8,12 +8,15 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -ws",
+    "build": "tsc -b --clean packages/core/tsconfig.test.json tsconfig.json && tsc -b && npm run copy-core-assets",
+    "copy-core-assets": "cpx \"packages/core/src/views/**/*\" packages/core/dist/views && cpx \"packages/core/src/public/**/*\" packages/core/dist/public",
+    "test:packaging": "npm run build && node scripts/test-packaging.mjs",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "dev:cli": "LOG_LEVEL=debug NODE_ENV=development cd packages/cli && tsx src/index.ts",
     "dev:debug": "LOG_LEVEL=debug NODE_ENV=development cd packages/cli && tsx --inspect-brk src/index.ts",
+    "test:integration": "npm run build && node scripts/test-integration.mjs",
     "start:server": "npm run start --workspace=server",
     "test-server:before": "npm run start:test-server:before -w breakcheck",
     "test-server:after": "npm run start:test-server:after -w breakcheck",

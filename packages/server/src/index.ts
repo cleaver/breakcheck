@@ -1,4 +1,4 @@
-import { createLogger } from "breakcheck-core";
+import { createLogger } from "@cleaver/breakcheck-core";
 import express from "express";
 
 // Create a logger configured for JSON output (REST API)

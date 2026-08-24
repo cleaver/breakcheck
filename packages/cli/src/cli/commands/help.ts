@@ -180,7 +180,7 @@ function showCompareHelp(logger: any) {
     "  -o, --output <name>         A name for the comparison output directory (default: compare_default)"
   );
   logger.info(
-    "  -r, --rules <path>          Path to the directory containing the rules.breakcheck file (default: default)"
+    "  -r, --rules <directory>     Directory containing rules.breakcheck, relative to the current working directory (optional; omit for no rules)"
   );
   logger.info("  --json-logs                Output logs in JSON format");
   logger.info(
@@ -210,7 +210,10 @@ function showCompareHelp(logger: any) {
   logger.info("");
   logger.info("Rules File:");
   logger.info(
-    "  The rules file (rules.breakcheck) contains DSL rules to ignore dynamic content."
+    "  The --rules directory must contain a rules.breakcheck file with DSL rules to ignore dynamic content."
+  );
+  logger.info(
+    "  Relative --rules paths are resolved from the directory where breakcheck is run."
   );
   logger.info("  Example rules:");
   logger.info("    css:.ad-container do: exclude");

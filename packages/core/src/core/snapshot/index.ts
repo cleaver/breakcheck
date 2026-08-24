@@ -1,12 +1,12 @@
 import { Dataset } from "crawlee";
-import { logger } from "../../lib/logger";
-import { SnapshotConfig, SnapshotResult } from "../../types/api";
-import { CrawlError } from "../../types/crawler";
-import { BreakcheckCrawler } from "../crawler";
-import { SnapshotRepository } from "./classes/SnapshotRepository";
+import { logger } from "../../lib/logger.js";
+import { SnapshotConfig, SnapshotResult } from "../../types/api.js";
+import { CrawlError } from "../../types/crawler.js";
+import { BreakcheckCrawler } from "../crawler/index.js";
+import { SnapshotRepository } from "./classes/SnapshotRepository.js";
 
-export { LoadedSnapshot } from "./classes/LoadedSnapshot";
-export { SnapshotRepository } from "./classes/SnapshotRepository";
+export { LoadedSnapshot } from "./classes/LoadedSnapshot.js";
+export { SnapshotRepository } from "./classes/SnapshotRepository.js";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.
