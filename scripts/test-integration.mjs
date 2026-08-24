@@ -121,8 +121,8 @@ async function expectCliFailure(cwd, args, pattern) {
   );
 }
 
-async function runSnapshot(tempRoot, baseUrl, name) {
-  await runCli(tempRoot, [
+async function runSnapshot(cwd, dataRoot, baseUrl, name) {
+  await runCli(cwd, [
     "snapshot",
     "--url",
     baseUrl,
@@ -135,18 +135,18 @@ async function runSnapshot(tempRoot, baseUrl, name) {
   ]);
 
   const snapshotIndex = JSON.parse(
-    await readFile(join(tempRoot, "snapshots", name, "index.json"), "utf8"),
+    await readFile(join(dataRoot, "snapshots", name, "index.json"), "utf8"),
   );
   assert.equal(snapshotIndex.metadata.totalPages, 4);
 }
 
-async function readComparison(tempRoot, name) {
+async function readComparison(dataRoot, name) {
   return JSON.parse(
-    await readFile(join(tempRoot, "comparisons", name, "index.json"), "utf8"),
+    await readFile(join(dataRoot, "comparisons", name, "index.json"), "utf8"),
   );
 }
 
-async function runComparison(tempRoot, output, rulesDirectory) {
+async function runComparison(cwd, dataRoot, output, rulesDirectory) {
   const args = [
     "compare",
     "--before",
@@ -158,18 +158,18 @@ async function runComparison(tempRoot, output, rulesDirectory) {
   ];
   if (rulesDirectory) args.push("--rules", rulesDirectory);
 
-  await runCli(tempRoot, args);
-  return readComparison(tempRoot, output);
+  await runCli(cwd, args);
+  return readComparison(dataRoot, output);
 }
 
-async function runView(tempRoot, comparisonName) {
+async function runView(cwd, comparisonName) {
   const port = await getFreePort();
   const { NODE_OPTIONS: _nodeOptions, ...environment } = process.env;
   const viewProcess = spawn(
     process.execPath,
     [cliEntry, "view", comparisonName, "--port", String(port)],
     {
-      cwd: tempRoot,
+      cwd,
       env: environment,
       stdio: ["ignore", "pipe", "pipe"],
     },
@@ -194,43 +194,53 @@ async function runView(tempRoot, comparisonName) {
 }
 
 const tempRoot = await mkdtemp(join(tmpdir(), "breakcheck-integration-"));
+const invocationRoot = join(tempRoot, "packages/site");
 const port = await getFreePort();
 const baseUrl = `http://127.0.0.1:${port}`;
 let fixture;
 
 try {
+  await mkdir(invocationRoot, { recursive: true });
   await writeFile(
     join(tempRoot, "package.json"),
-    '{"name":"breakcheck-integration-fixture","private":true}\n',
+    '{"name":"breakcheck-integration-fixture","private":true,"workspaces":["packages/*"]}\n',
+  );
+  await writeFile(
+    join(invocationRoot, "package.json"),
+    '{"name":"breakcheck-integration-site","private":true}\n',
   );
 
-  fixture = startFixture(beforeFixture, port, tempRoot);
+  fixture = startFixture(beforeFixture, port, invocationRoot);
   await waitForHttp(`${baseUrl}/`, fixture).catch((error) => {
     throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, { cause: error });
   });
-  await runSnapshot(tempRoot, baseUrl, "before");
+  await runSnapshot(invocationRoot, tempRoot, baseUrl, "before");
   await stopProcess(fixture);
   fixture = undefined;
 
-  fixture = startFixture(afterFixture, port, tempRoot);
+  fixture = startFixture(afterFixture, port, invocationRoot);
   await waitForHttp(`${baseUrl}/`, fixture).catch((error) => {
     throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, { cause: error });
   });
-  await runSnapshot(tempRoot, baseUrl, "after");
+  await runSnapshot(invocationRoot, tempRoot, baseUrl, "after");
   await stopProcess(fixture);
   fixture = undefined;
 
   await expectCliFailure(
-    tempRoot,
-    ["compare", "--before", "before", "--after", "after", "--rules", "missing-rules"],
+    invocationRoot,
+    ["compare", "--before", "before", "--after", "after", "--rules", "./missing-rules"],
     /Rules file not found/,
   );
 
-  const unfiltered = await runComparison(tempRoot, "unfiltered-comparison");
+  const unfiltered = await runComparison(
+    invocationRoot,
+    tempRoot,
+    "unfiltered-comparison",
+  );
   assert.equal(unfiltered.metadata.totalPages, 4);
   assert.ok(unfiltered.metadata.pagesWithDifferences > 0);
 
-  const rulesDirectory = join(tempRoot, "rules");
+  const rulesDirectory = join(invocationRoot, "rules");
   await mkdir(rulesDirectory);
   await writeFile(
     join(rulesDirectory, "rules.breakcheck"),
@@ -245,14 +255,15 @@ try {
   );
 
   const filtered = await runComparison(
+    invocationRoot,
     tempRoot,
     "filtered-comparison",
-    rulesDirectory,
+    "./rules",
   );
   assert.equal(filtered.metadata.totalPages, 4);
   assert.equal(filtered.metadata.pagesWithDifferences, 0);
 
-  await runView(tempRoot, "filtered-comparison");
+  await runView(invocationRoot, "filtered-comparison");
   console.log("Fixture integration test passed");
 } finally {
   if (fixture) await stopProcess(fixture);

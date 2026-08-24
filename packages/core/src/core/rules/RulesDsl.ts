@@ -2,7 +2,6 @@ import { createToken, CstNode, CstParser, Lexer } from "chevrotain";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { logger } from "../../lib/logger.js";
-import { findRootDir } from "../../lib/root.js";
 import { Action, Rule, Ruleset } from "../../types/rules.js";
 
 // --- LEXER ---
@@ -270,8 +269,11 @@ const visitor = new CstToAstVisitor();
 
 // --- Main processing function ---
 export async function processRulesDsl(rulesDirectory: string): Promise<Ruleset> {
-  const rootDir = await findRootDir();
-  const rulesPath = resolve(rootDir, rulesDirectory, "rules.breakcheck");
+  const rulesPath = resolve(
+    process.cwd(),
+    rulesDirectory,
+    "rules.breakcheck"
+  );
   let rulesContent: string;
   try {
     rulesContent = readFileSync(rulesPath, "utf-8");

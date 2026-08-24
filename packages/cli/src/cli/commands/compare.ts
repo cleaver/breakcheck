@@ -14,7 +14,7 @@ export const compareCommand = new InteractiveCommand("compare")
   )
   .option(
     "-r, --rules <directory>",
-    "Path to a directory containing rules.breakcheck"
+    "Directory containing rules.breakcheck (relative to the current working directory)"
   )
   .option("--json-logs", "Output logs in JSON format")
   .option("--no-json-logs", "Output logs in pretty format (default)")

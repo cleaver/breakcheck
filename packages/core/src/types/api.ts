@@ -119,7 +119,7 @@ export interface ComparisonConfig {
   afterSnapshotId: string;
   /** Name/identifier of the comparison */
   comparisonName: string;
-  /** Optional directory containing rules.breakcheck, or an inline ruleset. */
+  /** Optional directory containing rules.breakcheck, or an inline ruleset. Relative directories resolve from process.cwd(). */
   ruleset?: RulesetName | Ruleset;
   /** Optional list of URLs to compare */
   urls?: string[];

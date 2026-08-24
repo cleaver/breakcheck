@@ -16,6 +16,10 @@ npx --no-install breakcheck --help
 npx --no-install breakcheck --version
 ```
 
+## Upgrading to 0.2.0
+
+`0.2.0` is a breaking release. String `ComparisonConfig.ruleset` values now name a directory containing `rules.breakcheck`, and relative directories resolve from the directory where Breakcheck is invoked. In a monorepo, run the command from the package that owns the rules or pass an absolute path. The old `startCliViewServer` export was removed; library users should use `startViewServer`, while CLI users should use `breakcheck view`. Import the core package through its public root entrypoint; deep imports are no longer supported.
+
 ## Development and tests
 
 ```bash
@@ -162,7 +166,7 @@ breakcheck compare [options]
 | `-b, --before <name>` | **(Required)** The name of the "before" snapshot.             |                   |
 | `-a, --after <name>`  | **(Required)** The name of the "after" snapshot.              |                   |
 | `-o, --output <name>` | A name for the comparison output directory.                   | `compare_default` |
-| `-r, --rules <directory>`  | Path to a directory containing the `rules.breakcheck` file. | None (unfiltered comparison) |
+| `-r, --rules <directory>`  | Directory containing `rules.breakcheck`; relative paths resolve from the directory where Breakcheck is invoked. | None (unfiltered comparison) |
 | `--json-logs`         | Output logs in JSON format (useful for automation).           |                   |
 | `--no-json-logs`      | Output logs in pretty format (default, user-friendly).        |                   |
 

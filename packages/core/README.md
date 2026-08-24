@@ -4,6 +4,10 @@ This package provides the core programmatic API for **Breakcheck**. Use this lib
 
 This package is intended for developers who need to build custom automation or tooling. If you're looking to use Breakcheck from the command line, see the main [`breakcheck`](https://github.com/cleaver/breakcheck) package.
 
+## Upgrading to 0.2.0
+
+`0.2.0` is a breaking release. Import the core API from `@cleaver/breakcheck-core`'s public root entrypoint; deep imports and `startCliViewServer` are no longer supported. Use `startViewServer` for programmatic viewing. String `ruleset` values are directories containing `rules.breakcheck`, resolved relative to `process.cwd()`.
+
 ---
 
 ## Installation
@@ -89,6 +93,8 @@ showSnapshots();
 ### Running a Comparison
 
 The core of the tool is comparing two snapshots. The `runComparison` function compares a "before" and "after" snapshot, applies rules to ignore dynamic content, and saves a detailed diff report.
+
+String `ruleset` values are directories containing `rules.breakcheck`. Relative paths resolve from `process.cwd()`, the directory where the consuming project invokes Breakcheck. In a monorepo, invoke it from the package that owns the rules or use an absolute path.
 
 ```javascript
 import { runComparison } from "@cleaver/breakcheck-core";

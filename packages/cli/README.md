@@ -8,6 +8,10 @@
 
 Breakcheck helps developers and QA testers automate visual and structural regression testing. It works by taking a "snapshot" of a website before a change, another snapshot after, and then intelligently comparing them. You can define fine-grained rules to ignore dynamic content like ads, session IDs, or timestamps, ensuring you only get alerted to the changes that matter.
 
+## Upgrading to 0.2.0
+
+`0.2.0` is a breaking release. The `--rules` value is a directory containing `rules.breakcheck`; relative paths resolve from the directory where `breakcheck` is invoked. In a monorepo, run the command from the package that owns the rules or pass an absolute path.
+
 ## Core Workflow
 
 The typical workflow for using Breakcheck involves five main steps:
@@ -144,7 +148,7 @@ breakcheck compare [options]
 | `-b, --before <name>` | **(Required)** The name of the "before" snapshot.             |                   |
 | `-a, --after <name>`  | **(Required)** The name of the "after" snapshot.              |                   |
 | `-o, --output <name>` | A name for the comparison output directory.                   | `compare_default` |
-| `-r, --rules <directory>`  | Path to a directory containing the `rules.breakcheck` file. | None (unfiltered comparison) |
+| `-r, --rules <directory>`  | Directory containing `rules.breakcheck`; relative paths resolve from the directory where Breakcheck is invoked. | None (unfiltered comparison) |
 | `--json-logs`         | Output logs in JSON format (useful for automation).           |                   |
 | `--no-json-logs`      | Output logs in pretty format (default, user-friendly).        |                   |
 
