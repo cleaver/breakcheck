@@ -9,13 +9,13 @@
   ],
   "scripts": {
     "build": "tsc -b --clean packages/core/tsconfig.test.json tsconfig.json && tsc -b && npm run copy-core-assets && npm run make-cli-executable",
-    "copy-core-assets": "cpx \"packages/core/src/views/**/*\" packages/core/dist/views && cpx \"packages/core/src/public/**/*\" packages/core/dist/public",
+    "copy-core-assets": "node scripts/copy-core-assets.mjs",
     "make-cli-executable": "node packages/cli/scripts/make-executable.mjs",
     "test:cli-bin": "npm run build && node scripts/test-cli-bin.mjs",
     "test:packaging": "npm run build && node scripts/test-packaging.mjs",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --pool=threads --maxWorkers=1",
     "dev:cli": "LOG_LEVEL=debug NODE_ENV=development cd packages/cli && tsx src/index.ts",
     "dev:debug": "LOG_LEVEL=debug NODE_ENV=development cd packages/cli && tsx --inspect-brk src/index.ts",
     "test:integration": "npm run build && node scripts/test-integration.mjs",
@@ -33,10 +33,10 @@
     "@types/express": "^4.17.21",
     "@types/js-beautify": "^1.14.3",
     "@types/node": "^20.14.2",
-    "@vitest/coverage-v8": "^1.6.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "husky": "^9.1.7",
-    "tsx": "^4.15.5",
+    "tsx": "^4.23.12",
     "typescript": "^5.4.5",
-    "vitest": "^1.6.0"
+    "vitest": "^4.1.11"
   }
 }
