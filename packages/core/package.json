@@ -2,6 +2,9 @@
   "name": "@cleaver/breakcheck-core",
   "version": "0.2.2",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -25,23 +28,20 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && cpx \"src/views/**/*\" dist/views && cpx \"src/public/**/*\" dist/public",
+    "build": "tsc && node ../../scripts/copy-core-assets.mjs",
     "dev": "tsc -w"
   },
   "dependencies": {
     "cheerio": "1.0.0-rc.12",
-    "chevrotain": "^11.0.3",
-    "crawlee": "^3.8.4",
-    "diff": "^5.2.0",
-    "diff2html": "^3.4.52",
-    "express": "^5.1.0",
+    "chevrotain": "^13.2.0",
+    "crawlee": "^3.18.1",
+    "diff": "^5.2.2",
+    "diff2html": "^3.4.56",
+    "express": "^5.2.1",
     "find-up": "^7.0.0",
     "js-beautify": "^1.15.4",
-    "pino": "^9.6.0",
+    "pino": "^9.14.0",
     "pino-pretty": "^11.2.1",
-    "playwright": "^1.44.1"
-  },
-  "devDependencies": {
-    "cpx": "^1.5.0"
+    "playwright": "^1.62.1"
   }
 }

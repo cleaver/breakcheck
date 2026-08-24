@@ -1,7 +1,7 @@
 import http from "http";
 import vm from "node:vm";
 import { promisify } from "util";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock fs/promises before importing the module
 vi.mock("fs/promises", () => ({
@@ -57,8 +57,7 @@ describe("View Server", () => {
     (server: http.Server, cb: (err?: Error) => void) => server.close(cb)
   );
 
-  beforeEach(async () => {
-    vi.clearAllMocks();
+  beforeAll(async () => {
     try {
       server = await startViewServer(mockComparisonName, mockPort);
       const address = server.address();
@@ -72,7 +71,11 @@ describe("View Server", () => {
     }
   });
 
-  afterEach(async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterAll(async () => {
     if (server) {
       try {
         await closeServer(server);

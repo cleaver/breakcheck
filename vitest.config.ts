@@ -1,6 +1,8 @@
 import { resolve } from "path";
 import { coverageConfigDefaults, defineConfig } from "vitest/config";
 
+const repositoryRoot = import.meta.dirname;
+
 export default defineConfig({
   test: {
     globals: true,
@@ -12,33 +14,27 @@ export default defineConfig({
     },
     include: ["packages/**/*.test.ts"],
   },
+  sequence: {
+    hooks: "list",
+  },
   resolve: {
     alias: [
       {
         find: "@",
-        replacement: resolve(__dirname, "./packages/core/src"),
+        replacement: resolve(repositoryRoot, "./packages/core/src"),
       },
       {
         find: "@cleaver/breakcheck-core",
-        replacement: resolve(__dirname, "./packages/core/src"),
+        replacement: resolve(repositoryRoot, "./packages/core/src"),
       },
       {
         find: "breakcheck-cli",
-        replacement: resolve(__dirname, "./packages/cli/src"),
+        replacement: resolve(repositoryRoot, "./packages/cli/src"),
       },
       {
         find: "breakcheck-server",
-        replacement: resolve(__dirname, "./packages/server/src"),
+        replacement: resolve(repositoryRoot, "./packages/server/src"),
       },
     ],
-  },
-  esbuild: {
-    tsconfigRaw: {
-      compilerOptions: {
-        paths: {
-          "@/*": ["./packages/core/src/*"],
-        },
-      },
-    },
   },
 });

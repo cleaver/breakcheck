@@ -2,6 +2,9 @@
   "name": "breakcheck-server",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -10,6 +13,6 @@
   },
   "dependencies": {
     "@cleaver/breakcheck-core": "^0.2.0",
-    "express": "^4.17.21"
+    "express": "^4.22.2"
   }
 }
