@@ -1,4 +1,5 @@
 import http from "http";
+import vm from "node:vm";
 import { promisify } from "util";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -36,6 +37,7 @@ vi.mock("zlib", () => ({
       JSON.stringify({
         url: "/page1",
         differences: [],
+        patch: "@@ -1,1 +1,1 @@\n-<p>before</p>\n+<script>const pageState = 'after';</script>\n",
         hasDifferences: true,
       })
     );
@@ -112,6 +114,16 @@ describe("View Server", () => {
   it("should handle diff route correctly", async () => {
     const response = await makeRequest("/diff?page=/page1");
     expect(response.statusCode).toBe(200);
+  });
+
+  it("should render diff payloads with script tags as valid JavaScript", async () => {
+    const response = await makeRequest("/diff?page=/page1");
+    const inlineScript = response.data.match(
+      /    <script>\n([\s\S]*?)<\/script>/
+    )?.[1];
+
+    expect(inlineScript).toBeDefined();
+    expect(() => new vm.Script(inlineScript as string)).not.toThrow();
   });
 
   it("should handle missing page parameter in diff route", async () => {

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createServer, get as httpGet } from "node:http";
 import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { execFile, spawn } from "node:child_process";
@@ -123,6 +124,12 @@ async function waitForProcess(processHandle, timeoutMs = 10_000) {
   });
 }
 
+function assertValidDiffScript(body) {
+  const inlineScript = body.match(/    <script>\n([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(inlineScript, "Missing inline diff script");
+  assert.doesNotThrow(() => new vm.Script(inlineScript));
+}
+
 const temporaryRoot = await mkdtemp(path.join(tmpdir(), "breakcheck-package-test-"));
 const tarballDirectory = path.join(temporaryRoot, "tarballs");
 const fixtureServer = createServer();
@@ -183,7 +190,7 @@ try {
       }
       response.writeHead(200, { "content-type": "text/html" });
       response.end(
-        `<html><head><title>Fixture</title></head><body><h1>Breakcheck fixture</h1><div class="dynamic">${fixtureState}</div></body></html>`
+        `<html><head><title>Fixture</title></head><body><h1>Breakcheck fixture</h1><script>window.breakcheckFixtureState = "stable";</script><div class="dynamic">${fixtureState}</div></body></html>`
       );
     });
     fixtureServer.once("error", reject);
@@ -278,6 +285,12 @@ try {
     const response = await waitForUrl(`http://127.0.0.1:${viewPort}/`);
     assert.equal(response.statusCode, 200);
     assert.match(response.body, /comparison/);
+
+    const diffResponse = await waitForUrl(
+      `http://127.0.0.1:${viewPort}/diff?page=${encodeURIComponent("/")}`
+    );
+    assert.equal(diffResponse.statusCode, 200);
+    assertValidDiffScript(diffResponse.body);
   } finally {
     viewProcess.kill("SIGTERM");
     await waitForProcess(viewProcess);

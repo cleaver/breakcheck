@@ -25,7 +25,7 @@
     <script type="text/javascript" src="/js/diff2html.min.js"></script>
 
     <script>
-        const patchData = <%- JSON.stringify(diffData.patch) %>;
+        const patchData = <%- patchJson %>;
         const diffOutput = document.getElementById('diff-output');
         const unifiedBtn = document.getElementById('unified-btn');
         const sideBySideBtn = document.getElementById('side-by-side-btn');

@@ -61,11 +61,20 @@ export const createDiffHandler = (comparisonDir: string): RequestHandler => {
         });
       });
       const diffData: PageDiff = JSON.parse(decompressedData.toString());
+      // The patch is embedded in an HTML script raw-text element. Escape
+      // characters that could otherwise terminate that element or be parsed
+      // as JavaScript line separators.
+      const patchJson = JSON.stringify(diffData.patch)
+        .replace(/</g, "\\u003c")
+        .replace(/>/g, "\\u003e")
+        .replace(/&/g, "\\u0026")
+        .replace(/\u2028/g, "\\u2028")
+        .replace(/\u2029/g, "\\u2029");
 
       res.render("diff", {
         comparisonName,
         pageUrl,
-        diffData,
+        patchJson,
       });
     } catch (error) {
       logger.error({ err: error }, "Error reading diff file");
