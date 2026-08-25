@@ -14,11 +14,49 @@ Breakcheck helps developers and QA testers automate visual and structural regres
 
 ```bash
 npm install --save-dev @cleaver/breakcheck
+# Verify the local install without allowing npx to download a fallback
 npx --no-install breakcheck --help
 npx --no-install breakcheck --version
 ```
 
 Breakcheck requires Node.js 22 or newer.
+
+## Run the CLI
+
+From the root of the project where Breakcheck is installed, the simplest way
+to run it is with `npx`:
+
+```bash
+npx breakcheck --help
+npx breakcheck snapshot --url https://my-website.com --name before
+```
+
+`npx` uses the locally installed executable. If it cannot find one, it may
+prompt to download a package. Use `npx --no-install breakcheck ...` when you
+want the command to fail instead, which is useful for CI and installation
+checks.
+
+Installing Breakcheck does not create an `npm run breakcheck` script. To use
+that form, add the script to the consuming project's `package.json`:
+
+```json
+{
+  "scripts": {
+    "breakcheck": "breakcheck"
+  }
+}
+```
+
+Then pass CLI arguments after `--`:
+
+```bash
+npm run breakcheck -- --version
+npm run breakcheck -- snapshot --url https://my-website.com --name before
+```
+
+The command examples below use `breakcheck` as shorthand; use `npx breakcheck`
+unless you have added this npm script or deliberately installed the CLI
+globally.
 
 ## Upgrading to 0.2.0
 
@@ -51,18 +89,18 @@ The typical workflow for using Breakcheck involves five main steps:
 
 ```bash
 # 1. Snapshot the "before" state from your live site
-breakcheck snapshot --url https://my-website.com --name production-live
+npx breakcheck snapshot --url https://my-website.com --name production-live
 
 # --- (Deploy your changes here) ---
 
 # 2. Snapshot the "after" state
-breakcheck snapshot --url https://my-website.com --name after-deployment
+npx breakcheck snapshot --url https://my-website.com --name after-deployment
 
 # 3. Compare the two snapshots using a rules directory
-breakcheck compare --before production-live --after after-deployment --rules ./my-rules --output my-first-comparison
+npx breakcheck compare --before production-live --after after-deployment --rules ./my-rules --output my-first-comparison
 
 # 4. View the results in your browser
-breakcheck view my-first-comparison
+npx breakcheck view my-first-comparison
 ```
 
 ---
