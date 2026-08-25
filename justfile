@@ -1,3 +1,24 @@
+# Set the release version without creating a commit, tag, or npm release.
+bump-version version:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    release_version="{{version}}"
+    if [[ ! "$release_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+        printf 'Invalid release version: %s\nUse a semantic version such as 0.2.3.\n' "$release_version"
+        exit 1
+    fi
+
+    npm pkg set "version=$release_version"
+    npm pkg set "version=$release_version" --workspace=@cleaver/breakcheck-core
+    npm pkg set "version=$release_version" --workspace=@cleaver/breakcheck
+    npm pkg set "dependencies.@cleaver/breakcheck-core=^$release_version" --workspace=@cleaver/breakcheck
+    npm pkg set "dependencies.@cleaver/breakcheck-core=^$release_version" --workspace=breakcheck-server
+    npm install --package-lock-only --ignore-scripts
+
+    node -e 'for (const file of ["package.json", "packages/core/package.json", "packages/cli/package.json", "packages/server/package.json"]) { const packageData = require(`./${file}`); console.log(`${file}: ${packageData.name}@${packageData.version}`); }'
+    printf 'Core dependency ranges now target ^%s.\n' "$release_version"
+
 # Run all checks that are safe to perform before publishing a release.
 prerelease:
     #!/usr/bin/env bash
@@ -6,12 +27,22 @@ prerelease:
     root_version="$(node -p "require('./package.json').version")"
     core_version="$(node -p "require('./packages/core/package.json').version")"
     cli_version="$(node -p "require('./packages/cli/package.json').version")"
+    cli_core_dependency="$(node -p "require('./packages/cli/package.json').dependencies['@cleaver/breakcheck-core']")"
     server_version="$(node -p "require('./packages/server/package.json').version")"
 
     if [[ "$root_version" != "$core_version" || "$root_version" != "$cli_version" ]]; then
         printf 'Release versions are out of sync:\n  root: %s\n  core: %s\n  cli:  %s\n' "$root_version" "$core_version" "$cli_version"
         exit 1
     fi
+
+    case "$cli_core_dependency" in
+        "$core_version"|"^$core_version")
+            ;;
+        *)
+            printf 'CLI core dependency must target the current core release:\n  core version: %s\n  cli declares: %s\n  expected:     %s or ^%s\n' "$core_version" "$cli_core_dependency" "$core_version" "$core_version"
+            exit 1
+            ;;
+    esac
 
     if [[ -n "$(git status --porcelain)" ]]; then
         echo 'The working tree must be clean before a prerelease check.'

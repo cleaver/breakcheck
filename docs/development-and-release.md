@@ -85,10 +85,11 @@ just prerelease
 ```
 
 `just prerelease` checks that the root, core, and CLI release versions match,
-requires a clean checkout and npm authentication, confirms that neither
-publishable package already has that version on npm, runs the complete build,
-test, audit, and packaging checks, and stops before publishing. On success it
-prints the exact `npm publish` commands.
+checks that the CLI dependency on `@cleaver/breakcheck-core` targets the
+current core release, requires a clean checkout and npm authentication,
+confirms that neither publishable package already has that version on npm,
+runs the complete build, test, audit, and packaging checks, and stops before
+publishing. On success it prints the exact `npm publish` commands.
 
 `just release` runs the same preflight and then publishes core followed by the
 CLI. Run it from an interactive terminal: npm retains the terminal's input and
@@ -122,6 +123,16 @@ npm pkg set version="$release_version" --workspace=@cleaver/breakcheck-core
 npm pkg set version="$release_version" --workspace=@cleaver/breakcheck
 npm install --package-lock-only --ignore-scripts
 ```
+
+The equivalent repository helper is:
+
+```bash
+just bump-version 0.2.3
+```
+
+It updates the root, core, and CLI release versions, updates the core
+dependency ranges used by the CLI and server workspaces, and refreshes the
+lockfile. It does not commit, tag, or publish anything.
 
 Review all four files after the update:
 
