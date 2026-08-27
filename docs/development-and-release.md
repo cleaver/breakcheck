@@ -80,6 +80,27 @@ The repository also provides optional [just](https://github.com/casey/just)
 recipes for the release workflow. `just` is not an npm dependency; the npm
 scripts above remain the canonical development and CI interface.
 
+To test the current unpublished packages from another local project, build
+fresh tarballs in the Breakcheck checkout:
+
+```bash
+just local-pack
+```
+
+Then, from the consumer project, install those tarballs without changing its
+`package.json` or lockfile:
+
+```bash
+just -f /path/to/breakcheck/justfile local-install
+npx --no-install breakcheck --version
+```
+
+`local-pack` cleans and recreates `.local-breakcheck-packages` on every run.
+Both public packages are packed because the CLI depends on the core package.
+Use `local-install /path/to/consumer` when invoking the recipe from the
+Breakcheck checkout instead. Run `npm install` or `npm ci` in the consumer to
+restore its registry-installed dependencies afterward.
+
 ```bash
 just prerelease
 ```
