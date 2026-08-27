@@ -176,5 +176,77 @@ describe("RulesEngine", () => {
         expected.replace(/\s+/g, " ").trim()
       );
     });
+
+    it("should apply ordinary rules before sorting and extracting named regions", async () => {
+      const ruleset: Ruleset = {
+        name: "named-regions-ruleset",
+        rules: [
+          {
+            selector: ".dynamic",
+            actions: [{ action: "exclude" }],
+          },
+        ],
+        regions: [
+          { selector: "#section-b", name: "Section_B" },
+          { selector: "#section-a", name: "Section_A" },
+          { selector: "#missing", name: "Missing" },
+        ],
+      };
+      const engine = await RulesEngine.create(ruleset);
+      const html = `
+        <div id="outside">Outside</div>
+        <div id="section-b"><span class="dynamic">Removed</span><p>B</p></div>
+        <div id="section-a">A</div>
+      `;
+
+      expect(engine.process(html)).toBe(
+        '<breakcheck-regions><region name="Section_A"><div id="section-a">A</div></region><region name="Section_B"><div id="section-b"><p>B</p></div></region></breakcheck-regions>'
+      );
+    });
+
+    it("should preserve document order for repeated matches in one region", async () => {
+      const engine = await RulesEngine.create({
+        name: "repeated-region-ruleset",
+        rules: [],
+        regions: [{ selector: ".item", name: "Items" }],
+      });
+
+      expect(
+        engine.process(
+          '<ul><li class="item">First</li><li class="item">Second</li></ul>'
+        )
+      ).toBe(
+        '<breakcheck-regions><region name="Items"><li class="item">First</li><li class="item">Second</li></region></breakcheck-regions>'
+      );
+    });
+
+    it("should emit overlapping region declarations independently", async () => {
+      const engine = await RulesEngine.create({
+        name: "overlapping-region-ruleset",
+        rules: [],
+        regions: [
+          { selector: ".section", name: "Outer" },
+          { selector: ".section .child", name: "Inner" },
+        ],
+      });
+
+      expect(
+        engine.process(
+          '<div class="section"><span class="child">Child</span></div>'
+        )
+      ).toBe(
+        '<breakcheck-regions><region name="Inner"><span class="child">Child</span></region><region name="Outer"><div class="section"><span class="child">Child</span></div></region></breakcheck-regions>'
+      );
+    });
+
+    it("should reject invalid inline region names", async () => {
+      await expect(
+        RulesEngine.create({
+          name: "invalid-region-ruleset",
+          rules: [],
+          regions: [{ selector: ".section", name: "Section-A" }],
+        })
+      ).rejects.toThrow("Invalid region name \"Section-A\"");
+    });
   });
 });

@@ -2,13 +2,14 @@
 
 ## **1. Overview**
 
-The Breakcheck Rules DSL allows users to define how HTML documents should be processed _before_ they are compared. This enables ignoring expected dynamic changes (like cache busters, session IDs, timestamps) and focusing the comparison on relevant content and structural differences.  
+The Breakcheck Rules DSL allows users to define how HTML documents should be processed _before_ they are compared. This enables ignoring expected dynamic changes (like cache busters, session IDs, timestamps) and focusing the comparison on relevant content and structural differences. It can also extract named regions so that layout sections are compared in a stable order even when their source order changes.
 The DSL is primarily line-oriented for single actions, but uses do/end blocks for applying multiple actions to the same selector. Commands are case-insensitive but lowercase is preferred style.
 
 ## **2. Core Concepts**
 
 - **Selectors:** Rules target parts of the DOM using CSS selectors.
 - **Actions:** Rules define actions to take on the selected parts: include, exclude, remove_attr, rewrite_attr, rewrite_content.
+- **Named regions:** A selector can define a named region that is extracted after ordinary rules have run. When regions are configured, only those regions are compared.
 - **Structure:** Rules start with the selector, followed by the do: keyword for a single action, or a do/end block for multiple actions.
 - **Nesting:** do/end blocks cannot be nested within other do/end blocks in this version.
 - **Matching:** Actions can be fine-tuned using regular expressions on attribute values or element text content.
@@ -35,6 +36,12 @@ css:[SELECTOR] do
 end
 ```
 
+**Named Region:**
+
+```
+css:[SELECTOR] do: region name:"[IDENTIFIER]"
+```
+
 **Comment:**
 
 ```
@@ -52,7 +59,9 @@ end
   - remove_attr: Removes a specific attribute from selected elements. Requires attr: modifier.
   - rewrite_attr: Rewrites the value of a specific attribute in selected elements. Requires attr:, regex:, and replace: modifiers.
   - rewrite_content: Rewrites the text content of selected elements. Requires regex: and replace: modifiers.
+  - region: Declares a named region. It must be the only action on its selector and requires the name: modifier.
 - **MODIFIERS**: Provide additional parameters for the action.
+  - name:"<identifier>": Names a region. Names must match `[A-Za-z_][A-Za-z0-9_]*` and must be unique within the ruleset.
   - attr:<attribute_name>: Specifies the target attribute for remove_attr and rewrite_attr. (Required for these actions).
   - regex:"<pattern>": A regular expression pattern used for matching or capturing groups in rewrite_attr and rewrite_content.
   - replace:"<replacement>": The replacement string for rewrite_attr and rewrite_content. Can use capture groups like $1, $2 from the regex modifier.
@@ -103,6 +112,26 @@ css:a[href*='/user/'] do: rewrite_attr attr:href regex:/user/\d+/ replace:/user/
 css:.timestamp do: rewrite_content regex:\d{2}/\d{2}/\d{4} replace:DATE_STAMP
 css:.view-count do: rewrite_content regex:\d{1,3}(,\d{3})\* views replace:VIEW_COUNT views
 ```
+
+### **4.2 Extracting Named Regions**
+
+Named regions are processed in two stages:
+
+1. All ordinary rules run in their declared order.
+2. Region selectors match against that transformed DOM.
+
+If at least one region is declared, content outside matched regions is omitted. Every matching element contributes its outer HTML. Regions are sorted by their exact, case-sensitive names, and repeated matches for one region retain document order. Missing matches produce no output and are not errors. Overlapping region declarations are emitted independently.
+
+The result is serialized with a stable synthetic root and one wrapper per matched region:
+
+```html
+<breakcheck-regions>
+  <region name="Section_A">...</region>
+  <region name="Section_B">...</region>
+</breakcheck-regions>
+```
+
+Because ordinary rules run first, a broad exclusion or rewrite can remove or alter content so that a region selector no longer matches. Output for non-matched sections is intentionally not included yet and is reserved for a future iteration.
 
 ## **5. Suggested Additional Features**
 

@@ -61,6 +61,7 @@ describe("RulesDsl", () => {
 
       expect(result).toEqual({
         name: "test-rules",
+        regions: [],
         rules: [
           {
             selector: ".ad-container",
@@ -97,6 +98,7 @@ describe("RulesDsl", () => {
 
       expect(result).toEqual({
         name: "test-rules",
+        regions: [],
         rules: [
           {
             selector: "img",
@@ -128,6 +130,7 @@ describe("RulesDsl", () => {
 
       expect(result).toEqual({
         name: "test-rules",
+        regions: [],
         rules: [
           {
             selector: ".timestamp",
@@ -171,6 +174,7 @@ css:.important-note do: include content_regex:"Warning:"
 
       expect(result).toEqual({
         name: "test-rules",
+        regions: [],
         rules: [
           {
             selector: ".ad-container",
@@ -228,6 +232,64 @@ css:.important-note do: include content_regex:"Warning:"
                 css:img do: remove_attr
             `;
       (readFileSync as any).mockReturnValue(rulesContent);
+
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
+        "Syntax errors in rules file"
+      );
+    });
+
+    it("should parse named regions separately from ordinary rules", async () => {
+      const rulesContent = `
+        css:#section-b do: region name:"Section_B"
+        css:#section-a do: region name:"Section_A"
+        css:.dynamic do: exclude
+      `;
+      (readFileSync as any).mockReturnValue(rulesContent);
+
+      const result = await processRulesDsl("test-rules");
+
+      expect(result).toEqual({
+        name: "test-rules",
+        regions: [
+          { selector: "#section-b", name: "Section_B" },
+          { selector: "#section-a", name: "Section_A" },
+        ],
+        rules: [
+          {
+            selector: ".dynamic",
+            actions: [{ action: "exclude", modifiers: {} }],
+          },
+        ],
+      });
+    });
+
+    it("should reject invalid region names", async () => {
+      (readFileSync as any).mockReturnValue(
+        'css:#section do: region name:"Section-A"'
+      );
+
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
+        "Invalid region name \"Section-A\""
+      );
+    });
+
+    it("should reject duplicate region names", async () => {
+      (readFileSync as any).mockReturnValue(`
+        css:#section-a do: region name:"Section_A"
+        css:#section-b do: region name:"Section_A"
+      `);
+
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
+        "Duplicate region name: Section_A"
+      );
+    });
+
+    it("should reject region declarations inside action blocks", async () => {
+      (readFileSync as any).mockReturnValue(`
+        css:#section do
+          region name:"Section"
+        end
+      `);
 
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
         "Syntax errors in rules file"

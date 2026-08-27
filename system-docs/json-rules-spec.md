@@ -6,17 +6,21 @@ This document specifies the JSON format that represents the parsed rules from th
 
 ## **2. Top-Level Structure**
 
-The root of the JSON document is an object containing a list of rules.
+The root of the JSON document is an object containing a list of ordinary rules and, optionally, named regions.
 
 ```json
 {
   "rules": [
     // Array of Rule objects (see section 3)
+  ],
+  "regions": [
+    // Array of Region objects (see section 5)
   ]
 }
 ```
 
 - **rules** (Array, Required): An ordered list of rule objects. The order matters as rules might be applied sequentially, and conflict resolution (e.g., "last rule wins") depends on this order.
+- **regions** (Array, Optional): Named selectors to extract after all ordinary rules have run. If this array is present and non-empty, only matched regions are compared.
 
 ## **3. Rule Object Structure**
 
@@ -141,5 +145,21 @@ css:.important-note do: include content_regex:"Warning:"
   ]
 }
 ```
+
+## **5. Region Object Structure**
+
+Each object in the optional `regions` array identifies one named section of the processed DOM.
+
+```json
+{
+  "selector": "#section-a",
+  "name": "Section_A"
+}
+```
+
+- **selector** (String, Required): The CSS selector used after ordinary rules have been applied.
+- **name** (String, Required): A unique, case-sensitive identifier matching `[A-Za-z_][A-Za-z0-9_]*`.
+
+Regions are emitted by ascending exact name, with repeated matches retaining document order. Each matched element contributes its outer HTML inside a named wrapper under a stable synthetic root. Missing matches produce no output; overlapping declarations are emitted independently.
 
 This specification provides a clear target format for the DSL parser and a well-defined input structure for the Rules Engine.

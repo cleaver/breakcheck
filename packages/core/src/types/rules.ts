@@ -14,6 +14,11 @@ export type ActionType =
   | "rewrite_content";
 
 /**
+ * Valid names for named regions in a ruleset.
+ */
+export const REGION_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/**
  * Base interface for action modifiers
  */
 interface BaseActionModifiers {
@@ -70,9 +75,19 @@ export interface Rule {
 }
 
 /**
+ * A named section of the processed document to include in a comparison.
+ */
+export interface Region {
+  selector: string;
+  name: string;
+}
+
+/**
  * The root structure of the JSON rules document
  */
 export interface Ruleset {
   name: string;
   rules: Rule[];
+  /** Named regions are optional for backwards-compatible inline rulesets. */
+  regions?: Region[];
 }

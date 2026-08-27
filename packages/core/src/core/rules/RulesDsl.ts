@@ -2,7 +2,26 @@ import { createToken, CstNode, CstParser, Lexer } from "chevrotain";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { logger } from "../../lib/logger.js";
-import { Action, Rule, Ruleset } from "../../types/rules.js";
+import {
+  Action,
+  REGION_NAME_PATTERN,
+  Region,
+  Rule,
+  Ruleset,
+} from "../../types/rules.js";
+
+interface RegionDeclaration {
+  kind: "region";
+  name: string;
+}
+
+type ParsedAction = Action | RegionDeclaration;
+
+function isRegionDeclaration(
+  action: ParsedAction
+): action is RegionDeclaration {
+  return "kind" in action && action.kind === "region";
+}
 
 // --- LEXER ---
 const Css = createToken({ name: "Css", pattern: /css:/i });
@@ -20,7 +39,12 @@ const RewriteContent = createToken({
   name: "RewriteContent",
   pattern: /rewrite_content/i,
 });
+const RegionKeyword = createToken({
+  name: "Region",
+  pattern: /region(?=\s+name:)/i,
+});
 const Attr = createToken({ name: "Attr", pattern: /attr:/i });
+const RegionName = createToken({ name: "RegionName", pattern: /name:/i });
 const Regex = createToken({ name: "Regex", pattern: /regex:/i });
 const Replace = createToken({ name: "Replace", pattern: /replace:/i });
 const ContentRegex = createToken({
@@ -58,7 +82,9 @@ const allTokens = [
   RemoveAttr,
   RewriteAttr,
   RewriteContent,
+  RegionKeyword,
   Attr,
+  RegionName,
   Regex,
   Replace,
   ContentRegex,
@@ -94,7 +120,10 @@ class RulesParser extends CstParser {
 
   private singleAction = this.RULE("singleAction", () => {
     this.CONSUME(Do);
-    this.SUBRULE(this.action);
+    this.OR([
+      { ALT: () => this.SUBRULE(this.action) },
+      { ALT: () => this.SUBRULE(this.regionAction) },
+    ]);
   });
 
   private actionBlock = this.RULE("actionBlock", () => {
@@ -113,6 +142,12 @@ class RulesParser extends CstParser {
       { ALT: () => this.SUBRULE(this.rewriteAttrAction) },
       { ALT: () => this.SUBRULE(this.rewriteContentAction) },
     ]);
+  });
+
+  private regionAction = this.RULE("regionAction", () => {
+    this.CONSUME(RegionKeyword);
+    this.CONSUME(RegionName);
+    this.CONSUME(StringLiteral);
   });
 
   private includeAction = this.RULE("includeAction", () => {
@@ -165,26 +200,72 @@ class CstToAstVisitor extends parser.getBaseCstVisitorConstructor() {
   }
 
   ruleset(ctx: { rule?: CstNode[] }): Ruleset {
-    const rules = ctx.rule?.map((r) => this.visit(r)) || [];
-    return { name: "ruleset", rules };
+    const parsedRules = (ctx.rule?.map((r) => this.visit(r)) || []) as Array<
+      Rule | Region
+    >;
+    const rules: Rule[] = [];
+    const regions: Region[] = [];
+    const regionNames = new Set<string>();
+
+    for (const parsedRule of parsedRules) {
+      if ("name" in parsedRule) {
+        if (!REGION_NAME_PATTERN.test(parsedRule.name)) {
+          throw new Error(
+            `Invalid region name "${parsedRule.name}". Region names must match [A-Za-z_][A-Za-z0-9_]*.`
+          );
+        }
+        if (regionNames.has(parsedRule.name)) {
+          throw new Error(`Duplicate region name: ${parsedRule.name}`);
+        }
+        regionNames.add(parsedRule.name);
+        regions.push(parsedRule);
+      } else {
+        rules.push(parsedRule);
+      }
+    }
+
+    return { name: "ruleset", rules, regions };
   }
 
   rule(ctx: {
     Selector: any[];
     singleAction?: CstNode[];
     actionBlock?: CstNode[];
-  }): Rule {
+  }): Rule | Region {
     const selector = ctx.Selector[0].image.trim();
     const actionNode = ctx.singleAction || ctx.actionBlock;
     if (!actionNode) {
       throw new Error("Invalid 'rule' node in CST: No action node found.");
     }
-    const actions = this.visit(actionNode[0]);
-    return { selector, actions };
+    const actions = this.visit(actionNode[0]) as ParsedAction[];
+    const regionAction = actions.find(isRegionDeclaration);
+    if (regionAction && actions.length === 1) {
+      return { selector, name: regionAction.name };
+    }
+
+    if (regionAction) {
+      throw new Error(
+        "A named region must be declared as the only action for a selector."
+      );
+    }
+
+    return {
+      selector,
+      actions: actions.filter(
+        (action): action is Action => !isRegionDeclaration(action)
+      ),
+    };
   }
 
-  singleAction(ctx: { action: CstNode[] }): Action[] {
-    return [this.visit(ctx.action[0])];
+  singleAction(ctx: {
+    action?: CstNode[];
+    regionAction?: CstNode[];
+  }): ParsedAction[] {
+    const actionNode = ctx.action?.[0] || ctx.regionAction?.[0];
+    if (!actionNode) {
+      throw new Error("Invalid 'singleAction' node in CST.");
+    }
+    return [this.visit(actionNode)];
   }
 
   actionBlock(ctx: { action?: CstNode[] }): Action[] {
@@ -219,6 +300,11 @@ class CstToAstVisitor extends parser.getBaseCstVisitorConstructor() {
     const actionNode = actionAlternative[0];
     // Visit that specific action's node
     return this.visit(actionNode);
+  }
+
+  regionAction(ctx: { StringLiteral: any[] }): RegionDeclaration {
+    const name = ctx.StringLiteral[0].image.slice(1, -1);
+    return { kind: "region", name };
   }
 
   includeAction(ctx: { contentRegexModifier?: CstNode[] }): Action {

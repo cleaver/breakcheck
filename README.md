@@ -137,11 +137,18 @@ end
   - `rewrite_attr`: Rewrites the value of an attribute, useful for normalizing URLs or IDs.
   - `rewrite_content`: Rewrites the text inside an element.
 
+- **Named regions:**
+
+  - `css:[SELECTOR] do: region name:"[IDENTIFIER]"`: Selects a named section for stable comparison ordering.
+
 - **Modifiers:**
   - `attr:"<attribute_name>"`: Specifies the target attribute (e.g., `attr:"href"`).
   - `regex:"<pattern>"`: A regular expression for matching and capturing.
   - `replace:"<replacement>"`: The string to replace matches with. Can use capture groups like `$1`.
   - `content_regex:"<pattern>"`: Applies the action only if the element's text content matches the regex.
+  - `name:"<identifier>"`: Names a region. Names must match `[A-Za-z_][A-Za-z0-9_]*` and be unique.
+
+When named regions are present, Breakcheck applies all ordinary rules first, then selects regions from the transformed DOM. Only matched regions are compared; they are sorted alphabetically by exact name, while repeated matches retain document order. Each region includes the matched element's outer HTML and is wrapped in a stable synthetic document. Missing regions are allowed, and overlapping declarations are emitted independently.
 
 ### Rules Example (`rules.breakcheck`)
 
@@ -171,6 +178,10 @@ css:script do: rewrite_attr attr:"src" regex:"(\?|&)v=\w+" replace:"?v=STATIC"
 -- Rewrite dynamic timestamps and view counts inside elements
 css:.timestamp do: rewrite_content regex:"\d{2}/\d{2}/\d{4}" replace:"DATE_STAMP"
 css:.view-count do: rewrite_content regex:"\d{1,3}(,\d{3})* views" replace:"VIEW_COUNT views"
+
+-- Compare layout sections in a stable order when their source order changes
+css:#section-b do: region name:"Section_B"
+css:#section-a do: region name:"Section_A"
 ```
 
 ---
