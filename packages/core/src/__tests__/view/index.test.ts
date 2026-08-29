@@ -1,6 +1,6 @@
-import http from "http";
+import http from "node:http";
 import vm from "node:vm";
-import { promisify } from "util";
+import { promisify } from "node:util";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock fs/promises before importing the module
@@ -132,5 +132,27 @@ describe("View Server", () => {
   it("should handle missing page parameter in diff route", async () => {
     const response = await makeRequest("/diff");
     expect(response.statusCode).toBe(400);
+  });
+
+  it("should reject when the requested port is already in use", async () => {
+    const occupiedServer = http.createServer();
+    await new Promise<void>((resolve, reject) => {
+      occupiedServer.once("error", reject);
+      occupiedServer.listen(0, resolve);
+    });
+
+    const address = occupiedServer.address();
+    if (!address || typeof address === "string") {
+      await closeServer(occupiedServer);
+      throw new Error("Occupied server did not expose a TCP address");
+    }
+
+    try {
+      await expect(
+        startViewServer(mockComparisonName, address.port),
+      ).rejects.toThrow(`Port ${address.port} is already in use.`);
+    } finally {
+      await closeServer(occupiedServer);
+    }
   });
 });
