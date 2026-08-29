@@ -1,3 +1,7 @@
+# List the available commands.
+default:
+    @just --list
+
 # Directory used for locally packed public packages. It is cleaned before every pack.
 local-pack-dir := justfile_directory() + "/.local-breakcheck-packages"
 
