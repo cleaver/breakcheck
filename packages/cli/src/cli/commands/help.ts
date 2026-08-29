@@ -241,7 +241,7 @@ function showViewHelp(logger: any) {
   logger.info("");
   logger.info("Options:");
   logger.info(
-    "  -p, --port <number>          The port to run the view server on (default: 8080)"
+    "  -p, --port <number>          The port to run the view server on (default: 8080; uses the next available port when omitted)"
   );
   logger.info("  --json-logs                Output logs in JSON format");
   logger.info(

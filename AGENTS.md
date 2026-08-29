@@ -12,7 +12,7 @@
 
 ## Development
 
-- Prefer TDD: write or update a focused Vitest test, see it fail, make the smallest change, see it pass, then refactor.
+- Prefer TDD (red, green, refactor): write or update a focused Vitest test, see it fail, make the smallest change, see it pass, then refactor.
 - Keep tests in `packages/*/src/__tests__/**/*.test.ts`.
 - Test observable behavior and error paths. Use temporary directories and fixtures; clean up files, servers, and processes.
 - Add integration or packaging coverage for CLI, public API, install, or packaged-file changes.

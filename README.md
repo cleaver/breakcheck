@@ -240,7 +240,7 @@ breakcheck view [comparison-name] [options]
 
 | Option                | Description                                            | Default |
 | :-------------------- | :----------------------------------------------------- | :------ |
-| `-p, --port <number>` | The port to run the view server on.                    | `8080`  |
+| `-p, --port <number>` | The port to run the view server on. When omitted, starts at 8080 and uses the next available port. | `8080` (next available) |
 | `--json-logs`         | Output logs in JSON format (useful for automation).    |         |
 | `--no-json-logs`      | Output logs in pretty format (default, user-friendly). |         |
 
