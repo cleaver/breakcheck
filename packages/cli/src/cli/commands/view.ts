@@ -64,7 +64,7 @@ export const viewCommand = new InteractiveCommand("view")
 
       if (
         requestedPort !== undefined &&
-        (isNaN(requestedPort) || requestedPort <= 1024 || requestedPort >= 65535)
+        (isNaN(requestedPort) || requestedPort < 1024 || requestedPort > 65535)
       ) {
         logger.error("Port must be a number between 1024 and 65535");
         process.exit(1);
