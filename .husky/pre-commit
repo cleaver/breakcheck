@@ -1,5 +1,5 @@
 set -e
 
-git diff --cached --check
+git --no-pager diff --cached --check
 npm exec -- lint-staged
 npm run typecheck
