@@ -98,6 +98,8 @@ The core of the tool is comparing two snapshots. The `runComparison` function co
 
 String `ruleset` values are directories containing `rules.breakcheck`. Relative paths resolve from `process.cwd()`, the directory where the consuming project invokes Breakcheck. In a monorepo, invoke it from the package that owns the rules or use an absolute path.
 
+Rules may also be supplied inline as a typed `Ruleset`. `RulesEngine.create()` eagerly validates non-empty selectors and actions, Cheerio selector syntax, region names and uniqueness, supported modifier combinations, and JavaScript regular expressions. It compiles and clones the rules so later caller mutation cannot change processing. The DSL accepts full Cheerio-compatible CSS selectors on a single rule-header line; modifier values are double-quoted, with `\"` and `\\` decoded while regex escapes remain intact. `include` is an intentional compatibility no-op, and `rewrite_content` preserves nested markup by rewriting each descendant text node independently.
+
 ```javascript
 import { runComparison } from "@cleaver/breakcheck-core";
 

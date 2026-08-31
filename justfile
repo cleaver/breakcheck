@@ -1,3 +1,10 @@
+# List the available commands.
+default:
+    @just --list
+
+# Directory used for locally packed public packages. It is cleaned before every pack.
+local-pack-dir := justfile_directory() + "/.local-breakcheck-packages"
+
 # Set the release version without creating a commit, tag, or npm release.
 bump-version version:
     #!/usr/bin/env bash
@@ -109,3 +116,48 @@ release: prerelease
 
     printf '\nRelease v%s published. Verify it from a fresh consumer, then tag it with:\n' "$release_version"
     printf '  git tag v%s\n  git push origin v%s\n' "$release_version" "$release_version"
+
+# Build and pack both public packages for installation in a local consumer project.
+local-pack:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    repo_dir="{{justfile_directory()}}"
+    pack_dir="{{local-pack-dir}}"
+    rm -rf -- "$pack_dir"
+    mkdir -p -- "$pack_dir"
+    cd "$repo_dir"
+    npm run build
+    (
+        cd "$repo_dir/packages/core"
+        npm pack --pack-destination "$pack_dir"
+    )
+    (
+        cd "$repo_dir/packages/cli"
+        npm pack --pack-destination "$pack_dir"
+    )
+
+# Install packages produced by local-pack into a consumer without changing its manifest or lockfile.
+local-install project=invocation_directory():
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    target_dir="$(cd "{{project}}" && pwd)"
+    pack_dir="{{local-pack-dir}}"
+    local_packages=(
+        "$pack_dir"/cleaver-breakcheck-core-*.tgz
+        "$pack_dir"/cleaver-breakcheck-[0-9]*.tgz
+    )
+
+    for local_package in "${local_packages[@]}"; do
+        if [[ ! -f "$local_package" ]]; then
+            printf 'Local package not found: %s\nRun `just local-pack` first.\n' "$local_package"
+            exit 1
+        fi
+    done
+
+    npm --prefix "$target_dir" install --no-save --package-lock=false --no-audit --no-fund "${local_packages[@]}"
+    (
+        cd "$target_dir"
+        npx --no-install breakcheck --version
+    )

@@ -1,7 +1,7 @@
 import express from "express";
-import http from "http";
-import path from "path";
-import { fileURLToPath } from "url";
+import http from "node:http";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { logger } from "../../lib/logger.js";
 import { findRootDir } from "../../lib/root.js";
 import { createDiffHandler, createIndexHandler } from "./index.handlers.js";
@@ -27,22 +27,27 @@ export async function startViewServer(
   app.use(express.static(path.join(__dirname, "..", "..", "public")));
 
   return new Promise<http.Server>((resolve, reject) => {
-    const server = app.listen(port, () => {
-      // Once listening, we no longer need the startup error handler
-      server.removeListener('error', startupErrorHandler);
-      logger.info(`🌐 View server started at http://localhost:${port}`);
-      resolve(server);
-    });
+    const server = http.createServer(app);
 
-    // Define a specific error handler for startup
-    const startupErrorHandler = (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE') {
+    const startupErrorHandler = (error: NodeJS.ErrnoException) => {
+      server.removeListener("listening", startupListeningHandler);
+      server.removeListener("error", startupErrorHandler);
+
+      if (error.code === "EADDRINUSE") {
         reject(new Error(`Port ${port} is already in use.`));
       } else {
-        reject(err);
+        reject(error);
       }
     };
 
-    server.on('error', startupErrorHandler);
+    const startupListeningHandler = () => {
+      server.removeListener("error", startupErrorHandler);
+      logger.info(`🌐 View server started at http://localhost:${port}`);
+      resolve(server);
+    };
+
+    server.once("error", startupErrorHandler);
+    server.once("listening", startupListeningHandler);
+    server.listen(port);
   });
 }

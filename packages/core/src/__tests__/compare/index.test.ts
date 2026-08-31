@@ -208,6 +208,42 @@ describe("Compare Functions", () => {
       expect(result.differences[0].added).toBeUndefined();
       expect(result.differences[0].removed).toBeUndefined();
     });
+
+    it("should treat reordered named regions as equivalent", async () => {
+      const rulesEngine = await RulesEngine.create({
+        name: "named-regions-ruleset",
+        rules: [],
+        regions: [
+          { selector: ".section-b", name: "Section_B" },
+          { selector: ".section-a", name: "Section_A" },
+        ],
+      });
+      const beforeContent = rulesEngine.process(
+        '<main><section class="section-b">B</section><section class="section-a">A</section></main>'
+      );
+      const afterContent = rulesEngine.process(
+        '<main><section class="section-a">A</section><section class="section-b">B</section></main>'
+      );
+
+      const result = await comparePage(
+        {
+          url: "https://example.com",
+          finalUrl: "https://example.com",
+          content: beforeContent,
+          statusCode: 200,
+          headers: {},
+        },
+        {
+          url: "https://example.com",
+          finalUrl: "https://example.com",
+          content: afterContent,
+          statusCode: 200,
+          headers: {},
+        }
+      );
+
+      expect(result.hasDifferences).toBe(false);
+    });
   });
 
   describe("compareSnapshots", () => {
