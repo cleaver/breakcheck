@@ -30,14 +30,14 @@ npm run build
 
 The main development commands are:
 
-| Command | Purpose |
-| --- | --- |
-| `npm test` | Run the unit and component test suite once. |
-| `npm run test:watch` | Run Vitest in watch mode while developing. |
-| `npm run test:coverage` | Run the tests with V8 coverage. |
-| `npm run test:cli-bin` | Build the CLI and invoke its compiled executable with native Node. |
-| `npm run test:integration` | Build the project, start the before/after fixture servers, run snapshots and comparisons, and verify the viewer. |
-| `npm run test:packaging` | Pack the core and CLI workspaces, install them in a temporary consumer with no `tsx`, and exercise the installed CLI, core import, snapshots, comparisons, and viewer. |
+| Command                    | Purpose                                                                                                                                                                |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test`                 | Run the unit and component test suite once.                                                                                                                            |
+| `npm run test:watch`       | Run Vitest in watch mode while developing.                                                                                                                             |
+| `npm run test:coverage`    | Run the tests with V8 coverage.                                                                                                                                        |
+| `npm run test:cli-bin`     | Build the CLI and invoke its compiled executable with native Node.                                                                                                     |
+| `npm run test:integration` | Build the project, start the before/after fixture servers, run snapshots and comparisons, and verify the viewer.                                                       |
+| `npm run test:packaging`   | Pack the core and CLI workspaces, install them in a temporary consumer with no `tsx`, and exercise the installed CLI, core import, snapshots, comparisons, and viewer. |
 
 The integration test owns the fixture-server lifecycle. It starts the
 before-version server, takes a snapshot, replaces it with the after-version

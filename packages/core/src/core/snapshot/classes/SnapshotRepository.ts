@@ -5,9 +5,9 @@ import * as zlib from "zlib";
 import { findRootDir } from "../../../lib/root.js";
 import { PageSnapshot } from "../../../types/crawler.js";
 import {
-    SnapshotData,
-    SnapshotIndex,
-    SnapshotSummary
+  SnapshotData,
+  SnapshotIndex,
+  SnapshotSummary,
 } from "../../../types/snapshot.js";
 import { LoadedSnapshot } from "./LoadedSnapshot.js";
 
@@ -36,7 +36,7 @@ export class SnapshotRepository {
    * @returns Promise<SnapshotRepository>
    */
   static async createWithCustomDir(
-    snapshotsDir: string
+    snapshotsDir: string,
   ): Promise<SnapshotRepository> {
     return new SnapshotRepository(snapshotsDir);
   }
@@ -158,7 +158,7 @@ export class SnapshotRepository {
   async generateUrlList(
     name: string,
     outputPath?: string,
-    filter?: (url: string, statusCode: number) => boolean
+    filter?: (url: string, statusCode: number) => boolean,
   ): Promise<string> {
     const snapshotDir = path.join(this.snapshotsDir, name);
 
@@ -202,7 +202,7 @@ export class SnapshotRepository {
           const metadataPath = path.join(
             this.snapshotsDir,
             snapshot.name,
-            "metadata.json"
+            "metadata.json",
           );
           const metadataContent = await fs.readFile(metadataPath, "utf-8");
           const metadata = JSON.parse(metadataContent);
@@ -211,7 +211,7 @@ export class SnapshotRepository {
           const indexPath = path.join(
             this.snapshotsDir,
             snapshot.name,
-            "index.json"
+            "index.json",
           );
           const indexContent = await fs.readFile(indexPath, "utf-8");
           const index: SnapshotIndex = JSON.parse(indexContent);

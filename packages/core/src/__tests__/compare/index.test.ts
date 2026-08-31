@@ -5,23 +5,23 @@ import { ComparisonRepository } from "../../core/compare/classes/ComparisonRepos
 import { RulesEngine } from "../../core/rules/RulesEngine.js";
 import { SnapshotRepository } from "../../core/snapshot/index.js";
 import {
-    ComparisonIndex,
-    ComparisonMetadata,
-    PageDiff
+  ComparisonIndex,
+  ComparisonMetadata,
+  PageDiff,
 } from "../../types/compare.js";
 import { PageSnapshot } from "../../types/crawler.js";
 
 /**
  * Creates a mock SnapshotRepository for testing
  */
-class MockSnapshotRepository
-  implements
-    Pick<
-      SnapshotRepository,
-      "loadSnapshot" | "saveSnapshot" | "generateUrlList" | "listSnapshots"
-    >
-{
-  constructor(private beforeSnapshot: any, private afterSnapshot: any) {}
+class MockSnapshotRepository implements Pick<
+  SnapshotRepository,
+  "loadSnapshot" | "saveSnapshot" | "generateUrlList" | "listSnapshots"
+> {
+  constructor(
+    private beforeSnapshot: any,
+    private afterSnapshot: any,
+  ) {}
 
   async loadSnapshot(name: string) {
     return name === "before" ? this.beforeSnapshot : this.afterSnapshot;
@@ -70,7 +70,7 @@ class MockComparisonRepository {
 
   static async create(
     name: string,
-    metadata: ComparisonMetadata
+    metadata: ComparisonMetadata,
   ): Promise<MockComparisonRepository> {
     const instance = new MockComparisonRepository();
     instance.index.metadata = {
@@ -104,11 +104,11 @@ class MockComparisonRepository {
 
 async function createMockSnapshotRepository(
   beforeSnapshot: any,
-  afterSnapshot: any
+  afterSnapshot: any,
 ): Promise<SnapshotRepository> {
   return new MockSnapshotRepository(
     beforeSnapshot,
-    afterSnapshot
+    afterSnapshot,
   ) as unknown as SnapshotRepository;
 }
 
@@ -130,7 +130,7 @@ interface TestSetup {
 
 function createMockSnapshot(
   urls: Record<string, { filename: string; statusCode: number }>,
-  content: string
+  content: string,
 ) {
   return {
     index: {
@@ -180,10 +180,10 @@ describe("Compare Functions", () => {
 
       const numberLinesAdded = result.differences.filter((d) => d.added).length;
       const numberLinesRemoved = result.differences.filter(
-        (d) => d.removed
+        (d) => d.removed,
       ).length;
       const numberLinesUnchanged = result.differences.filter(
-        (d) => !d.added && !d.removed
+        (d) => !d.added && !d.removed,
       ).length;
 
       expect(numberLinesAdded).toBe(1);
@@ -219,10 +219,10 @@ describe("Compare Functions", () => {
         ],
       });
       const beforeContent = rulesEngine.process(
-        '<main><section class="section-b">B</section><section class="section-a">A</section></main>'
+        '<main><section class="section-b">B</section><section class="section-a">A</section></main>',
       );
       const afterContent = rulesEngine.process(
-        '<main><section class="section-a">A</section><section class="section-b">B</section></main>'
+        '<main><section class="section-a">A</section><section class="section-b">B</section></main>',
       );
 
       const result = await comparePage(
@@ -239,7 +239,7 @@ describe("Compare Functions", () => {
           content: afterContent,
           statusCode: 200,
           headers: {},
-        }
+        },
       );
 
       expect(result.hasDifferences).toBe(false);
@@ -251,13 +251,13 @@ describe("Compare Functions", () => {
       beforeUrls: Record<string, { filename: string; statusCode: number }>,
       afterUrls: Record<string, { filename: string; statusCode: number }>,
       beforeContent: string,
-      afterContent: string
+      afterContent: string,
     ): Promise<TestSetup> {
       const beforeSnapshot = createMockSnapshot(beforeUrls, beforeContent);
       const afterSnapshot = createMockSnapshot(afterUrls, afterContent);
       const snapshotRepository = await createMockSnapshotRepository(
         beforeSnapshot,
-        afterSnapshot
+        afterSnapshot,
       );
       const comparisonRepository = await ComparisonRepository.create(
         "test-comparison",
@@ -265,7 +265,7 @@ describe("Compare Functions", () => {
           beforeSnapshotId: "before",
           afterSnapshotId: "after",
           rulesUsedIdentifier: "default",
-        }
+        },
       );
       const rulesEngine = createMockRulesEngine();
       return {
@@ -300,14 +300,14 @@ describe("Compare Functions", () => {
         beforeUrls,
         afterUrls,
         beforeContent,
-        afterContent
+        afterContent,
       );
 
       const result = await compareSnapshots(
         setup.comparisonParams,
         setup.snapshotRepository,
         setup.comparisonRepository,
-        setup.rulesEngine
+        setup.rulesEngine,
       );
 
       expect(result.status).toBe("completed");
@@ -337,14 +337,14 @@ describe("Compare Functions", () => {
         beforeUrls,
         afterUrls,
         beforeContent,
-        afterContent
+        afterContent,
       );
 
       const result = await compareSnapshots(
         setup.comparisonParams,
         setup.snapshotRepository,
         setup.comparisonRepository,
-        setup.rulesEngine
+        setup.rulesEngine,
       );
 
       expect(result.status).toBe("completed");
@@ -384,7 +384,7 @@ describe("Compare Functions", () => {
         beforeUrls,
         afterUrls,
         beforeContent,
-        afterContent
+        afterContent,
       );
 
       const result = await compareSnapshots(
@@ -394,7 +394,7 @@ describe("Compare Functions", () => {
         },
         setup.snapshotRepository,
         setup.comparisonRepository,
-        setup.rulesEngine
+        setup.rulesEngine,
       );
 
       expect(result.status).toBe("completed");
@@ -424,14 +424,14 @@ describe("Compare Functions", () => {
         beforeUrls,
         afterUrls,
         beforeContent,
-        afterContent
+        afterContent,
       );
 
       const result = await compareSnapshots(
         setup.comparisonParams,
         setup.snapshotRepository,
         setup.comparisonRepository,
-        setup.rulesEngine
+        setup.rulesEngine,
       );
 
       expect(result.status).toBe("completed");
@@ -477,14 +477,14 @@ describe("Compare Functions", () => {
         beforeUrls,
         afterUrls,
         beforeContent,
-        afterContent
+        afterContent,
       );
 
       const result = await compareSnapshots(
         setup.comparisonParams,
         setup.snapshotRepository,
         setup.comparisonRepository,
-        setup.rulesEngine
+        setup.rulesEngine,
       );
 
       expect(result.status).toBe("completed");

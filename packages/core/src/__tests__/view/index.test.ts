@@ -1,7 +1,15 @@
 import http from "node:http";
 import vm from "node:vm";
 import { promisify } from "node:util";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 // Mock fs/promises before importing the module
 vi.mock("fs/promises", () => ({
@@ -37,9 +45,10 @@ vi.mock("zlib", () => ({
       JSON.stringify({
         url: "/page1",
         differences: [],
-        patch: "@@ -1,1 +1,1 @@\n-<p>before</p>\n+<script>const pageState = 'after';</script>\n",
+        patch:
+          "@@ -1,1 +1,1 @@\n-<p>before</p>\n+<script>const pageState = 'after';</script>\n",
         hasDifferences: true,
-      })
+      }),
     );
     callback(null, decompressed);
   }),
@@ -54,7 +63,7 @@ describe("View Server", () => {
   let server: http.Server | undefined;
   let serverPort: number;
   const closeServer = promisify(
-    (server: http.Server, cb: (err?: Error) => void) => server.close(cb)
+    (server: http.Server, cb: (err?: Error) => void) => server.close(cb),
   );
 
   beforeAll(async () => {
@@ -86,7 +95,7 @@ describe("View Server", () => {
   });
 
   const makeRequest = (
-    path: string
+    path: string,
   ): Promise<{ statusCode: number; data: string }> => {
     return new Promise((resolve, reject) => {
       const options = {
@@ -122,7 +131,7 @@ describe("View Server", () => {
   it("should render diff payloads with script tags as valid JavaScript", async () => {
     const response = await makeRequest("/diff?page=/page1");
     const inlineScript = response.data.match(
-      /    <script>\n([\s\S]*?)<\/script>/
+      /    <script>\n([\s\S]*?)<\/script>/,
     )?.[1];
 
     expect(inlineScript).toBeDefined();

@@ -1,1 +1,11 @@
+dist/
+coverage/
+storage/
+snapshots/
+comparisons/
+.local-breakcheck-packages/
+docs/plans/
+packages/core/src/public/css/diff2html.min.css
+packages/core/src/public/js/diff2html.min.js
+
 packages/core/src/views/diff.ejs

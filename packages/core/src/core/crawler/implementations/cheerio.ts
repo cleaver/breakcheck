@@ -1,9 +1,9 @@
 import { CheerioCrawler, Dataset } from "crawlee";
 import type { CrawlerConfig } from "../../../types/api.js";
 import type {
-    CrawlerInstance,
-    CrawlError,
-    PageSnapshot
+  CrawlerInstance,
+  CrawlError,
+  PageSnapshot,
 } from "../../../types/crawler.js";
 
 export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
@@ -27,7 +27,7 @@ export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
           Object.entries(response.headers).map(([key, value]) => [
             key,
             Array.isArray(value) ? value.join(", ") : value || "",
-          ])
+          ]),
         ),
         title,
       };

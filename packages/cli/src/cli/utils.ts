@@ -1,4 +1,7 @@
-import { createLogger, logger } from "@cleaver/breakcheck-core";
+import {
+  configureLogger as configureCoreLogger,
+  logger,
+} from "@cleaver/breakcheck-core";
 
 // Global logger instance that can be reconfigured
 let cliLogger = logger;
@@ -15,7 +18,7 @@ export function configureLogger(options: {
   const useJsonLogs = options.jsonLogs || false;
 
   // Create a new logger instance with the specified configuration
-  cliLogger = createLogger({ useJsonLogs });
+  cliLogger = configureCoreLogger({ useJsonLogs });
 
   return cliLogger;
 }

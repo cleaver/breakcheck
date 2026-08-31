@@ -7,11 +7,7 @@
  * The type of action to perform
  */
 export type ActionType =
-  | "include"
-  | "exclude"
-  | "remove_attr"
-  | "rewrite_attr"
-  | "rewrite_content";
+  "include" | "exclude" | "remove_attr" | "rewrite_attr" | "rewrite_content";
 
 /**
  * Valid names for named regions in a ruleset.

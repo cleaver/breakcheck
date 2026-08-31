@@ -221,14 +221,14 @@ Compares two snapshots, applies rules, and saves the results.
 breakcheck compare [options]
 ```
 
-| Option                | Description                                                   | Default           |
-| :-------------------- | :------------------------------------------------------------ | :---------------- |
-| `-b, --before <name>` | **(Required)** The name of the "before" snapshot.             |                   |
-| `-a, --after <name>`  | **(Required)** The name of the "after" snapshot.              |                   |
-| `-o, --output <name>` | A name for the comparison output directory.                   | `compare_default` |
-| `-r, --rules <directory>`  | Directory containing `rules.breakcheck`; relative paths resolve from the directory where Breakcheck is invoked. | None (unfiltered comparison) |
-| `--json-logs`         | Output logs in JSON format (useful for automation).           |                   |
-| `--no-json-logs`      | Output logs in pretty format (default, user-friendly).        |                   |
+| Option                    | Description                                                                                                     | Default                      |
+| :------------------------ | :-------------------------------------------------------------------------------------------------------------- | :--------------------------- |
+| `-b, --before <name>`     | **(Required)** The name of the "before" snapshot.                                                               |                              |
+| `-a, --after <name>`      | **(Required)** The name of the "after" snapshot.                                                                |                              |
+| `-o, --output <name>`     | A name for the comparison output directory.                                                                     | `compare_default`            |
+| `-r, --rules <directory>` | Directory containing `rules.breakcheck`; relative paths resolve from the directory where Breakcheck is invoked. | None (unfiltered comparison) |
+| `--json-logs`             | Output logs in JSON format (useful for automation).                                                             |                              |
+| `--no-json-logs`          | Output logs in pretty format (default, user-friendly).                                                          |                              |
 
 ### `view`
 
@@ -242,11 +242,11 @@ breakcheck view [comparison-name] [options]
 | :---------------- | :---------------------------------- | :---------------- |
 | `comparison-name` | The name of the comparison to view. | `compare_default` |
 
-| Option                | Description                                            | Default |
-| :-------------------- | :----------------------------------------------------- | :------ |
+| Option                | Description                                                                                        | Default                 |
+| :-------------------- | :------------------------------------------------------------------------------------------------- | :---------------------- |
 | `-p, --port <number>` | The port to run the view server on. When omitted, starts at 8080 and uses the next available port. | `8080` (next available) |
-| `--json-logs`         | Output logs in JSON format (useful for automation).    |         |
-| `--no-json-logs`      | Output logs in pretty format (default, user-friendly). |         |
+| `--json-logs`         | Output logs in JSON format (useful for automation).                                                |                         |
+| `--no-json-logs`      | Output logs in pretty format (default, user-friendly).                                             |                         |
 
 ### `list-snapshots`
 
@@ -299,6 +299,11 @@ All commands support these logging options:
 | :--------------- | :------------------------------------------------- | :------ |
 | `--json-logs`    | Output logs in JSON format (useful for automation) |         |
 | `--no-json-logs` | Output logs in pretty format (user-friendly)       | ✓       |
+
+Snapshot crawler lifecycle and error messages use the same logger as Breakcheck's
+command messages. This means `--json-logs` also produces structured JSON for
+Crawlee records, including a `component` field such as `CheerioCrawler`; the
+default pretty output includes timestamps for both sources.
 
 ### Use Cases
 

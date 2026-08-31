@@ -15,14 +15,14 @@ export async function findRootDir(): Promise<string> {
       const exists = await pathExists(packageJsonPath);
       if (exists) {
         const packageJson = JSON.parse(
-          await fs.readFile(packageJsonPath, "utf8")
+          await fs.readFile(packageJsonPath, "utf8"),
         );
         if (packageJson.workspaces) {
           return packageJsonPath;
         }
       }
     },
-    { type: "file" }
+    { type: "file" },
   );
 
   return rootPackageJsonPath

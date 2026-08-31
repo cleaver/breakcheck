@@ -1,7 +1,7 @@
 import type {
-    CrawlError,
-    SnapshotConfig,
-    SnapshotResult
+  CrawlError,
+  SnapshotConfig,
+  SnapshotResult,
 } from "@cleaver/breakcheck-core";
 import { createSnapshotFromConfig } from "@cleaver/breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
@@ -18,11 +18,11 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
   .option(
     "-t, --type <type>",
     "Crawler type (cheerio or playwright)",
-    "cheerio"
+    "cheerio",
   )
   .option(
     "-w, --write-urls <path>",
-    "Generate a URL list file at the specified path"
+    "Generate a URL list file at the specified path",
   )
   .option("--json-logs", "Output logs in JSON format")
   .option("--no-json-logs", "Output logs in pretty format (default)")
@@ -76,7 +76,7 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
         result.errors.forEach(
           (error: { statusCode?: number; message: string }) => {
             logger.error(`  - ${error.message}`);
-          }
+          },
         );
       }
     } catch (error) {

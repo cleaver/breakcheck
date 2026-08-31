@@ -1,13 +1,13 @@
 import { Dataset, PlaywrightCrawler } from "crawlee";
 import type { CrawlerConfig } from "../../../types/api.js";
 import type {
-    CrawlerInstance,
-    CrawlError,
-    PageSnapshot
+  CrawlerInstance,
+  CrawlError,
+  PageSnapshot,
 } from "../../../types/crawler.js";
 
 export function createPlaywrightCrawler(
-  config: CrawlerConfig
+  config: CrawlerConfig,
 ): CrawlerInstance {
   const { maxDepth, includePatterns, excludePatterns } = config;
 

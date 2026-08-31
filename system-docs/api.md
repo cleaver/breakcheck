@@ -37,7 +37,7 @@ async function createSnapshot(config: SnapshotConfig): Promise<SnapshotResult>;
  * DOM Processor, and Diff Engine.
  */
 async function runComparison(
-  config: ComparisonConfig
+  config: ComparisonConfig,
 ): Promise<ComparisonSummary>;
 
 // Potentially others: listSnapshots, getSnapshotDetails, validateRules...

@@ -13,7 +13,7 @@ import { ComparisonRepository } from "./classes/ComparisonRepository.js";
  */
 export async function comparePage(
   before: PageSnapshot,
-  after: PageSnapshot
+  after: PageSnapshot,
 ): Promise<PageDiff> {
   const url = before.url;
 
@@ -40,16 +40,16 @@ export async function compareSnapshots(
   config: ComparisonConfig,
   snapshotRepository: SnapshotRepository,
   comparisonRepository: ComparisonRepository,
-  rulesEngine: RulesEngine
+  rulesEngine: RulesEngine,
 ): Promise<ComparisonSummary> {
   const startTime = Date.now();
 
   // Load both snapshots
   const beforeSnapshot = await snapshotRepository.loadSnapshot(
-    config.beforeSnapshotId
+    config.beforeSnapshotId,
   );
   const afterSnapshot = await snapshotRepository.loadSnapshot(
-    config.afterSnapshotId
+    config.afterSnapshotId,
   );
 
   // Determine URLs to compare
@@ -81,7 +81,7 @@ export async function compareSnapshots(
     if (beforeContentWithRules && afterContentWithRules) {
       const diff = await comparePage(
         { ...beforePage, content: beforeContentWithRules },
-        { ...afterPage, content: afterContentWithRules }
+        { ...afterPage, content: afterContentWithRules },
       );
       await comparisonRepository.savePageDiff(diff);
     } else {

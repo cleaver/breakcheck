@@ -16,7 +16,7 @@ export class LoadedSnapshot {
   constructor(
     metadata: SnapshotMetadata,
     index: SnapshotIndex,
-    pagesDir: string
+    pagesDir: string,
   ) {
     this.metadata = metadata;
     this.index = index;
