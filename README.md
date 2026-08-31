@@ -111,7 +111,7 @@ To get meaningful comparisons, you need to tell Breakcheck what to ignore. This 
 
 ### Syntax
 
-Rules can be a single line for one action or a `do/end` block for multiple actions on the same element. Comments start with `--`.
+Rules can be a single line for one action or a `do/end` block for multiple actions on the same element. Selectors use the full CSS syntax supported by Cheerio, including combinators, groups, pseudo-classes, escaped identifiers, and quoted attribute values. A selector and its `do:` or block `do` delimiter must share one physical header line; block `do` may only be followed by whitespace or a comment. Comments start with `--`.
 
 **Single Action:**
 
@@ -147,6 +147,10 @@ end
   - `replace:"<replacement>"`: The string to replace matches with. Can use capture groups like `$1`.
   - `content_regex:"<pattern>"`: Applies the action only if the element's text content matches the regex.
   - `name:"<identifier>"`: Names a region. Names must match `[A-Za-z_][A-Za-z0-9_]*` and be unique.
+
+Modifier values are always double-quoted. Inside them, use `\"` for a quote and `\\` for a literal backslash; other backslash sequences such as `\d`, `\w`, and `\?` are preserved for regular expressions. Rules are validated when the engine is created, so empty rules, invalid selectors, invalid regular expressions, unknown modifiers, and action/modifier mismatches fail before any HTML is processed.
+
+`include` remains an intentional no-op for compatibility. `rewrite_content` changes descendant text nodes independently while preserving nested elements and attributes; a regular-expression match cannot span an element boundary.
 
 When named regions are present, Breakcheck applies all ordinary rules first, then selects regions from the transformed DOM. Only matched regions are compared; they are sorted alphabetically by exact name, while repeated matches retain document order. Each region includes the matched element's outer HTML and is wrapped in a stable synthetic document. Missing regions are allowed, and overlapping declarations are emitted independently.
 

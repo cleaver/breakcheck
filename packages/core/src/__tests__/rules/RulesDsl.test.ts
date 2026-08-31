@@ -1,14 +1,14 @@
-import { readFileSync } from "fs";
-import { resolve } from "path";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { processRulesDsl } from "../../core/rules/RulesDsl.js";
 
 // Mock fs and path modules
-vi.mock("fs", () => ({
-  readFileSync: vi.fn(),
+vi.mock("node:fs/promises", () => ({
+  readFile: vi.fn(),
 }));
 
-vi.mock("path", () => ({
+vi.mock("node:path", () => ({
   resolve: vi.fn(),
 }));
 
@@ -27,8 +27,10 @@ describe("RulesDsl", () => {
 
   describe("processRulesDsl", () => {
     it("should throw error if rules file not found", async () => {
-      (readFileSync as any).mockImplementation(() => {
-        throw new Error("File not found");
+      (readFile as any).mockImplementation(() => {
+        const error = new Error("File not found") as NodeJS.ErrnoException;
+        error.code = "ENOENT";
+        throw error;
       });
 
       await expect(processRulesDsl("non-existent")).rejects.toThrow(
@@ -38,7 +40,7 @@ describe("RulesDsl", () => {
 
     it("resolves relative rules directories from the current working directory", async () => {
       cwdSpy.mockReturnValue("/consumer/packages/site");
-      (readFileSync as any).mockReturnValue("css:.dynamic do: exclude");
+      (readFile as any).mockReturnValue("css:.dynamic do: exclude");
 
       await processRulesDsl("./rules");
 
@@ -49,13 +51,24 @@ describe("RulesDsl", () => {
       );
     });
 
+    it("reports non-ENOENT read failures accurately and preserves their cause", async () => {
+      const cause = new Error("Permission denied") as NodeJS.ErrnoException;
+      cause.code = "EACCES";
+      (readFile as any).mockRejectedValue(cause);
+
+      await expect(processRulesDsl("private-rules")).rejects.toMatchObject({
+        message: "Failed to read rules file: /mock/cwd/private-rules/rules.breakcheck",
+        cause,
+      });
+    });
+
     it("should parse single action rules", async () => {
       const rulesContent = `
                 css:.ad-container do: exclude
                 css:#session-id do: exclude
                 css:.important-note do: include content_regex:"Warning:"
             `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
       const result = await processRulesDsl("test-rules");
 
@@ -84,6 +97,22 @@ describe("RulesDsl", () => {
       });
     });
 
+    it("parses complex CSS selectors up to the action delimiter", async () => {
+      (readFile as any).mockReturnValue(`
+        css:main > article.card + article[data-label="do: later"]:not(.hidden), #news\\:today do:exclude
+        css:end do: include
+        css:do-something do: exclude
+      `);
+
+      const result = await processRulesDsl("test-rules");
+
+      expect(result.rules.map((rule) => rule.selector)).toEqual([
+        'main > article.card + article[data-label="do: later"]:not(.hidden), #news\\:today',
+        "end",
+        "do-something",
+      ]);
+    });
+
     it("should parse action blocks", async () => {
       const rulesContent = `
                 css:img do
@@ -92,7 +121,7 @@ describe("RulesDsl", () => {
                     rewrite_attr attr:"src" regex:"//cdn\\d+\\.example\\.com/" replace:"//cdn.example.com/"
                 end
             `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
       const result = await processRulesDsl("test-rules");
 
@@ -124,7 +153,7 @@ describe("RulesDsl", () => {
                 css:.timestamp do: rewrite_content regex:"\\d{2}/\\d{2}/\\d{4}" replace:"DATE_STAMP"
                 css:.view-count do: rewrite_content regex:"\\d{1,3}(,\\d{3})* views" replace:"VIEW_COUNT views"
             `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
       const result = await processRulesDsl("test-rules");
 
@@ -168,7 +197,7 @@ css:.ad-container do: exclude
 -- Another comment
 css:.important-note do: include content_regex:"Warning:"
             `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
       const result = await processRulesDsl("test-rules");
 
@@ -197,22 +226,18 @@ css:.important-note do: include content_regex:"Warning:"
       const rulesContent = `
                 css:.ad-container do exclude  # Missing colon after do
             `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
-      await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        "Syntax errors in rules file"
-      );
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(/errors in rules file/);
     });
 
     it("should throw error for invalid action", async () => {
       const rulesContent = `
                 css:.ad-container do: invalid_action
             `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
-      await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        "Syntax errors in rules file"
-      );
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(/errors in rules file/);
     });
 
     it("should throw error for unclosed action block", async () => {
@@ -220,7 +245,7 @@ css:.important-note do: include content_regex:"Warning:"
                 css:img do
                     remove_attr attr:"srcset"
             `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
         "Syntax errors in rules file"
@@ -231,7 +256,7 @@ css:.important-note do: include content_regex:"Warning:"
       const rulesContent = `
                 css:img do: remove_attr
             `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
         "Syntax errors in rules file"
@@ -244,7 +269,7 @@ css:.important-note do: include content_regex:"Warning:"
         css:#section-a do: region name:"Section_A"
         css:.dynamic do: exclude
       `;
-      (readFileSync as any).mockReturnValue(rulesContent);
+      (readFile as any).mockReturnValue(rulesContent);
 
       const result = await processRulesDsl("test-rules");
 
@@ -263,29 +288,32 @@ css:.important-note do: include content_regex:"Warning:"
       });
     });
 
-    it("should reject invalid region names", async () => {
-      (readFileSync as any).mockReturnValue(
+    it("leaves region-name domain validation to the engine", async () => {
+      (readFile as any).mockReturnValue(
         'css:#section do: region name:"Section-A"'
       );
 
-      await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        "Invalid region name \"Section-A\""
-      );
+      await expect(processRulesDsl("test-rules")).resolves.toMatchObject({
+        regions: [{ selector: "#section", name: "Section-A" }],
+      });
     });
 
-    it("should reject duplicate region names", async () => {
-      (readFileSync as any).mockReturnValue(`
+    it("leaves duplicate-region domain validation to the engine", async () => {
+      (readFile as any).mockReturnValue(`
         css:#section-a do: region name:"Section_A"
         css:#section-b do: region name:"Section_A"
       `);
 
-      await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        "Duplicate region name: Section_A"
-      );
+      await expect(processRulesDsl("test-rules")).resolves.toMatchObject({
+        regions: [
+          { selector: "#section-a", name: "Section_A" },
+          { selector: "#section-b", name: "Section_A" },
+        ],
+      });
     });
 
     it("should reject region declarations inside action blocks", async () => {
-      (readFileSync as any).mockReturnValue(`
+      (readFile as any).mockReturnValue(`
         css:#section do
           region name:"Section"
         end
@@ -293,6 +321,48 @@ css:.important-note do: include content_regex:"Warning:"
 
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
         "Syntax errors in rules file"
+      );
+    });
+
+    it("requires at least one action in a block", async () => {
+      (readFile as any).mockReturnValue("css:main do\nend");
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
+        "Syntax errors in rules file"
+      );
+    });
+
+    it("requires modifier values to be quoted", async () => {
+      (readFile as any).mockReturnValue("css:a do: remove_attr attr:href");
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(/errors in rules file/);
+    });
+
+    it("decodes escaped quotes and backslashes but preserves regex escapes", async () => {
+      (readFile as any).mockReturnValue(
+        'css:a do: rewrite_attr attr:"data-\\"id" regex:"\\d+\\?" replace:"C:\\\\temp"'
+      );
+      const result = await processRulesDsl("test-rules");
+      expect(result.rules[0].actions[0]).toEqual({
+        action: "rewrite_attr",
+        modifiers: { attr: 'data-"id', regex: "\\d+\\?", replace: "C:\\temp" },
+      });
+    });
+
+    it("accepts a block header comment and reports malformed selectors with positions", async () => {
+      (readFile as any).mockReturnValue("css:main do -- actions\n  exclude\nend");
+      await expect(processRulesDsl("test-rules")).resolves.toMatchObject({
+        rules: [{ selector: "main" }],
+      });
+
+      (readFile as any).mockReturnValue("\ncss:main > do: exclude");
+      await expect(processRulesDsl("test-rules")).resolves.toMatchObject({
+        rules: [{ selector: "main >" }],
+      });
+    });
+
+    it("reports line and column for lexical failures", async () => {
+      (readFile as any).mockReturnValue("\ncss:.item do: exclude\n@");
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
+        /line 3, column 1/
       );
     });
   });

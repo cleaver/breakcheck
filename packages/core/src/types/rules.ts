@@ -21,21 +21,21 @@ export const REGION_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 /**
  * Base interface for action modifiers
  */
-interface BaseActionModifiers {
+export interface ContentFilterModifiers {
   content_regex?: string;
 }
 
 /**
  * Modifiers for remove_attr action
  */
-interface RemoveAttrModifiers extends BaseActionModifiers {
+export interface RemoveAttrModifiers {
   attr: string;
 }
 
 /**
  * Modifiers for rewrite_attr action
  */
-interface RewriteAttrModifiers extends BaseActionModifiers {
+export interface RewriteAttrModifiers {
   attr: string;
   regex: string;
   replace: string;
@@ -44,7 +44,7 @@ interface RewriteAttrModifiers extends BaseActionModifiers {
 /**
  * Modifiers for rewrite_content action
  */
-interface RewriteContentModifiers extends BaseActionModifiers {
+export interface RewriteContentModifiers {
   regex: string;
   replace: string;
 }
@@ -56,15 +56,16 @@ export type ActionModifiers =
   | RemoveAttrModifiers
   | RewriteAttrModifiers
   | RewriteContentModifiers
-  | BaseActionModifiers;
+  | ContentFilterModifiers;
 
 /**
  * Represents a single action to be performed
  */
-export interface Action {
-  action: ActionType;
-  modifiers?: ActionModifiers;
-}
+export type Action =
+  | { action: "include" | "exclude"; modifiers?: ContentFilterModifiers }
+  | { action: "remove_attr"; modifiers: RemoveAttrModifiers }
+  | { action: "rewrite_attr"; modifiers: RewriteAttrModifiers }
+  | { action: "rewrite_content"; modifiers: RewriteContentModifiers };
 
 /**
  * Represents a single rule with a selector and its actions

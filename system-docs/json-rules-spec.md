@@ -35,7 +35,7 @@ Each object within the rules array represents a single selector and the action(s
 }
 ```
 
-- **selector** (String, Required): The CSS selector string defining the target element(s).
+- **selector** (Non-empty String, Required): Any selector accepted by the installed Cheerio selector engine.
 - **actions** (Array, Required): An ordered list containing one or more action objects to be applied to the elements matching the selector. For single-line do: rules in the DSL, this array will contain exactly one action object. For do/end blocks, it will contain multiple action objects.
 
 ## **4. Action Object Structure**
@@ -61,17 +61,19 @@ Each object within a rule's actions array represents a specific operation to per
     - attr (String, Required): The name of the attribute to rewrite.
     - regex (String, Required): The regular expression pattern to match within the attribute value.
     - replace (String, Required): The replacement string (can use capture groups like $1).
-    - Example: { "action": "rewrite_attr", "modifiers": { "attr": "href", "regex": "/user/\d+", "replace": "/user/USER_ID" } } (Note: Backslashes in regex need escaping in JSON strings)
+    - Example: `{ "action": "rewrite_attr", "modifiers": { "attr": "href", "regex": "/user/\\d+", "replace": "/user/USER_ID" } }`
   - **If action is rewrite_content:**
     - regex (String, Required): The regular expression pattern to match within the element's text content.
     - replace (String, Required): The replacement string.
-    - Example: { "action": "rewrite_content", "modifiers": { "regex": "\d{2}/\d{2}/\d{4}", "replace": "DATE_STAMP" } }
+    - Example: `{ "action": "rewrite_content", "modifiers": { "regex": "\\d{2}/\\d{2}/\\d{4}", "replace": "DATE_STAMP" } }`
   - **If action is exclude or include and has content_regex:**
     - content_regex (String, Required): A regular expression pattern to filter the action based on the element's text content. The action only applies if the content matches.
-    - Example: { "action": "exclude", "modifiers": { "content_regex": "Logged in: \d+ minutes ago" } }
+    - Example: `{ "action": "exclude", "modifiers": { "content_regex": "Logged in: \\d+ minutes ago" } }`
   - **If action is exclude or include without content_regex:**
     - modifiers object may be empty or omitted.
     - Example: { "action": "exclude" } or { "action": "exclude", "modifiers": {} }
+
+No other modifier keys are accepted, and modifiers cannot be borrowed from another action variant. Rules are validated and regular expressions compiled when the engine is created. The engine clones rules and regions at that boundary. Empty regex strings and replacement strings are valid; attribute names must be non-empty. `include` is an intentional compatibility no-op. `rewrite_content` applies separately to every descendant text node, preserving nested markup and preventing matches across element boundaries.
 
 ## **5. Examples of DSL to JSON Transformation**
 
@@ -94,9 +96,9 @@ css:.ad-container do: exclude
 **DSL Example 2 (Block Action):**
 
 ```
-css:"img" do
-  remove_attr attr:srcset
-  rewrite_attr attr:src regex://cdn\d+\.example\.com/ replace://cdn.example.com/
+css:img do
+  remove_attr attr:"srcset"
+  rewrite_attr attr:"src" regex:"//cdn\d+\.example\.com/" replace:"//cdn.example.com/"
 end
 ```
 

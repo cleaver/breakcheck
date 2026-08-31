@@ -182,6 +182,43 @@ try {
     'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function") process.exit(1);',
   ], { cwd: consumerDir });
 
+  const typeFixture = `
+import type { Action } from "@cleaver/breakcheck-core";
+
+const valid: Action[] = [
+  { action: "include" },
+  { action: "include", modifiers: { content_regex: "" } },
+  { action: "exclude", modifiers: { content_regex: "dynamic" } },
+  { action: "remove_attr", modifiers: { attr: "data-id" } },
+  { action: "rewrite_attr", modifiers: { attr: "href", regex: "", replace: "static" } },
+  { action: "rewrite_content", modifiers: { regex: "dynamic", replace: "" } },
+];
+void valid;
+
+// @ts-expect-error remove_attr requires attr
+const missingAttribute: Action = { action: "remove_attr", modifiers: {} };
+// @ts-expect-error rewrite_content requires replace
+const missingReplacement: Action = { action: "rewrite_content", modifiers: { regex: "x" } };
+// @ts-expect-error exclude does not accept attr
+const mismatchedExclude: Action = { action: "exclude", modifiers: { attr: "id" } };
+// @ts-expect-error rewrite_attr does not accept content_regex
+const mismatchedRewrite: Action = { action: "rewrite_attr", modifiers: { attr: "href", regex: "x", replace: "y", content_regex: "z" } };
+void missingAttribute; void missingReplacement; void mismatchedExclude; void mismatchedRewrite;
+`;
+  await writeFile(path.join(consumerDir, "action-types.ts"), typeFixture);
+  await writeFile(path.join(consumerDir, "tsconfig.json"), JSON.stringify({
+    compilerOptions: {
+      module: "NodeNext",
+      moduleResolution: "NodeNext",
+      target: "ES2022",
+      strict: true,
+      noEmit: true,
+      skipLibCheck: true,
+    },
+    files: ["action-types.ts"],
+  }));
+  await run(process.execPath, [path.join(repoRoot, "node_modules/typescript/bin/tsc")], { cwd: consumerDir });
+
   await new Promise((resolve, reject) => {
     fixtureServer.on("request", (request, response) => {
       if (request.url !== "/") {

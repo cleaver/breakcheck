@@ -48,7 +48,7 @@ To get meaningful comparisons, you need to tell Breakcheck what to ignore. This 
 
 ### Syntax
 
-Rules can be a single line for one action or a `do/end` block for multiple actions on the same element. Comments start with `--`.
+Rules can be a single line for one action or a `do/end` block for multiple actions on the same element. Selectors use the full CSS syntax supported by Cheerio, including combinators, groups, pseudo-classes, escaped identifiers, and quoted attribute values. A selector and its `do:` or block `do` delimiter must share one physical header line; block `do` may only be followed by whitespace or a comment. Comments start with `--`.
 
 **Single Action:**
 
@@ -79,6 +79,8 @@ end
   - `regex:"<pattern>"`: A regular expression for matching and capturing.
   - `replace:"<replacement>"`: The string to replace matches with. Can use capture groups like `$1`.
   - `content_regex:"<pattern>"`: Applies the action only if the element's text content matches the regex.
+
+Modifier values are always double-quoted. Use `\"` for a quote and `\\` for a literal backslash; regex escapes such as `\d`, `\w`, and `\?` remain intact. Rules are validated eagerly, before HTML processing. `include` is intentionally a compatibility no-op. Content rewrites preserve nested markup and apply independently to each descendant text node, so matches never span element boundaries.
 
 ### Rules Example (`rules.breakcheck`)
 
