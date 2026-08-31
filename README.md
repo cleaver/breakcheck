@@ -300,6 +300,11 @@ All commands support these logging options:
 | `--json-logs`    | Output logs in JSON format (useful for automation) |         |
 | `--no-json-logs` | Output logs in pretty format (user-friendly)       | ✓       |
 
+Snapshot crawler lifecycle and error messages use the same logger as Breakcheck's
+command messages. This means `--json-logs` also produces structured JSON for
+Crawlee records, including a `component` field such as `CheerioCrawler`; the
+default pretty output includes timestamps for both sources.
+
 ### Use Cases
 
 - **Interactive use**: Use the default pretty logging for easy reading during development and testing

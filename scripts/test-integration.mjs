@@ -111,6 +111,18 @@ async function runCli(cwd, args) {
   }
 }
 
+function stripAnsi(output) {
+  return output.replace(/\u001b\[[0-9;]*m/g, "");
+}
+
+function parseJsonLogs(output) {
+  return stripAnsi(output)
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+}
+
 async function expectCliFailure(cwd, args, pattern) {
   await assert.rejects(
     () => runCli(cwd, args),
@@ -121,8 +133,8 @@ async function expectCliFailure(cwd, args, pattern) {
   );
 }
 
-async function runSnapshot(cwd, dataRoot, baseUrl, name) {
-  await runCli(cwd, [
+async function runSnapshot(cwd, dataRoot, baseUrl, name, jsonLogs = false) {
+  const result = await runCli(cwd, [
     "snapshot",
     "--url",
     baseUrl,
@@ -132,12 +144,65 @@ async function runSnapshot(cwd, dataRoot, baseUrl, name) {
     "3",
     "--concurrency",
     "2",
+    ...(jsonLogs ? ["--json-logs"] : []),
   ]);
+
+  const output = `${result.stdout}${result.stderr}`;
+  const plainOutput = stripAnsi(output);
+
+  if (jsonLogs) {
+    const records = parseJsonLogs(output);
+    assert.ok(
+      records.some(
+        (record) =>
+          record.msg === "CheerioCrawler: Starting the crawler." &&
+          record.component === "CheerioCrawler",
+      ),
+    );
+    assert.ok(
+      records.some((record) =>
+        String(record.msg).startsWith("✅ Snapshot created successfully:"),
+      ),
+    );
+  } else {
+    assert.match(
+      plainOutput,
+      /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [+-]\d{4}\] INFO: CheerioCrawler: Starting the crawler\./,
+    );
+    assert.match(
+      plainOutput,
+      /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [+-]\d{4}\] INFO: ✅ Snapshot created successfully:/,
+    );
+    assert.doesNotMatch(plainOutput, /^INFO\s+CheerioCrawler:/m);
+  }
 
   const snapshotIndex = JSON.parse(
     await readFile(join(dataRoot, "snapshots", name, "index.json"), "utf8"),
   );
   assert.equal(snapshotIndex.metadata.totalPages, 4);
+}
+
+async function runInvalidSnapshot(cwd) {
+  const result = await runCli(cwd, [
+    "snapshot",
+    "--url",
+    "",
+    "--name",
+    "invalid",
+    "--json-logs",
+  ]);
+  const output = `${result.stdout}${result.stderr}`;
+  const records = parseJsonLogs(output);
+
+  assert.ok(
+    records.some(
+      (record) =>
+        record.msg === "Snapshot creation failed: baseUrl is required",
+    ),
+  );
+  assert.ok(
+    records.some((record) => record.msg === "❌ Failed to create snapshot"),
+  );
 }
 
 async function readComparison(dataRoot, name) {
@@ -222,7 +287,8 @@ try {
   await waitForHttp(`${baseUrl}/`, fixture).catch((error) => {
     throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, { cause: error });
   });
-  await runSnapshot(invocationRoot, tempRoot, baseUrl, "after");
+  await runSnapshot(invocationRoot, tempRoot, baseUrl, "after", true);
+  await runInvalidSnapshot(invocationRoot);
   await stopProcess(fixture);
   fixture = undefined;
 

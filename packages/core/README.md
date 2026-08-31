@@ -66,6 +66,18 @@ async function takeSnapshot() {
 takeSnapshot();
 ```
 
+### Configuring Logs
+
+The core package uses pretty Pino logs by default. Call `configureLogger` before
+starting a workflow to select JSON output or a different log level. Crawlee
+messages emitted during snapshotting use the same configured logger.
+
+```javascript
+import { configureLogger } from "@cleaver/breakcheck-core";
+
+configureLogger({ useJsonLogs: true });
+```
+
 ### Listing Snapshots
 
 You can get a list of all locally saved snapshots using the `listSnapshots` function.
