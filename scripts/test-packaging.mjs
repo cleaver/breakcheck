@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { createServer, get as httpGet } from "node:http";
-import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import path from "node:path";
@@ -9,7 +17,10 @@ import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 
@@ -25,7 +36,7 @@ async function run(command, args, options = {}) {
     const stderr = error.stderr || "";
     throw new Error(
       `${command} ${args.join(" ")} failed with code ${error.code ?? "unknown"}\n${stdout}\n${stderr}`,
-      { cause: error }
+      { cause: error },
     );
   }
 }
@@ -40,7 +51,7 @@ async function packWorkspace(workspace, destination) {
   ]);
 
   const created = (await readdir(destination)).filter(
-    (file) => file.endsWith(".tgz") && !before.has(file)
+    (file) => file.endsWith(".tgz") && !before.has(file),
   );
   assert.equal(created.length, 1, `Expected one tarball for ${workspace}`);
   return path.join(destination, created[0]);
@@ -64,7 +75,7 @@ async function expectCliFailure(consumerDir, args, message) {
     (error) => {
       assert.match(String(error), message);
       return true;
-    }
+    },
   );
 }
 
@@ -77,7 +88,9 @@ async function getFreePort() {
   const address = server.address();
   assert.ok(address && typeof address === "object");
   const port = address.port;
-  await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+  await new Promise((resolve, reject) =>
+    server.close((error) => (error ? reject(error) : resolve())),
+  );
   return port;
 }
 
@@ -87,7 +100,9 @@ async function getUrl(url) {
       let body = "";
       response.setEncoding("utf8");
       response.on("data", (chunk) => (body += chunk));
-      response.on("end", () => resolve({ statusCode: response.statusCode, body }));
+      response.on("end", () =>
+        resolve({ statusCode: response.statusCode, body }),
+      );
     });
     request.once("error", reject);
   });
@@ -130,15 +145,23 @@ function assertValidDiffScript(body) {
   assert.doesNotThrow(() => new vm.Script(inlineScript));
 }
 
-const temporaryRoot = await mkdtemp(path.join(tmpdir(), "breakcheck-package-test-"));
+const temporaryRoot = await mkdtemp(
+  path.join(tmpdir(), "breakcheck-package-test-"),
+);
 const tarballDirectory = path.join(temporaryRoot, "tarballs");
 const fixtureServer = createServer();
 let fixtureState = "before";
 
 try {
   await mkdir(tarballDirectory, { recursive: true });
-  const coreTarball = await packWorkspace("@cleaver/breakcheck-core", tarballDirectory);
-  const cliTarball = await packWorkspace("@cleaver/breakcheck", tarballDirectory);
+  const coreTarball = await packWorkspace(
+    "@cleaver/breakcheck-core",
+    tarballDirectory,
+  );
+  const cliTarball = await packWorkspace(
+    "@cleaver/breakcheck",
+    tarballDirectory,
+  );
 
   const coreFiles = await tarballContents(coreTarball);
   for (const requiredFile of [
@@ -151,7 +174,10 @@ try {
     "package/dist/public/css/diff2html.min.css",
     "package/dist/public/js/diff2html.min.js",
   ]) {
-    assert.ok(coreFiles.includes(requiredFile), `Missing ${requiredFile} from core tarball`);
+    assert.ok(
+      coreFiles.includes(requiredFile),
+      `Missing ${requiredFile} from core tarball`,
+    );
   }
 
   const consumerDir = path.join(temporaryRoot, "consumer");
@@ -159,28 +185,41 @@ try {
   await run(npmCommand, ["init", "-y"], { cwd: consumerDir });
   await run(
     npmCommand,
-    ["install", "--save-dev", "--no-audit", "--no-fund", coreTarball, cliTarball],
-    { cwd: consumerDir }
+    [
+      "install",
+      "--save-dev",
+      "--no-audit",
+      "--no-fund",
+      coreTarball,
+      cliTarball,
+    ],
+    { cwd: consumerDir },
   );
 
-  await assert.rejects(() => access(path.join(consumerDir, "node_modules", "tsx")));
   await assert.rejects(() =>
-    access(path.join(consumerDir, "node_modules", "breakcheck-core"))
+    access(path.join(consumerDir, "node_modules", "tsx")),
+  );
+  await assert.rejects(() =>
+    access(path.join(consumerDir, "node_modules", "breakcheck-core")),
   );
 
   const help = await runCli(consumerDir, ["--help"]);
   assert.match(help.stdout, /Usage: breakcheck/);
   const version = await runCli(consumerDir, ["--version"]);
   const cliPackage = JSON.parse(
-    await readFile(path.join(repoRoot, "packages/cli/package.json"), "utf8")
+    await readFile(path.join(repoRoot, "packages/cli/package.json"), "utf8"),
   );
   assert.equal(version.stdout.trim(), cliPackage.version);
 
-  await run(process.execPath, [
-    "--input-type=module",
-    "-e",
-    'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function") process.exit(1);',
-  ], { cwd: consumerDir });
+  await run(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function") process.exit(1);',
+    ],
+    { cwd: consumerDir },
+  );
 
   const typeFixture = `
 import type { Action } from "@cleaver/breakcheck-core";
@@ -206,18 +245,25 @@ const mismatchedRewrite: Action = { action: "rewrite_attr", modifiers: { attr: "
 void missingAttribute; void missingReplacement; void mismatchedExclude; void mismatchedRewrite;
 `;
   await writeFile(path.join(consumerDir, "action-types.ts"), typeFixture);
-  await writeFile(path.join(consumerDir, "tsconfig.json"), JSON.stringify({
-    compilerOptions: {
-      module: "NodeNext",
-      moduleResolution: "NodeNext",
-      target: "ES2022",
-      strict: true,
-      noEmit: true,
-      skipLibCheck: true,
-    },
-    files: ["action-types.ts"],
-  }));
-  await run(process.execPath, [path.join(repoRoot, "node_modules/typescript/bin/tsc")], { cwd: consumerDir });
+  await writeFile(
+    path.join(consumerDir, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions: {
+        module: "NodeNext",
+        moduleResolution: "NodeNext",
+        target: "ES2022",
+        strict: true,
+        noEmit: true,
+        skipLibCheck: true,
+      },
+      files: ["action-types.ts"],
+    }),
+  );
+  await run(
+    process.execPath,
+    [path.join(repoRoot, "node_modules/typescript/bin/tsc")],
+    { cwd: consumerDir },
+  );
 
   await new Promise((resolve, reject) => {
     fixtureServer.on("request", (request, response) => {
@@ -227,7 +273,7 @@ void missingAttribute; void missingReplacement; void mismatchedExclude; void mis
       }
       response.writeHead(200, { "content-type": "text/html" });
       response.end(
-        `<html><head><title>Fixture</title></head><body><h1>Breakcheck fixture</h1><script>window.breakcheckFixtureState = "stable";</script><div class="dynamic">${fixtureState}</div></body></html>`
+        `<html><head><title>Fixture</title></head><body><h1>Breakcheck fixture</h1><script>window.breakcheckFixtureState = "stable";</script><div class="dynamic">${fixtureState}</div></body></html>`,
       );
     });
     fixtureServer.once("error", reject);
@@ -263,8 +309,16 @@ void missingAttribute; void missingReplacement; void mismatchedExclude; void mis
 
   await expectCliFailure(
     consumerDir,
-    ["compare", "--before", "before", "--after", "after", "--rules", "missing-rules"],
-    /Rules file not found/
+    [
+      "compare",
+      "--before",
+      "before",
+      "--after",
+      "after",
+      "--rules",
+      "missing-rules",
+    ],
+    /Rules file not found/,
   );
 
   await runCli(consumerDir, [
@@ -277,13 +331,19 @@ void missingAttribute; void missingReplacement; void mismatchedExclude; void mis
     "unfiltered-comparison",
   ]);
   const unfilteredIndex = JSON.parse(
-    await readFile(path.join(consumerDir, "comparisons/unfiltered-comparison/index.json"), "utf8")
+    await readFile(
+      path.join(consumerDir, "comparisons/unfiltered-comparison/index.json"),
+      "utf8",
+    ),
   );
   assert.equal(unfilteredIndex.metadata.pagesWithDifferences, 1);
 
   const rulesDirectory = path.join(consumerDir, "rules");
   await mkdir(rulesDirectory, { recursive: true });
-  await writeFile(path.join(rulesDirectory, "rules.breakcheck"), "css:.dynamic do: exclude\n");
+  await writeFile(
+    path.join(rulesDirectory, "rules.breakcheck"),
+    "css:.dynamic do: exclude\n",
+  );
   await runCli(consumerDir, [
     "compare",
     "--before",
@@ -296,7 +356,10 @@ void missingAttribute; void missingReplacement; void mismatchedExclude; void mis
     "comparison",
   ]);
   const comparisonIndex = JSON.parse(
-    await readFile(path.join(consumerDir, "comparisons/comparison/index.json"), "utf8")
+    await readFile(
+      path.join(consumerDir, "comparisons/comparison/index.json"),
+      "utf8",
+    ),
   );
   assert.equal(comparisonIndex.metadata.pagesWithDifferences, 0);
 
@@ -307,7 +370,7 @@ void missingAttribute; void missingReplacement; void mismatchedExclude; void mis
     "@cleaver",
     "breakcheck",
     "dist",
-    "index.js"
+    "index.js",
   );
   const viewProcess = spawn(
     process.execPath,
@@ -316,7 +379,7 @@ void missingAttribute; void missingReplacement; void mismatchedExclude; void mis
       cwd: consumerDir,
       env: { ...process.env, NODE_OPTIONS: undefined },
       stdio: ["ignore", "pipe", "pipe"],
-    }
+    },
   );
   try {
     const response = await waitForUrl(`http://127.0.0.1:${viewPort}/`);
@@ -324,7 +387,7 @@ void missingAttribute; void missingReplacement; void mismatchedExclude; void mis
     assert.match(response.body, /comparison/);
 
     const diffResponse = await waitForUrl(
-      `http://127.0.0.1:${viewPort}/diff?page=${encodeURIComponent("/")}`
+      `http://127.0.0.1:${viewPort}/diff?page=${encodeURIComponent("/")}`,
     );
     assert.equal(diffResponse.statusCode, 200);
     assertValidDiffScript(diffResponse.body);

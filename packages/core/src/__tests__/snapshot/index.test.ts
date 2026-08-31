@@ -2,7 +2,10 @@ import { Dataset, purgeDefaultStorages } from "crawlee";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { LoadedSnapshot, SnapshotRepository } from "../../core/snapshot/index.js";
+import {
+  LoadedSnapshot,
+  SnapshotRepository,
+} from "../../core/snapshot/index.js";
 import { CrawlerType } from "../../types/api.js";
 
 describe("SnapshotRepository", () => {
@@ -16,9 +19,8 @@ describe("SnapshotRepository", () => {
 
     // Create a fresh test snapshots directory
     await fs.mkdir(TEST_SNAPSHOTS_DIR, { recursive: true });
-    snapshotRepository = await SnapshotRepository.createWithCustomDir(
-      TEST_SNAPSHOTS_DIR
-    );
+    snapshotRepository =
+      await SnapshotRepository.createWithCustomDir(TEST_SNAPSHOTS_DIR);
 
     // Create a test dataset
     testDataset = await Dataset.open("test-dataset");
@@ -70,7 +72,7 @@ describe("SnapshotRepository", () => {
       // Verify metadata
       const metadataContent = await fs.readFile(
         path.join(snapshotDir, "metadata.json"),
-        "utf-8"
+        "utf-8",
       );
       const savedMetadata = JSON.parse(metadataContent);
       expect(savedMetadata).toEqual(metadata);
@@ -78,7 +80,7 @@ describe("SnapshotRepository", () => {
       // Verify index
       const indexContent = await fs.readFile(
         path.join(snapshotDir, "index.json"),
-        "utf-8"
+        "utf-8",
       );
       const index = JSON.parse(indexContent);
       expect(index.metadata.totalPages).toBe(1);
@@ -102,7 +104,7 @@ describe("SnapshotRepository", () => {
         {
           dataset: emptyDataset,
           metadata,
-        }
+        },
       );
 
       expect(pageCount).toBe(0);
@@ -129,9 +131,8 @@ describe("SnapshotRepository", () => {
       });
 
       // Then load it
-      const loadedSnapshot = await snapshotRepository.loadSnapshot(
-        "test-snapshot"
-      );
+      const loadedSnapshot =
+        await snapshotRepository.loadSnapshot("test-snapshot");
 
       expect(loadedSnapshot).toBeInstanceOf(LoadedSnapshot);
       expect(loadedSnapshot.metadata).toEqual(metadata);
@@ -162,9 +163,8 @@ describe("SnapshotRepository", () => {
       });
 
       // Then load it
-      const loadedSnapshot = await snapshotRepository.loadSnapshot(
-        "test-snapshot"
-      );
+      const loadedSnapshot =
+        await snapshotRepository.loadSnapshot("test-snapshot");
 
       // Try to get a non-existent page
       const page = await loadedSnapshot.getPage("/nonexistent");
@@ -191,9 +191,8 @@ describe("SnapshotRepository", () => {
       });
 
       // Generate URL list
-      const outputPath = await snapshotRepository.generateUrlList(
-        "test-snapshot"
-      );
+      const outputPath =
+        await snapshotRepository.generateUrlList("test-snapshot");
 
       // Verify file exists and contains correct content
       const content = await fs.readFile(outputPath, "utf-8");
@@ -231,7 +230,7 @@ describe("SnapshotRepository", () => {
       const outputPath = await snapshotRepository.generateUrlList(
         "test-snapshot",
         undefined,
-        (url, statusCode) => statusCode === 200
+        (url, statusCode) => statusCode === 200,
       );
 
       const content = await fs.readFile(outputPath, "utf-8");

@@ -2,9 +2,9 @@ import { Configuration, Dataset, purgeDefaultStorages } from "crawlee";
 import { logger } from "../../lib/logger.js";
 import type { CrawlerConfig } from "../../types/api.js";
 import type {
-    CrawlerInstance,
-    CrawlError,
-    CrawlResult
+  CrawlerInstance,
+  CrawlError,
+  CrawlResult,
 } from "../../types/crawler.js";
 import { createCheerioCrawler } from "./implementations/cheerio.js";
 import { createPlaywrightCrawler } from "./implementations/playwright.js";
@@ -64,12 +64,12 @@ export class BreakcheckCrawler {
           crawlerType: this.config.crawlerType,
           errors: this.errors,
         },
-        "Crawling failed"
+        "Crawling failed",
       );
       throw new Error(
         `Crawling failed: ${
           error instanceof Error ? error.message : String(error)
-        }`
+        }`,
       );
     }
   }

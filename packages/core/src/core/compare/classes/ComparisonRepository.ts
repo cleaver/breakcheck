@@ -4,9 +4,9 @@ import { promisify } from "util";
 import * as zlib from "zlib";
 import { findRootDir } from "../../../lib/root.js";
 import {
-    ComparisonIndex,
-    ComparisonMetadata,
-    PageDiff
+  ComparisonIndex,
+  ComparisonMetadata,
+  PageDiff,
 } from "../../../types/compare.js";
 
 const gzip = promisify(zlib.gzip);
@@ -27,12 +27,12 @@ export class ComparisonRepository {
   static async create(
     name: string,
     metadata: ComparisonMetadata,
-    comparisonsDir?: string
+    comparisonsDir?: string,
   ): Promise<ComparisonRepository> {
     const rootDir = await findRootDir();
     const defaultComparisonsDir = path.join(rootDir, "comparisons");
     const instance = new ComparisonRepository(
-      comparisonsDir || defaultComparisonsDir
+      comparisonsDir || defaultComparisonsDir,
     );
     await instance.initialize(name, metadata);
     return instance;
@@ -43,7 +43,7 @@ export class ComparisonRepository {
    */
   private async initialize(
     name: string,
-    metadata: ComparisonMetadata
+    metadata: ComparisonMetadata,
   ): Promise<void> {
     await fs.mkdir(this.comparisonsDir, { recursive: true });
     this.comparisonDir = path.join(this.comparisonsDir, name);

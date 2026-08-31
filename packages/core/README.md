@@ -96,7 +96,7 @@ async function showSnapshots() {
   console.log("Available Snapshots:");
   snapshots.forEach((snapshot) => {
     console.log(
-      `- ${snapshot.name} (${snapshot.pageCount} pages, created on ${snapshot.date})`
+      `- ${snapshot.name} (${snapshot.pageCount} pages, created on ${snapshot.date})`,
     );
   });
 }

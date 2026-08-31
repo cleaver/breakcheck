@@ -57,9 +57,7 @@ describe("Crawlee logger integration", () => {
     crawleeLog.info("Crawler started");
 
     expect(captured.lines.map((line) => JSON.parse(line).level)).toEqual([
-      50,
-      40,
-      30,
+      50, 40, 30,
     ]);
   });
 
@@ -72,8 +70,7 @@ describe("Crawlee logger integration", () => {
     crawleeLog.perf("Crawler performance");
 
     expect(captured.lines.map((line) => JSON.parse(line).level)).toEqual([
-      40,
-      20,
+      40, 20,
     ]);
   });
 
@@ -114,7 +111,9 @@ describe("Crawlee logger integration", () => {
     const captured = createCapturedPinoLogger();
     const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
     const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     configureCrawleeLogger(captured.logger);
     crawleeLog.info("Crawler started");

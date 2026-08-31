@@ -2,7 +2,8 @@ import { Server } from "node:http";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@cleaver/breakcheck-core", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@cleaver/breakcheck-core")>();
+  const actual =
+    await importOriginal<typeof import("@cleaver/breakcheck-core")>();
   return {
     ...actual,
     startViewServer: vi.fn(),
@@ -29,16 +30,8 @@ describe("view server port selection", () => {
       startViewServerWithPortSelection("comparison", undefined),
     ).resolves.toBe(server);
 
-    expect(startViewServerMock).toHaveBeenNthCalledWith(
-      1,
-      "comparison",
-      8080,
-    );
-    expect(startViewServerMock).toHaveBeenNthCalledWith(
-      2,
-      "comparison",
-      8081,
-    );
+    expect(startViewServerMock).toHaveBeenNthCalledWith(1, "comparison", 8080);
+    expect(startViewServerMock).toHaveBeenNthCalledWith(2, "comparison", 8081);
   });
 
   it("does not fall back when an explicitly requested port is in use", async () => {

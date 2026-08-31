@@ -6,7 +6,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const execFileAsync = promisify(execFile);
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const cliEntry = path.join(repoRoot, "packages/cli/dist/index.js");
 const { NODE_OPTIONS: _nodeOptions, ...environment } = process.env;
 
@@ -14,9 +17,9 @@ const cliStats = await stat(cliEntry);
 assert.equal(
   cliStats.mode & 0o111,
   0o111,
-  `CLI entrypoint is not executable: mode ${
-    (cliStats.mode & 0o777).toString(8).padStart(3, "0")
-  }`,
+  `CLI entrypoint is not executable: mode ${(cliStats.mode & 0o777)
+    .toString(8)
+    .padStart(3, "0")}`,
 );
 
 await execFileAsync(cliEntry, ["--version"], {

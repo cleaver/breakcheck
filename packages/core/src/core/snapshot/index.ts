@@ -14,7 +14,7 @@ export { SnapshotRepository } from "./classes/SnapshotRepository.js";
  */
 export async function createSnapshot(
   config: SnapshotConfig,
-  snapshotRepository: SnapshotRepository
+  snapshotRepository: SnapshotRepository,
 ): Promise<SnapshotResult> {
   const startTime = Date.now();
   const errors: CrawlError[] = [];
@@ -51,7 +51,7 @@ export async function createSnapshot(
     if (config.urlListPath) {
       urlListPath = await snapshotRepository.generateUrlList(
         config.name,
-        config.urlListPath
+        config.urlListPath,
       );
     }
 

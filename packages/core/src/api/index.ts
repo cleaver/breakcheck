@@ -4,10 +4,10 @@ import { RulesEngine } from "../core/rules/RulesEngine.js";
 import { createSnapshot, SnapshotRepository } from "../core/snapshot/index.js";
 import { logger } from "../lib/logger.js";
 import type {
-    ComparisonConfig,
-    ComparisonSummary,
-    SnapshotConfig,
-    SnapshotResult
+  ComparisonConfig,
+  ComparisonSummary,
+  SnapshotConfig,
+  SnapshotResult,
 } from "../types/api.js";
 
 /**
@@ -15,7 +15,7 @@ import type {
  * Orchestrates calls to Crawler and Snapshot Manager.
  */
 export async function createSnapshotFromConfig(
-  config: SnapshotConfig
+  config: SnapshotConfig,
 ): Promise<SnapshotResult> {
   const snapshotRepository = await SnapshotRepository.create();
   return createSnapshot(config, snapshotRepository);
@@ -41,7 +41,7 @@ export async function createSnapshotFromConfig(
  * DOM Processor, and Diff Engine.
  */
 export async function runComparison(
-  config: ComparisonConfig
+  config: ComparisonConfig,
 ): Promise<ComparisonSummary> {
   const snapshotRepository = await SnapshotRepository.create();
   const rulesEngine = await RulesEngine.create(config.ruleset);
@@ -54,14 +54,14 @@ export async function runComparison(
         typeof config.ruleset === "string"
           ? config.ruleset
           : config.ruleset?.name,
-    }
+    },
   );
 
   const diff = await compareSnapshots(
     config,
     snapshotRepository,
     comparisonRepository,
-    rulesEngine
+    rulesEngine,
   );
 
   // Convert SnapshotDiff to ComparisonSummary

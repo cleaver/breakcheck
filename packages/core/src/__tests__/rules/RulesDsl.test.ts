@@ -34,7 +34,7 @@ describe("RulesDsl", () => {
       });
 
       await expect(processRulesDsl("non-existent")).rejects.toThrow(
-        "Rules file not found: /mock/cwd/non-existent/rules.breakcheck"
+        "Rules file not found: /mock/cwd/non-existent/rules.breakcheck",
       );
     });
 
@@ -47,7 +47,7 @@ describe("RulesDsl", () => {
       expect(resolve).toHaveBeenCalledWith(
         "/consumer/packages/site",
         "./rules",
-        "rules.breakcheck"
+        "rules.breakcheck",
       );
     });
 
@@ -57,7 +57,8 @@ describe("RulesDsl", () => {
       (readFile as any).mockRejectedValue(cause);
 
       await expect(processRulesDsl("private-rules")).rejects.toMatchObject({
-        message: "Failed to read rules file: /mock/cwd/private-rules/rules.breakcheck",
+        message:
+          "Failed to read rules file: /mock/cwd/private-rules/rules.breakcheck",
         cause,
       });
     });
@@ -228,7 +229,9 @@ css:.important-note do: include content_regex:"Warning:"
             `;
       (readFile as any).mockReturnValue(rulesContent);
 
-      await expect(processRulesDsl("test-rules")).rejects.toThrow(/errors in rules file/);
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
+        /errors in rules file/,
+      );
     });
 
     it("should throw error for invalid action", async () => {
@@ -237,7 +240,9 @@ css:.important-note do: include content_regex:"Warning:"
             `;
       (readFile as any).mockReturnValue(rulesContent);
 
-      await expect(processRulesDsl("test-rules")).rejects.toThrow(/errors in rules file/);
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
+        /errors in rules file/,
+      );
     });
 
     it("should throw error for unclosed action block", async () => {
@@ -248,7 +253,7 @@ css:.important-note do: include content_regex:"Warning:"
       (readFile as any).mockReturnValue(rulesContent);
 
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        "Syntax errors in rules file"
+        "Syntax errors in rules file",
       );
     });
 
@@ -259,7 +264,7 @@ css:.important-note do: include content_regex:"Warning:"
       (readFile as any).mockReturnValue(rulesContent);
 
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        "Syntax errors in rules file"
+        "Syntax errors in rules file",
       );
     });
 
@@ -290,7 +295,7 @@ css:.important-note do: include content_regex:"Warning:"
 
     it("leaves region-name domain validation to the engine", async () => {
       (readFile as any).mockReturnValue(
-        'css:#section do: region name:"Section-A"'
+        'css:#section do: region name:"Section-A"',
       );
 
       await expect(processRulesDsl("test-rules")).resolves.toMatchObject({
@@ -320,25 +325,27 @@ css:.important-note do: include content_regex:"Warning:"
       `);
 
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        "Syntax errors in rules file"
+        "Syntax errors in rules file",
       );
     });
 
     it("requires at least one action in a block", async () => {
       (readFile as any).mockReturnValue("css:main do\nend");
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        "Syntax errors in rules file"
+        "Syntax errors in rules file",
       );
     });
 
     it("requires modifier values to be quoted", async () => {
       (readFile as any).mockReturnValue("css:a do: remove_attr attr:href");
-      await expect(processRulesDsl("test-rules")).rejects.toThrow(/errors in rules file/);
+      await expect(processRulesDsl("test-rules")).rejects.toThrow(
+        /errors in rules file/,
+      );
     });
 
     it("decodes escaped quotes and backslashes but preserves regex escapes", async () => {
       (readFile as any).mockReturnValue(
-        'css:a do: rewrite_attr attr:"data-\\"id" regex:"\\d+\\?" replace:"C:\\\\temp"'
+        'css:a do: rewrite_attr attr:"data-\\"id" regex:"\\d+\\?" replace:"C:\\\\temp"',
       );
       const result = await processRulesDsl("test-rules");
       expect(result.rules[0].actions[0]).toEqual({
@@ -348,7 +355,9 @@ css:.important-note do: include content_regex:"Warning:"
     });
 
     it("accepts a block header comment and reports malformed selectors with positions", async () => {
-      (readFile as any).mockReturnValue("css:main do -- actions\n  exclude\nend");
+      (readFile as any).mockReturnValue(
+        "css:main do -- actions\n  exclude\nend",
+      );
       await expect(processRulesDsl("test-rules")).resolves.toMatchObject({
         rules: [{ selector: "main" }],
       });
@@ -362,7 +371,7 @@ css:.important-note do: include content_regex:"Warning:"
     it("reports line and column for lexical failures", async () => {
       (readFile as any).mockReturnValue("\ncss:.item do: exclude\n@");
       await expect(processRulesDsl("test-rules")).rejects.toThrow(
-        /line 3, column 1/
+        /line 3, column 1/,
       );
     });
   });

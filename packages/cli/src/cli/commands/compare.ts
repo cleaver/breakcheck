@@ -10,11 +10,11 @@ export const compareCommand = new InteractiveCommand("compare")
   .option(
     "-o, --output <name>",
     "Name for the comparison output directory",
-    "compare_default"
+    "compare_default",
   )
   .option(
     "-r, --rules <directory>",
-    "Directory containing rules.breakcheck (relative to the current working directory)"
+    "Directory containing rules.breakcheck (relative to the current working directory)",
   )
   .option("--json-logs", "Output logs in JSON format")
   .option("--no-json-logs", "Output logs in pretty format (default)")
@@ -34,7 +34,7 @@ export const compareCommand = new InteractiveCommand("compare")
       };
 
       logger.info(
-        `🚀 Starting comparison: ${options.before} vs ${options.after}`
+        `🚀 Starting comparison: ${options.before} vs ${options.after}`,
       );
       const summary = await runComparison(config); // API call
 
@@ -43,17 +43,17 @@ export const compareCommand = new InteractiveCommand("compare")
         logger.info(`   - Results saved to: ${summary.resultsPath}`);
         logger.info(`   - Total pages compared: ${summary.totalPagesCompared}`);
         logger.info(
-          `   - Pages with differences: ${summary.pagesWithDifferences}`
+          `   - Pages with differences: ${summary.pagesWithDifferences}`,
         );
         logger.info(`   - New URLs: ${summary.newUrls.length}`);
         logger.info(`   - Removed URLs: ${summary.removedUrls.length}`);
         logger.info(
-          `   - Overall result: ${summary.overallResult.toUpperCase()}`
+          `   - Overall result: ${summary.overallResult.toUpperCase()}`,
         );
       } else {
         logger.error(
           { errors: summary.comparisonProcessErrors },
-          "❌ Comparison failed"
+          "❌ Comparison failed",
         );
       }
     } catch (error) {

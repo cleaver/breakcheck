@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 
 export async function startViewServer(
   comparisonName: string,
-  port: number = 8080
+  port: number = 8080,
 ): Promise<http.Server> {
   const app = express();
 

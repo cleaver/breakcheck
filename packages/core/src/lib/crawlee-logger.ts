@@ -1,8 +1,4 @@
-import {
-  Logger as CrawleeLogger,
-  log as crawleeLog,
-  LogLevel,
-} from "crawlee";
+import { Logger as CrawleeLogger, log as crawleeLog, LogLevel } from "crawlee";
 import type { Logger as PinoLogger } from "pino";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -19,7 +15,7 @@ class PinoCrawleeLogger extends CrawleeLogger {
     message: string,
     data?: unknown,
     exception?: unknown,
-    opts: Record<string, unknown> = {}
+    opts: Record<string, unknown> = {},
   ): void {
     const component = typeof opts.prefix === "string" ? opts.prefix : undefined;
     const prefix = component ? `${component}: ` : "";

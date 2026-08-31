@@ -248,7 +248,10 @@ async function runView(cwd, comparisonName) {
   });
 
   try {
-    const response = await waitForHttp(`http://127.0.0.1:${port}/`, viewProcess);
+    const response = await waitForHttp(
+      `http://127.0.0.1:${port}/`,
+      viewProcess,
+    );
     assert.equal(response.status, 200);
     assert.match(response.body, /filtered-comparison/);
   } catch (error) {
@@ -277,7 +280,9 @@ try {
 
   fixture = startFixture(beforeFixture, port, invocationRoot);
   await waitForHttp(`${baseUrl}/`, fixture).catch((error) => {
-    throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, { cause: error });
+    throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, {
+      cause: error,
+    });
   });
   await runSnapshot(invocationRoot, tempRoot, baseUrl, "before");
   await stopProcess(fixture);
@@ -285,7 +290,9 @@ try {
 
   fixture = startFixture(afterFixture, port, invocationRoot);
   await waitForHttp(`${baseUrl}/`, fixture).catch((error) => {
-    throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, { cause: error });
+    throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, {
+      cause: error,
+    });
   });
   await runSnapshot(invocationRoot, tempRoot, baseUrl, "after", true);
   await runInvalidSnapshot(invocationRoot);
@@ -294,7 +301,15 @@ try {
 
   await expectCliFailure(
     invocationRoot,
-    ["compare", "--before", "before", "--after", "after", "--rules", "./missing-rules"],
+    [
+      "compare",
+      "--before",
+      "before",
+      "--after",
+      "after",
+      "--rules",
+      "./missing-rules",
+    ],
     /Rules file not found/,
   );
 
