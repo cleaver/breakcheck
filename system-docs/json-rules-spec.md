@@ -35,7 +35,14 @@ Each object within the rules array represents a single selector and the action(s
 }
 ```
 
-- **selector** (Non-empty String, Required): Any selector accepted by the installed Cheerio selector engine.
+- **selector** (Non-empty String, Required): Any selector accepted by the installed Cheerio selector engine. Tailwind class names containing colons must use CSS escaping when selected as a class. For example, the JSON representation of a selector for `prose-h1:font-bold` is:
+
+  ```json
+  "selector": ".prose-h1\\:font-bold"
+  ```
+
+  A class-token attribute selector such as `[class~="prose-h1:font-bold"]` avoids the CSS escape. The same rules apply to selectors in the optional `regions` array.
+
 - **actions** (Array, Required): An ordered list containing one or more action objects to be applied to the elements matching the selector. For single-line do: rules in the DSL, this array will contain exactly one action object. For do/end blocks, it will contain multiple action objects.
 
 ## **4. Action Object Structure**
@@ -159,7 +166,7 @@ Each object in the optional `regions` array identifies one named section of the 
 }
 ```
 
-- **selector** (String, Required): The CSS selector used after ordinary rules have been applied.
+- **selector** (String, Required): The CSS selector used after ordinary rules have been applied. Tailwind class names containing colons must use CSS escaping when selected as a class; for example, `.prose-h1\\:font-bold` selects the class `prose-h1:font-bold` in JSON. Alternatively, use `[class~="prose-h1:font-bold"]`.
 - **name** (String, Required): A unique, case-sensitive identifier matching `[A-Za-z_][A-Za-z0-9_]*`.
 
 Regions are emitted by ascending exact name, with repeated matches retaining document order. Each matched element contributes its outer HTML inside a named wrapper under a stable synthetic root. Missing matches produce no output; overlapping declarations are emitted independently.

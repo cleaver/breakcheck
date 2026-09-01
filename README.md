@@ -113,6 +113,24 @@ To get meaningful comparisons, you need to tell Breakcheck what to ignore. This 
 
 Rules can be a single line for one action or a `do/end` block for multiple actions on the same element. Selectors use the full CSS syntax supported by Cheerio, including combinators, groups, pseudo-classes, escaped identifiers, and quoted attribute values. A selector and its `do:` or block `do` delimiter must share one physical header line; block `do` may only be followed by whitespace or a comment. Comments start with `--`.
 
+Tailwind utility class names often contain colons, such as `prose-h1:font-bold`. Because `css:` selectors use CSS syntax, escape each colon when selecting the class directly:
+
+```
+css:.prose-h1\:font-bold do: exclude
+```
+
+This uses one backslash in a `rules.breakcheck` file. If the selector is supplied in JSON or a JavaScript string, encode that backslash as `\\`:
+
+```json
+"selector": ".prose-h1\\:font-bold"
+```
+
+As an alternative, use a class-token attribute selector, which does not require escaping the colon:
+
+```
+css:[class~="prose-h1:font-bold"] do: exclude
+```
+
 **Single Action:**
 
 ```
