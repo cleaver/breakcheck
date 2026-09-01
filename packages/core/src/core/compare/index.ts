@@ -21,8 +21,8 @@ export async function comparePage(
 
   const beautifyOptions = {
     indent_size: 2,
-    preserve_newlines: true,
-    unformatted: ["a", "span", "b", "strong", "i", "em"],
+    preserve_newlines: false,
+    unformatted: ["span", "b", "strong", "i", "em"],
   };
   const beforeContent = beautify(before.content, beautifyOptions);
   const afterContent = beautify(after.content, beautifyOptions);
