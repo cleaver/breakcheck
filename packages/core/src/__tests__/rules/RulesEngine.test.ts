@@ -153,6 +153,32 @@ describe("RulesEngine", () => {
       expect(engine.process(html)).toBe(expected);
     });
 
+    it("should exclude script elements in the body", async () => {
+      const engine = await RulesEngine.create({
+        name: "exclude-script-ruleset",
+        rules: [{ selector: "script", actions: [{ action: "exclude" }] }],
+      });
+
+      expect(
+        engine.process(
+          '<main>Content</main><script src="body.js">state()</script>',
+        ),
+      ).toBe("<html><head></head><body><main>Content</main></body></html>");
+    });
+
+    it("should exclude style elements in the body", async () => {
+      const engine = await RulesEngine.create({
+        name: "exclude-style-ruleset",
+        rules: [{ selector: "style", actions: [{ action: "exclude" }] }],
+      });
+
+      expect(
+        engine.process(
+          "<main>Content</main><style>body { color: black; }</style>",
+        ),
+      ).toBe("<html><head></head><body><main>Content</main></body></html>");
+    });
+
     it("should remove attributes", async () => {
       const ruleset: Ruleset = {
         name: "remove-attr-ruleset",

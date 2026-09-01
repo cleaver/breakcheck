@@ -206,9 +206,13 @@ export class RulesEngine {
     const $ = cheerio.load(html);
     for (const rule of this.ruleset.rules) {
       $(rule.selector).each((_, element) => {
-        if (element.type === "tag")
-          for (const action of rule.actions)
-            this.applyAction($, element, action);
+        if (
+          element.type !== "tag" &&
+          element.type !== "script" &&
+          element.type !== "style"
+        )
+          return;
+        for (const action of rule.actions) this.applyAction($, element, action);
       });
     }
     return this.ruleset.regions.length ? this.serializeRegions($) : $.html();
