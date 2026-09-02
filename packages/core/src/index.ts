@@ -6,6 +6,7 @@ export {
   runComparison,
 } from "./api/index.js";
 export * from "./core/view/index.js";
+export * from "./core/crawler/url-paths.js";
 export * from "./lib/logger.js";
 export { createLogger, logger } from "./lib/logger.js";
 export * from "./types/api.js";

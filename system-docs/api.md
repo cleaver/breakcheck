@@ -16,6 +16,12 @@
 
 **Key Public Functions (Examples):**
 
+`SnapshotConfig` may include an optional `urlPaths` array. When present, the
+array is an exact root-relative manifest: the API validates and resolves each
+path against `baseUrl`, removes canonical duplicates in first-seen order, and
+starts no link discovery. The base path `/` is not implicit. File and stdin
+handling belong to the CLI, which passes the resulting array to the core API.
+
 ```typescript
 // Exported from src/api/index.ts
 import type {

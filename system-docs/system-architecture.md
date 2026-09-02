@@ -55,7 +55,7 @@ F --> J[(File System / Snapshot Storage - LoadedSnapshot, SnapshotIndex)]
 
 1.  **BreakcheckCrawler Component**
     - **Tech**: Crawlee (`crawlee`)
-    - **Responsibility**: Site discovery, HTML capture (resulting in `PageSnapshot` objects), URL normalization. _Invoked by the API Layer with specific configuration (`CrawlerConfig`)._
+    - **Responsibility**: Site discovery, HTML capture (resulting in `PageSnapshot` objects), URL normalization. For exact-manifest snapshots, the API supplies validated initial requests and disables link discovery. _Invoked by the API Layer with specific configuration (`CrawlerConfig`)._
 2.  **SnapshotManager**
     - **Tech**: Compression (e.g., `zlib`), Storage (File system - local JSON/`gzip` compressed files for pages, `metadata.json`, `index.json` representing `SnapshotIndex`). Manages `LoadedSnapshot` for on-demand page access.
     - **Responsibility**: Storing/retrieving versioned site states (snapshots), managing metadata (`SnapshotMetadata`, `SnapshotIndex`). _Invoked by the API Layer._ Provides `SnapshotSummary` for listing.
@@ -109,6 +109,8 @@ export interface SnapshotConfig {
   baseUrl: string;
   name: string;
   crawlSettings: CrawlerConfig; // Defined in src/types/crawler.ts
+  /** Optional exact root-relative paths; disables link discovery. */
+  urlPaths?: string[];
   urlListPath?: string;
 }
 

@@ -113,6 +113,24 @@ To get meaningful comparisons, you need to tell Breakcheck what to ignore. This 
 
 Rules can be a single line for one action or a `do/end` block for multiple actions on the same element. Selectors use the full CSS syntax supported by Cheerio, including combinators, groups, pseudo-classes, escaped identifiers, and quoted attribute values. A selector and its `do:` or block `do` delimiter must share one physical header line; block `do` may only be followed by whitespace or a comment. Comments start with `--`.
 
+Tailwind utility class names often contain colons, such as `prose-h1:font-bold`. Because `css:` selectors use CSS syntax, escape each colon when selecting the class directly:
+
+```
+css:.prose-h1\:font-bold do: exclude
+```
+
+This uses one backslash in a `rules.breakcheck` file. If the selector is supplied in JSON or a JavaScript string, encode that backslash as `\\`:
+
+```json
+"selector": ".prose-h1\\:font-bold"
+```
+
+As an alternative, use a class-token attribute selector, which does not require escaping the colon:
+
+```
+css:[class~="prose-h1:font-bold"] do: exclude
+```
+
 **Single Action:**
 
 ```
@@ -209,9 +227,41 @@ breakcheck snapshot [options]
 | `-i, --include <patterns...>` | Glob patterns for URLs to include.                                    |                                 |
 | `-e, --exclude <patterns...>` | Glob patterns for URLs to exclude.                                    |                                 |
 | `-t, --type <type>`           | The crawler to use (`cheerio` or `playwright`).                       | `cheerio`                       |
+| `--url-file <path>`           | Crawl exactly the root-relative paths in a file, or `-` for stdin.    |                                 |
 | `-w, --write-urls <path>`     | Generate a plain text file of all crawled URLs at the specified path. |                                 |
 | `--json-logs`                 | Output logs in JSON format (useful for automation).                   |                                 |
 | `--no-json-logs`              | Output logs in pretty format (default, user-friendly).                |                                 |
+
+#### Exact URL manifests
+
+Use `--url-file` when the snapshot must contain exactly a supplied set of
+paths. The required `--url` still supplies the site's origin, but `/` is not
+added unless it appears in the manifest. Links found in listed pages are not
+followed, and `--include`/`--exclude` cannot be combined with an exact
+manifest.
+
+The manifest is newline-delimited. Blank lines and full-line comments are
+ignored; valid entries are root-relative paths beginning with one `/`.
+Duplicates are removed in first-seen order. Invalid entries are all reported
+with their source line, and the snapshot is aborted before crawling.
+
+```text
+# Pages selected for the regression check
+/
+/about-me
+/blog/the-nephew-effect
+/blog/you-might-be-losing-me
+```
+
+Use a file or stream a generated list through stdin:
+
+```bash
+breakcheck snapshot --url https://my-website.com --name selected \
+  --url-file ./urls.txt
+
+generate-url-list | breakcheck snapshot --url https://my-website.com \
+  --name selected --url-file -
+```
 
 ### `compare`
 

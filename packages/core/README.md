@@ -66,6 +66,33 @@ async function takeSnapshot() {
 takeSnapshot();
 ```
 
+#### Crawling an exact path list
+
+Programmatic callers can set `SnapshotConfig.urlPaths` to supply an in-memory
+manifest. It uses the same root-relative path format as `--url-file` and
+switches off link discovery. Only the listed paths are requested; the base
+path `/` must be included explicitly when needed.
+
+```javascript
+const snapshotConfig = {
+  baseUrl: "https://example.com",
+  name: "selected-pages",
+  urlPaths: ["/", "/about-me", "/blog/the-nephew-effect"],
+  crawlSettings: {
+    baseUrl: "https://example.com",
+    crawlerType: "cheerio",
+    maxConcurrency: 5,
+  },
+};
+
+const result = await createSnapshotFromConfig(snapshotConfig);
+```
+
+`urlPaths` is validated against `baseUrl`; entries must be root-relative and
+same-origin, and duplicates are removed in first-seen order. An invalid or
+empty manifest fails before crawling. File and stdin reading are CLI concerns;
+the core API receives the already-created array.
+
 ### Configuring Logs
 
 The core package uses pretty Pino logs by default. Call `configureLogger` before

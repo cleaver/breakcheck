@@ -7,7 +7,7 @@ The DSL is primarily line-oriented for single actions, but uses do/end blocks fo
 
 ## **2. Core Concepts**
 
-- **Selectors:** Rules target parts of the DOM using the full selector syntax accepted by Cheerio, including spaces, combinators, groups, pseudo-classes, escaped identifiers, and quoted attribute values.
+- **Selectors:** Rules target parts of the DOM using the full selector syntax accepted by Cheerio, including spaces, combinators, groups, pseudo-classes, escaped identifiers, and quoted attribute values. Tailwind class names containing colons must use CSS escaping when selected as a class, or may be matched with a class-token attribute selector.
 - **Actions:** Rules define actions to take on the selected parts: include, exclude, remove_attr, rewrite_attr, rewrite_content.
 - **Named regions:** A selector can define a named region that is extracted after ordinary rules have run. When regions are configured, only those regions are compared.
 - **Structure:** Rules start with the selector, followed by the do: keyword for a single action, or a do/end block for multiple actions.
@@ -66,6 +66,18 @@ css:[SELECTOR] do: region name:"[IDENTIFIER]"
   - regex:"<pattern>": A regular expression pattern used for matching or capturing groups in rewrite_attr and rewrite_content.
   - replace:"<replacement>": The replacement string for rewrite_attr and rewrite_content. Can use capture groups like $1, $2 from the regex modifier.
   - content_regex:"<pattern>": (Used with exclude/include) Filters the action based on the element's text content matching the regex.
+
+CSS escaping is required for punctuation that has selector meaning when it is part of a class name. For example, the Tailwind class `prose-h1:font-bold` can be selected directly with:
+
+```
+css:.prose-h1\:font-bold do: exclude
+```
+
+The raw DSL uses one backslash. A class-token attribute selector is another option:
+
+```
+css:[class~="prose-h1:font-bold"] do: exclude
+```
 
 All modifier values are double-quoted. Within a value, `\"` decodes to `"` and `\\` decodes to `\`; other escapes, including `\d`, `\w`, and `\?`, are preserved. A block must contain at least one action. The block-header `do` terminates its line and may only be followed by whitespace or a comment.
 

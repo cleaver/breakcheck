@@ -70,6 +70,8 @@ _(Invoked by the API Layer)_
 - **FR-CRAWL-06:** The crawler must record the final URL (after redirects) and HTTP status code for each page.
 - **FR-CRAWL-07:** The crawler must handle common errors gracefully (e.g., timeouts, 4xx/5xx errors) and report them back to the API Layer.
 - **FR-CRAWL-08:** The crawler shall return a collection of PageSnapshot data (URL, content, headers, status, etc.) for the crawled site.
+- **FR-CRAWL-09:** The crawler must support an exact root-relative path manifest. When present, it must request each unique validated path supplied by the API Layer, must not add the base path implicitly, and must not discover or follow links from those pages.
+- **FR-CRAWL-10:** The manifest resolver must reject malformed, non-root-relative, and cross-origin entries before crawling, report all invalid entries, and preserve the first-seen order of unique paths.
 
 ### 3.3 Snapshot Manager (File System, zlib)
 
@@ -133,6 +135,7 @@ _(Invoked by the API Layer)_
 - **FR-CLI-05:** The CLI must read configuration (e.g., rule file content) and pass necessary data structures or paths to the API Layer.
 - **FR-CLI-06:** The CLI must receive structured results (or status updates/progress) from the API Layer.
 - **FR-CLI-07:** The CLI must present results and errors received from the API Layer clearly to the user (using console output, potentially enhanced by Ink for progress/formatting).
+- **FR-CLI-07a:** The snapshot command must accept `--url-file <path|->` for a newline-delimited exact path manifest, ignore blank/full-line comment entries, support stdin via `-`, and report invalid entries with source lines before starting the crawl.
 - **FR-CLI-08:** The CLI shall not require a database connection or user login.
 - **FR-CLI-09:** The CLI interacts with the internal API synchronously. It will await the Promise returned by an API call (e.g., createSnapshot) and will only proceed after the entire operation has finished and the final result is returned.
 

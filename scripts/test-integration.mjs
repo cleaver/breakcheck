@@ -111,6 +111,40 @@ async function runCli(cwd, args) {
   }
 }
 
+async function runCliWithInput(cwd, args, input) {
+  const { NODE_OPTIONS: _nodeOptions, ...environment } = process.env;
+
+  return await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [cliEntry, ...args], {
+      cwd,
+      env: environment,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.once("error", reject);
+    child.once("close", (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+        return;
+      }
+
+      reject(
+        new Error(
+          `CLI failed: breakcheck ${args.join(" ")}\n${stdout}\n${stderr}`,
+        ),
+      );
+    });
+    child.stdin.end(input);
+  });
+}
+
 function stripAnsi(output) {
   return output.replace(/\u001b\[[0-9;]*m/g, "");
 }
@@ -295,6 +329,95 @@ try {
     });
   });
   await runSnapshot(invocationRoot, tempRoot, baseUrl, "after", true);
+
+  await writeFile(
+    join(invocationRoot, "selected-urls.txt"),
+    "# Keep one page from the baseline\n/about\n/about\n",
+  );
+  await runCli(invocationRoot, [
+    "snapshot",
+    "--url",
+    baseUrl,
+    "--name",
+    "manifest",
+    "--url-file",
+    "./selected-urls.txt",
+    "--concurrency",
+    "1",
+  ]);
+  const manifestIndex = JSON.parse(
+    await readFile(
+      join(tempRoot, "snapshots", "manifest", "index.json"),
+      "utf8",
+    ),
+  );
+  assert.equal(manifestIndex.metadata.totalPages, 1);
+  assert.deepEqual(Object.keys(manifestIndex.urls), ["/about"]);
+
+  await runCliWithInput(
+    invocationRoot,
+    [
+      "snapshot",
+      "--url",
+      baseUrl,
+      "--name",
+      "stdin-manifest",
+      "--url-file",
+      "-",
+      "--concurrency",
+      "1",
+    ],
+    "# Keep one page from a pipeline\n/contact\n/contact\n",
+  );
+  const stdinManifestIndex = JSON.parse(
+    await readFile(
+      join(tempRoot, "snapshots", "stdin-manifest", "index.json"),
+      "utf8",
+    ),
+  );
+  assert.equal(stdinManifestIndex.metadata.totalPages, 1);
+  assert.deepEqual(Object.keys(stdinManifestIndex.urls), ["/contact"]);
+
+  await expectCliFailure(
+    invocationRoot,
+    [
+      "snapshot",
+      "--url",
+      baseUrl,
+      "--name",
+      "conflicting-manifest",
+      "--include",
+      "/about",
+      "--url-file",
+      "./selected-urls.txt",
+    ],
+    /cannot be used with --url-file because the manifest is exact/,
+  );
+
+  await writeFile(
+    join(invocationRoot, "invalid-urls.txt"),
+    "/\nnot-root-relative\n//other.example/path\n/bad%escape\n",
+  );
+  await expectCliFailure(
+    invocationRoot,
+    [
+      "snapshot",
+      "--url",
+      baseUrl,
+      "--name",
+      "invalid-manifest",
+      "--url-file",
+      "./invalid-urls.txt",
+    ],
+    /invalid-urls\.txt:2:[\s\S]*invalid-urls\.txt:3:[\s\S]*invalid-urls\.txt:4:/,
+  );
+  await assert.rejects(() =>
+    readFile(
+      join(tempRoot, "snapshots", "invalid-manifest", "index.json"),
+      "utf8",
+    ),
+  );
+
   await runInvalidSnapshot(invocationRoot);
   await stopProcess(fixture);
   fixture = undefined;

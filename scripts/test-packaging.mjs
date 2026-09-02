@@ -222,7 +222,7 @@ try {
   );
 
   const typeFixture = `
-import type { Action } from "@cleaver/breakcheck-core";
+import type { Action, SnapshotConfig } from "@cleaver/breakcheck-core";
 
 const valid: Action[] = [
   { action: "include" },
@@ -243,6 +243,17 @@ const mismatchedExclude: Action = { action: "exclude", modifiers: { attr: "id" }
 // @ts-expect-error rewrite_attr does not accept content_regex
 const mismatchedRewrite: Action = { action: "rewrite_attr", modifiers: { attr: "href", regex: "x", replace: "y", content_regex: "z" } };
 void missingAttribute; void missingReplacement; void mismatchedExclude; void mismatchedRewrite;
+
+const exactSnapshot: SnapshotConfig = {
+  baseUrl: "https://example.com",
+  name: "manifest",
+  urlPaths: ["/"],
+  crawlSettings: {
+    baseUrl: "https://example.com",
+    crawlerType: "cheerio",
+  },
+};
+void exactSnapshot;
 `;
   await writeFile(path.join(consumerDir, "action-types.ts"), typeFixture);
   await writeFile(
@@ -294,6 +305,31 @@ void missingAttribute; void missingReplacement; void mismatchedExclude; void mis
     "--concurrency",
     "1",
   ]);
+
+  await writeFile(
+    path.join(consumerDir, "manifest-urls.txt"),
+    "# The installed CLI should accept exact manifests\n/\n/\n",
+  );
+  await runCli(consumerDir, [
+    "snapshot",
+    "--url",
+    fixtureUrl,
+    "--name",
+    "manifest",
+    "--url-file",
+    "./manifest-urls.txt",
+    "--concurrency",
+    "1",
+  ]);
+  const manifestIndex = JSON.parse(
+    await readFile(
+      path.join(consumerDir, "snapshots/manifest/index.json"),
+      "utf8",
+    ),
+  );
+  assert.equal(manifestIndex.metadata.totalPages, 1);
+  assert.deepEqual(Object.keys(manifestIndex.urls), ["/"]);
+
   fixtureState = "after";
   await runCli(consumerDir, [
     "snapshot",
