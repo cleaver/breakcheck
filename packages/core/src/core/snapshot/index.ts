@@ -1,7 +1,8 @@
 import { Dataset } from "crawlee";
 import { logger } from "../../lib/logger.js";
-import { SnapshotConfig, SnapshotResult } from "../../types/api.js";
-import { CrawlError } from "../../types/crawler.js";
+import type { SnapshotConfig, SnapshotResult } from "../../types/api.js";
+import type { CrawlError } from "../../types/crawler.js";
+import { resolveUrlPaths, type UrlPathIssue } from "../crawler/url-paths.js";
 import { BreakcheckCrawler } from "../crawler/index.js";
 import { SnapshotRepository } from "./classes/SnapshotRepository.js";
 
@@ -30,7 +31,43 @@ export async function createSnapshot(
       throw new Error("name is required");
     }
 
-    const crawler = new BreakcheckCrawler(config.crawlSettings);
+    const manifest =
+      config.urlPaths === undefined
+        ? undefined
+        : resolveUrlPaths(config.baseUrl, config.urlPaths);
+
+    if (manifest?.issues.length) {
+      throw new Error(formatUrlPathIssues(manifest.issues));
+    }
+
+    const startUrls = manifest?.paths.map(
+      (urlPath) => new URL(urlPath, config.baseUrl).href,
+    );
+
+    if (
+      startUrls &&
+      config.crawlSettings.maxRequests !== undefined &&
+      config.crawlSettings.maxRequests < startUrls.length
+    ) {
+      throw new Error(
+        `maxRequests (${config.crawlSettings.maxRequests}) must be at least the number of unique manifest paths (${startUrls.length})`,
+      );
+    }
+
+    if (
+      startUrls &&
+      (config.crawlSettings.includePatterns?.length ||
+        config.crawlSettings.excludePatterns?.length)
+    ) {
+      throw new Error(
+        "includePatterns and excludePatterns cannot be used with an exact URL manifest",
+      );
+    }
+
+    const crawler = new BreakcheckCrawler(config.crawlSettings, {
+      startUrls,
+      followLinks: config.urlPaths === undefined,
+    });
 
     const { datasetName, errors: crawlErrors } = await crawler.crawl();
 
@@ -85,4 +122,19 @@ export async function createSnapshot(
       errors,
     };
   }
+}
+
+function formatUrlPathIssues(issues: UrlPathIssue[]): string {
+  return issues
+    .map((issue) => {
+      switch (issue.type) {
+        case "base":
+          return `${issue.message}: ${issue.value}`;
+        case "entry":
+          return `Manifest path ${issue.index + 1} (${issue.value}): ${issue.message}`;
+        case "manifest":
+          return issue.message;
+      }
+    })
+    .join("; ");
 }

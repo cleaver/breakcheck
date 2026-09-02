@@ -13,18 +13,25 @@ export class BreakcheckCrawler {
   private config: CrawlerConfig;
   private crawler: CrawlerInstance;
   private errors: CrawlError[] = [];
+  private readonly startUrls: string[];
+  private readonly followLinks: boolean;
 
-  constructor(config: CrawlerConfig) {
+  constructor(
+    config: CrawlerConfig,
+    options: { startUrls?: string[]; followLinks?: boolean } = {},
+  ) {
     this.config = config;
+    this.startUrls = options.startUrls ?? [config.baseUrl];
+    this.followLinks = options.followLinks ?? true;
     this.crawler = this.createCrawler();
   }
 
   private createCrawler(): CrawlerInstance {
     switch (this.config.crawlerType) {
       case "cheerio":
-        return createCheerioCrawler(this.config);
+        return createCheerioCrawler(this.config, this.followLinks);
       case "playwright":
-        return createPlaywrightCrawler(this.config);
+        return createPlaywrightCrawler(this.config, this.followLinks);
       default:
         const _exhaustiveCheck: never = this.config.crawlerType;
         throw new Error(`Unsupported crawler type: ${this.config.crawlerType}`);
@@ -35,7 +42,7 @@ export class BreakcheckCrawler {
     try {
       await purgeDefaultStorages();
       this.errors = [];
-      await this.crawler.run([this.config.baseUrl]);
+      await this.crawler.run(this.startUrls);
       // Open the dataset and scan for error items only
       const dataset = await Dataset.open();
       await dataset.forEach((item: any) => {

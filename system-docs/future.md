@@ -9,7 +9,7 @@
 - [ ] `breakcheck list/ls` - list snapshots
   - [x] show name, date, number of pages, number of errors
   - [ ] in future, maybe add list diffs?
-- [ ] `breakcheck snapshot --url-file` - to use the url list text file.
+- [x] `breakcheck snapshot --url-file` - use an exact root-relative URL manifest from a text file or stdin (`--url-file -`).
 - [ ] project configuration -- common settings for the project
   - [ ] store and read config files
   - [ ] `breakcheck init` - to initialize a new project

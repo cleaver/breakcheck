@@ -133,9 +133,35 @@ breakcheck snapshot [options]
 | `-i, --include <patterns...>` | Glob patterns for URLs to include.                                    |                                 |
 | `-e, --exclude <patterns...>` | Glob patterns for URLs to exclude.                                    |                                 |
 | `-t, --type <type>`           | The crawler to use (`cheerio` or `playwright`).                       | `cheerio`                       |
+| `--url-file <path>`           | Crawl exactly the root-relative paths in a file, or `-` for stdin.    |                                 |
 | `-w, --write-urls <path>`     | Generate a plain text file of all crawled URLs at the specified path. |                                 |
 | `--json-logs`                 | Output logs in JSON format (useful for automation).                   |                                 |
 | `--no-json-logs`              | Output logs in pretty format (default, user-friendly).                |                                 |
+
+#### Exact URL manifests
+
+`--url-file` changes snapshotting to exact-manifest mode. The required
+`--url` provides the origin for the paths, and only the listed paths are
+requested. The base path `/` is not implicit, and links found in responses are
+not followed. `--include` and `--exclude` are not valid with this option.
+
+The file is newline-delimited. Blank lines and lines whose first non-whitespace
+character is `#` are ignored. Every remaining entry must be a root-relative
+path beginning with exactly one `/`, such as `/about` or
+`/blog/post?preview=1`. Absolute URLs, relative paths, and scheme-relative
+paths such as `//other.example/path` are rejected. Duplicate canonical paths
+are requested once, in first-seen order. All invalid entries are reported with
+source line numbers and the snapshot does not start if any entry is invalid.
+
+Pass `-` as the value to read from stdin:
+
+```bash
+generate-url-list | breakcheck snapshot --url https://example.com \
+  --name selected --url-file -
+```
+
+The file produced by `--write-urls` is compatible with `--url-file` and can be
+edited before the next snapshot.
 
 ### `compare`
 

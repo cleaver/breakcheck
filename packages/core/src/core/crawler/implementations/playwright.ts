@@ -8,6 +8,7 @@ import type {
 
 export function createPlaywrightCrawler(
   config: CrawlerConfig,
+  followLinks = true,
 ): CrawlerInstance {
   const { maxDepth, includePatterns, excludePatterns } = config;
 
@@ -33,7 +34,7 @@ export function createPlaywrightCrawler(
       await dataset.pushData(pageSnapshot);
 
       const depth = (request.userData.depth as number) || 0;
-      if (depth < (maxDepth || Infinity)) {
+      if (followLinks && depth < (maxDepth || Infinity)) {
         await enqueueLinks({
           globs: includePatterns || [],
           exclude: excludePatterns || [],

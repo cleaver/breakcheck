@@ -123,6 +123,9 @@ function showSnapshotHelp(logger: any) {
     "  -t, --type <type>           The crawler to use: cheerio or playwright (default: cheerio)",
   );
   logger.info(
+    "  --url-file <path>           Crawl exactly paths from a file, or '-' for stdin",
+  );
+  logger.info(
     "  -w, --write-urls <path>     Generate a plain text file of all crawled URLs",
   );
   logger.info("  --json-logs                Output logs in JSON format");
@@ -152,6 +155,16 @@ function showSnapshotHelp(logger: any) {
   logger.info("  # Generate a URL list file");
   logger.info(
     "  breakcheck snapshot --url https://my-website.com --write-urls ./crawled-urls.txt",
+  );
+  logger.info("");
+  logger.info("  # Crawl only paths from a manifest file");
+  logger.info(
+    "  breakcheck snapshot --url https://my-website.com --url-file ./urls.txt",
+  );
+  logger.info("");
+  logger.info("  # Stream a generated manifest through stdin");
+  logger.info(
+    "  generate-url-list | breakcheck snapshot --url https://my-website.com --url-file -",
   );
   logger.info("");
   logger.info("  # Use JSON logging for automation");

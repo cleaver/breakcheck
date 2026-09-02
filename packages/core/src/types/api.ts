@@ -38,6 +38,11 @@ export interface SnapshotConfig {
   name: string;
   /** Crawler configuration to use */
   crawlSettings: CrawlerConfig;
+  /**
+   * Optional root-relative paths to crawl exactly. When provided, link
+   * discovery is disabled and the base URL is not added automatically.
+   */
+  urlPaths?: string[];
   /** Optional path to generate a URL list file */
   urlListPath?: string;
 }

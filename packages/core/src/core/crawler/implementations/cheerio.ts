@@ -6,7 +6,10 @@ import type {
   PageSnapshot,
 } from "../../../types/crawler.js";
 
-export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
+export function createCheerioCrawler(
+  config: CrawlerConfig,
+  followLinks = true,
+): CrawlerInstance {
   const { maxDepth, includePatterns, excludePatterns } = config;
 
   let datasetPromise = Dataset.open();
@@ -35,7 +38,7 @@ export function createCheerioCrawler(config: CrawlerConfig): CrawlerInstance {
       await dataset.pushData(pageSnapshot);
 
       const depth = (request.userData.depth as number) || 0;
-      if (depth < (maxDepth || Infinity)) {
+      if (followLinks && depth < (maxDepth || Infinity)) {
         await enqueueLinks({
           globs: includePatterns || [],
           exclude: excludePatterns || [],

@@ -5,6 +5,7 @@ import type {
 } from "@cleaver/breakcheck-core";
 import { createSnapshotFromConfig } from "@cleaver/breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
+import { parseUrlManifest, readUrlManifest } from "../url-manifest.js";
 import { configureLogger } from "../utils.js";
 
 export const snapshotCommand = new InteractiveCommand("snapshot")
@@ -24,6 +25,10 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
     "-w, --write-urls <path>",
     "Generate a URL list file at the specified path",
   )
+  .option(
+    "--url-file <path>",
+    "Read an exact root-relative URL manifest from a file, or '-' for stdin",
+  )
   .option("--json-logs", "Output logs in JSON format")
   .option("--no-json-logs", "Output logs in pretty format (default)")
   .action(async (options) => {
@@ -31,6 +36,28 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
     const logger = configureLogger(options);
 
     try {
+      let urlPaths: string[] | undefined;
+      if (options.urlFile !== undefined) {
+        if (options.include || options.exclude) {
+          throw new Error(
+            "--include and --exclude cannot be used with --url-file because the manifest is exact",
+          );
+        }
+
+        const source = options.urlFile === "-" ? "stdin" : options.urlFile;
+        const manifest = parseUrlManifest(
+          await readUrlManifest(options.urlFile),
+          options.url,
+          source,
+        );
+
+        if (manifest.issues.length > 0) {
+          throw new Error(formatManifestIssues(manifest.issues));
+        }
+
+        urlPaths = manifest.paths;
+      }
+
       // Map CLI options to SnapshotConfig
       const config: SnapshotConfig = {
         baseUrl: options.url,
@@ -49,6 +76,7 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
           includePatterns: options.include,
           excludePatterns: options.exclude,
         },
+        urlPaths,
         urlListPath: options.writeUrls,
       };
 
@@ -84,3 +112,17 @@ export const snapshotCommand = new InteractiveCommand("snapshot")
       process.exit(1);
     }
   });
+
+function formatManifestIssues(
+  issues: ReturnType<typeof parseUrlManifest>["issues"],
+): string {
+  return issues
+    .map((issue) => {
+      if (issue.type === "entry") {
+        return `${issue.source}:${issue.line}: ${issue.message} (${issue.value})`;
+      }
+
+      return `${issue.source}: ${issue.message}`;
+    })
+    .join("\n");
+}
