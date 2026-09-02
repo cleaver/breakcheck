@@ -59,7 +59,7 @@ function showGeneralHelp(logger: any) {
   logger.info(
     "  4. 🔍 Compare the snapshots: breakcheck compare --before <name> --after <name>",
   );
-  logger.info("  5. 📊 View the results: breakcheck view <comparison-name>");
+  logger.info("  5. 📜️ View the results: breakcheck view <comparison-name>");
   logger.info("");
   logger.info("Available Commands:");
   logger.info("  snapshot        Create a snapshot of a website");
@@ -237,7 +237,7 @@ function showCompareHelp(logger: any) {
 }
 
 function showViewHelp(logger: any) {
-  logger.info("📊 VIEW COMMAND");
+  logger.info("📺️ VIEW COMMAND");
   logger.info("===============");
   logger.info("");
   logger.info(
@@ -282,7 +282,7 @@ function showViewHelp(logger: any) {
 }
 
 function showListSnapshotsHelp(logger: any) {
-  logger.info("📋 LIST-SNAPSHOTS COMMAND");
+  logger.info("📜️ LIST-SNAPSHOTS COMMAND");
   logger.info("=========================");
   logger.info("");
   logger.info("Lists all snapshots that have been saved locally.");
