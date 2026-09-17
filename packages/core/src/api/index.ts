@@ -92,4 +92,28 @@ export async function listSnapshots() {
   return snapshotRepository.listSnapshots();
 }
 
+/** Deletes one named snapshot. */
+export async function deleteSnapshot(name: string): Promise<boolean> {
+  const snapshotRepository = await SnapshotRepository.create();
+  return snapshotRepository.deleteSnapshot(name);
+}
+
+/** Deletes all snapshots and returns the names that were removed. */
+export async function deleteAllSnapshots(): Promise<string[]> {
+  const snapshotRepository = await SnapshotRepository.create();
+  return snapshotRepository.deleteAllSnapshots();
+}
+
+/** Deletes one named comparison. */
+export async function deleteComparison(name: string): Promise<boolean> {
+  const comparisonRepository = await ComparisonRepository.open();
+  return comparisonRepository.deleteComparison(name);
+}
+
+/** Deletes all comparisons and returns the names that were removed. */
+export async function deleteAllComparisons(): Promise<string[]> {
+  const comparisonRepository = await ComparisonRepository.open();
+  return comparisonRepository.deleteAllComparisons();
+}
+
 export { logger, type ComparisonConfig, type SnapshotConfig };

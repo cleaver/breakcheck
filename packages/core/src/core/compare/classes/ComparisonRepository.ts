@@ -4,6 +4,10 @@ import { promisify } from "util";
 import * as zlib from "zlib";
 import { findRootDir } from "../../../lib/root.js";
 import {
+  deleteAllStorageEntries,
+  deleteStorageEntry,
+} from "../../../lib/storage.js";
+import {
   ComparisonIndex,
   ComparisonMetadata,
   PageDiff,
@@ -29,13 +33,16 @@ export class ComparisonRepository {
     metadata: ComparisonMetadata,
     comparisonsDir?: string,
   ): Promise<ComparisonRepository> {
-    const rootDir = await findRootDir();
-    const defaultComparisonsDir = path.join(rootDir, "comparisons");
-    const instance = new ComparisonRepository(
-      comparisonsDir || defaultComparisonsDir,
-    );
+    const instance = await ComparisonRepository.open(comparisonsDir);
     await instance.initialize(name, metadata);
     return instance;
+  }
+
+  /** Opens the comparison store without initializing a named comparison. */
+  static async open(comparisonsDir?: string): Promise<ComparisonRepository> {
+    const rootDir = await findRootDir();
+    const defaultComparisonsDir = path.join(rootDir, "comparisons");
+    return new ComparisonRepository(comparisonsDir || defaultComparisonsDir);
   }
 
   /**
@@ -99,5 +106,15 @@ export class ComparisonRepository {
 
   getIndex(): ComparisonIndex {
     return this.index;
+  }
+
+  /** Deletes one named comparison without removing the storage root. */
+  async deleteComparison(name: string): Promise<boolean> {
+    return deleteStorageEntry(this.comparisonsDir, name, "comparison");
+  }
+
+  /** Deletes all direct child comparison directories and returns their names. */
+  async deleteAllComparisons(): Promise<string[]> {
+    return deleteAllStorageEntries(this.comparisonsDir, "comparison");
   }
 }

@@ -280,6 +280,35 @@ breakcheck compare [options]
 | `--json-logs`             | Output logs in JSON format (useful for automation).                                                             |                              |
 | `--no-json-logs`          | Output logs in pretty format (default, user-friendly).                                                          |                              |
 
+### `clean`
+
+Deletes stored snapshots or comparisons. Deletion is confirmed interactively
+unless `--force` is supplied.
+
+```
+breakcheck clean snapshot [options]
+breakcheck clean comparison [options]
+```
+
+| Option           | Description                                                          |
+| :--------------- | :------------------------------------------------------------------- |
+| `--name <name>`  | Delete one named snapshot or comparison.                             |
+| `--all`          | Delete all stored artifacts of the selected type.                    |
+| `--force`        | Skip confirmation; required when running without an interactive TTY. |
+| `--json-logs`    | Output logs in JSON format.                                          |
+| `--no-json-logs` | Output logs in pretty format (default).                              |
+
+`--name` and `--all` cannot be combined. If neither is provided in a terminal,
+Breakcheck prompts for a name. Snapshot cleanup never deletes comparisons.
+
+Examples:
+
+```bash
+breakcheck clean snapshot --name before
+breakcheck clean comparison --name filtered --force
+breakcheck clean snapshot --all --force
+```
+
 ### `view`
 
 Starts a local web server to display the results of a comparison in a user-friendly interface.

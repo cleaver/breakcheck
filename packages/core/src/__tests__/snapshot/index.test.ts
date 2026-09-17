@@ -297,4 +297,60 @@ describe("SnapshotRepository", () => {
       expect(snapshots).toEqual([]);
     });
   });
+
+  describe("deleteSnapshots", () => {
+    const metadata = {
+      baseUrl: "https://example.com",
+      timestamp: new Date().toISOString(),
+      crawlSettings: {
+        baseUrl: "https://example.com",
+        crawlerType: "cheerio" as CrawlerType,
+        maxRequestsPerCrawl: 10,
+      },
+    };
+
+    it("deletes a named snapshot and reports whether it existed", async () => {
+      await snapshotRepository.saveSnapshot("to-delete", {
+        dataset: testDataset,
+        metadata,
+      });
+
+      await expect(
+        snapshotRepository.deleteSnapshot("to-delete"),
+      ).resolves.toBe(true);
+      await expect(
+        fs.access(path.join(TEST_SNAPSHOTS_DIR, "to-delete")),
+      ).rejects.toThrow();
+      await expect(
+        snapshotRepository.deleteSnapshot("to-delete"),
+      ).resolves.toBe(false);
+    });
+
+    it("rejects path-like names before touching storage", async () => {
+      await expect(
+        snapshotRepository.deleteSnapshot("../outside"),
+      ).rejects.toThrow("Invalid snapshot name");
+      await expect(fs.access(TEST_SNAPSHOTS_DIR)).resolves.toBeUndefined();
+    });
+
+    it("deletes all snapshot directories while preserving the storage root", async () => {
+      await snapshotRepository.saveSnapshot("first", {
+        dataset: testDataset,
+        metadata,
+      });
+      await snapshotRepository.saveSnapshot("second", {
+        dataset: testDataset,
+        metadata,
+      });
+      await fs.writeFile(path.join(TEST_SNAPSHOTS_DIR, "keep.txt"), "keep");
+
+      await expect(snapshotRepository.deleteAllSnapshots()).resolves.toEqual([
+        "first",
+        "second",
+      ]);
+      await expect(fs.readdir(TEST_SNAPSHOTS_DIR)).resolves.toEqual([
+        "keep.txt",
+      ]);
+    });
+  });
 });

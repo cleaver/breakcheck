@@ -3,6 +3,7 @@
 import { createRequire } from "node:module";
 import { InteractiveCommand } from "interactive-commander";
 import { compareCommand } from "./cli/commands/compare.js";
+import { cleanCommand } from "./cli/commands/clean.js";
 import { helpCommand } from "./cli/commands/help.js";
 import { listSnapshotsCommand } from "./cli/commands/list-snapshots.js";
 import { snapshotCommand } from "./cli/commands/snapshot.js";
@@ -23,6 +24,7 @@ program
 // Add the commands to the program
 program.addCommand(snapshotCommand);
 program.addCommand(compareCommand);
+program.addCommand(cleanCommand);
 program.addCommand(listSnapshotsCommand);
 program.addCommand(viewCommand);
 program.addCommand(helpCommand);

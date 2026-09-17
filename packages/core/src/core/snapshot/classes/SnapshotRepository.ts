@@ -3,6 +3,10 @@ import * as path from "path";
 import { promisify } from "util";
 import * as zlib from "zlib";
 import { findRootDir } from "../../../lib/root.js";
+import {
+  deleteAllStorageEntries,
+  deleteStorageEntry,
+} from "../../../lib/storage.js";
 import { PageSnapshot } from "../../../types/crawler.js";
 import {
   SnapshotData,
@@ -182,6 +186,16 @@ export class SnapshotRepository {
     await fs.writeFile(finalOutputPath, content);
 
     return finalOutputPath;
+  }
+
+  /** Deletes one named snapshot without removing the storage root. */
+  async deleteSnapshot(name: string): Promise<boolean> {
+    return deleteStorageEntry(this.snapshotsDir, name, "snapshot");
+  }
+
+  /** Deletes all direct child snapshot directories and returns their names. */
+  async deleteAllSnapshots(): Promise<string[]> {
+    return deleteAllStorageEntries(this.snapshotsDir, "snapshot");
   }
 
   /**

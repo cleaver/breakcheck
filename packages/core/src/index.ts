@@ -2,8 +2,12 @@ export * from "./api/index.js";
 // Explicit exports for CLI and other consumers
 export {
   createSnapshotFromConfig,
+  deleteAllComparisons,
+  deleteAllSnapshots,
+  deleteComparison,
   listSnapshots,
   runComparison,
+  deleteSnapshot,
 } from "./api/index.js";
 export * from "./core/view/index.js";
 export * from "./core/crawler/url-paths.js";

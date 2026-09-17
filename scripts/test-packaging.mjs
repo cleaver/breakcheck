@@ -432,6 +432,20 @@ void exactSnapshot;
     await waitForProcess(viewProcess);
   }
 
+  await runCli(consumerDir, [
+    "clean",
+    "comparison",
+    "--name",
+    "unfiltered-comparison",
+    "--force",
+  ]);
+  await assert.rejects(() =>
+    access(path.join(consumerDir, "comparisons/unfiltered-comparison")),
+  );
+  await assert.doesNotReject(() =>
+    access(path.join(consumerDir, "comparisons/comparison")),
+  );
+
   console.log("Fresh-install packaging test passed");
 } finally {
   if (fixtureServer.listening) fixtureServer.close();

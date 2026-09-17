@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -468,6 +475,47 @@ try {
   assert.equal(filtered.metadata.pagesWithDifferences, 0);
 
   await runView(invocationRoot, "filtered-comparison");
+
+  await expectCliFailure(
+    invocationRoot,
+    ["clean", "snapshot", "--name", "missing", "--force"],
+    /No snapshot named "missing" was found/,
+  );
+
+  await runCli(invocationRoot, [
+    "clean",
+    "comparison",
+    "--name",
+    "unfiltered-comparison",
+    "--force",
+  ]);
+  await assert.rejects(() =>
+    access(join(tempRoot, "comparisons", "unfiltered-comparison")),
+  );
+  await assert.doesNotReject(() =>
+    access(join(tempRoot, "comparisons", "filtered-comparison")),
+  );
+
+  await runCli(invocationRoot, ["clean", "snapshot", "--all", "--force"]);
+  for (const snapshotName of [
+    "before",
+    "after",
+    "manifest",
+    "stdin-manifest",
+  ]) {
+    await assert.rejects(() =>
+      access(join(tempRoot, "snapshots", snapshotName)),
+    );
+  }
+  await assert.doesNotReject(() =>
+    access(join(tempRoot, "comparisons", "filtered-comparison")),
+  );
+
+  await runCli(invocationRoot, ["clean", "comparison", "--all", "--force"]);
+  await assert.rejects(() =>
+    access(join(tempRoot, "comparisons", "filtered-comparison")),
+  );
+
   console.log("Fixture integration test passed");
 } finally {
   if (fixture) await stopProcess(fixture);
