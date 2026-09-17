@@ -22,6 +22,10 @@ export const helpCommand = addConfigOptions(
           case "init":
             showInitHelp(logger);
             break;
+          case "new":
+          case "rule":
+            showNewRuleHelp(logger);
+            break;
           case "snapshot":
             showSnapshotHelp(logger);
             break;
@@ -41,7 +45,7 @@ export const helpCommand = addConfigOptions(
           default:
             logger.error(`Unknown command: ${commandName}`);
             logger.info(
-              "Available commands: init, snapshot, compare, clean, view, list-snapshots",
+              "Available commands: init, new rule, snapshot, compare, clean, view, list-snapshots",
             );
             process.exit(1);
         }
@@ -72,6 +76,7 @@ function showGeneralHelp(logger: any) {
   logger.info("");
   logger.info("Available Commands:");
   logger.info("  init            Create a project configuration");
+  logger.info("  new rule        Scaffold a rules.breakcheck file");
   logger.info("  snapshot        Create a snapshot of a website");
   logger.info("  compare         Compare two snapshots and save the results");
   logger.info("  clean           Delete stored snapshots or comparisons");
@@ -96,6 +101,7 @@ function showGeneralHelp(logger: any) {
   logger.info("  breakcheck help compare");
   logger.info("  breakcheck help clean");
   logger.info("  breakcheck help view");
+  logger.info("  breakcheck help new");
   logger.info("");
   logger.info(
     "For more information, visit: https://github.com/your-repo/breakcheck",
@@ -295,6 +301,35 @@ function showCompareHelp(logger: any) {
   logger.info('    css:img do: remove_attr attr:"srcset"');
   logger.info(
     '    css:.timestamp do: rewrite_content regex:"\\d{2}/\\d{2}/\\d{4}" replace:"DATE_STAMP"',
+  );
+}
+
+function showNewRuleHelp(logger: any) {
+  logger.info("✨ NEW RULE COMMAND");
+  logger.info("==================");
+  logger.info("");
+  logger.info("Creates a new ruleset directory containing rules.breakcheck.");
+  logger.info("");
+  logger.info("Usage:");
+  logger.info("  breakcheck new rule <name> [options]");
+  logger.info("");
+  logger.info("Options:");
+  logger.info(
+    "  -d, --directory <parent>  Parent directory relative to the current directory",
+  );
+  logger.info("  --json-logs               Output logs in JSON format");
+  logger.info(
+    "  --no-json-logs            Output logs in pretty format (default)",
+  );
+  logger.info("");
+  logger.info("The name must be a single path-safe segment.");
+  logger.info("Existing rules.breakcheck files are never overwritten.");
+  logger.info("");
+  logger.info("Examples:");
+  logger.info("  breakcheck new rule my-rules");
+  logger.info("  breakcheck new rule dynamic --directory rules");
+  logger.info(
+    "  breakcheck compare --rules ./my-rules --before before --after after",
   );
 }
 

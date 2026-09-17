@@ -205,6 +205,8 @@ try {
 
   const help = await runCli(consumerDir, ["--help"]);
   assert.match(help.stdout, /Usage: breakcheck/);
+  const newRuleHelp = await runCli(consumerDir, ["help", "new"]);
+  assert.match(newRuleHelp.stdout + newRuleHelp.stderr, /new rule <name>/);
   const version = await runCli(consumerDir, ["--version"]);
   const cliPackage = JSON.parse(
     await readFile(path.join(repoRoot, "packages/cli/package.json"), "utf8"),
@@ -377,12 +379,43 @@ void projectConfig; void storageOptions;
   );
   assert.equal(unfilteredIndex.metadata.pagesWithDifferences, 1);
 
-  const rulesDirectory = path.join(consumerDir, "rules");
-  await mkdir(rulesDirectory, { recursive: true });
-  await writeFile(
-    path.join(rulesDirectory, "rules.breakcheck"),
-    "css:.dynamic do: exclude\n",
+  const rulesDirectory = path.join(consumerDir, "generated-rules");
+  await runCli(consumerDir, ["new", "rule", "generated-rules"]);
+  const generatedRulesFile = path.join(rulesDirectory, "rules.breakcheck");
+  const generatedScaffold = await readFile(generatedRulesFile, "utf8");
+  assert.match(generatedScaffold, /-- Breakcheck Rules File/);
+  await expectCliFailure(
+    consumerDir,
+    ["new", "rule", "generated-rules"],
+    /already exists/,
   );
+  assert.equal(await readFile(generatedRulesFile, "utf8"), generatedScaffold);
+  await runCli(consumerDir, [
+    "compare",
+    "--before",
+    "before",
+    "--after",
+    "after",
+    "--rules",
+    rulesDirectory,
+    "--output",
+    "scaffold-comparison",
+  ]);
+  const scaffoldComparison = JSON.parse(
+    await readFile(
+      path.join(consumerDir, "comparisons/scaffold-comparison/index.json"),
+      "utf8",
+    ),
+  );
+  assert.equal(scaffoldComparison.metadata.pagesWithDifferences, 1);
+  await runCli(consumerDir, [
+    "clean",
+    "comparison",
+    "--name",
+    "scaffold-comparison",
+    "--force",
+  ]);
+  await writeFile(generatedRulesFile, "css:.dynamic do: exclude\n");
   await runCli(consumerDir, [
     "compare",
     "--before",

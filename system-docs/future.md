@@ -14,7 +14,7 @@
   - [ ] store and read config files
   - [ ] `breakcheck init` - to initialize a new project
   - [ ] interactive config files
-- [ ] `breakcheck new rule <name>` - to create a new rule file.
+- [x] `breakcheck new rule <name>` - scaffold a named `rules.breakcheck` ruleset file.
 - **ability to set a snapshot as baseline** ???? forget what this is
 - [ ] extract the file, directory, compression stuff to util modules
 - [x] extract the mocks, especially in `compare` tests.

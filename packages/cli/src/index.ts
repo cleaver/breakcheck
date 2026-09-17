@@ -7,6 +7,7 @@ import { cleanCommand } from "./cli/commands/clean.js";
 import { helpCommand } from "./cli/commands/help.js";
 import { initCommand } from "./cli/commands/init.js";
 import { listSnapshotsCommand } from "./cli/commands/list-snapshots.js";
+import { newCommand } from "./cli/commands/new.js";
 import { snapshotCommand } from "./cli/commands/snapshot.js";
 import { viewCommand } from "./cli/commands/view.js";
 
@@ -32,6 +33,7 @@ program.addCommand(snapshotCommand);
 program.addCommand(compareCommand);
 program.addCommand(cleanCommand);
 program.addCommand(initCommand);
+program.addCommand(newCommand);
 program.addCommand(listSnapshotsCommand);
 program.addCommand(viewCommand);
 program.addCommand(helpCommand);

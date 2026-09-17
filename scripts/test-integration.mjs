@@ -319,6 +319,12 @@ try {
     '{"name":"breakcheck-integration-site","private":true}\n',
   );
 
+  const newRuleHelp = await runCli(invocationRoot, ["help", "new"]);
+  assert.match(
+    newRuleHelp.stdout + newRuleHelp.stderr,
+    /breakcheck new rule <name>/,
+  );
+
   fixture = startFixture(beforeFixture, port, invocationRoot);
   await waitForHttp(`${baseUrl}/`, fixture).catch((error) => {
     throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, {
@@ -451,10 +457,19 @@ try {
   assert.equal(unfiltered.metadata.totalPages, 4);
   assert.ok(unfiltered.metadata.pagesWithDifferences > 0);
 
-  const rulesDirectory = join(invocationRoot, "rules");
-  await mkdir(rulesDirectory);
+  const rulesDirectory = join(invocationRoot, "generated-rules");
+  await runCli(invocationRoot, ["new", "rule", "generated-rules"]);
+  const generatedRulesFile = join(rulesDirectory, "rules.breakcheck");
+  const generatedScaffold = await readFile(generatedRulesFile, "utf8");
+  assert.match(generatedScaffold, /-- Breakcheck Rules File/);
+  await expectCliFailure(
+    invocationRoot,
+    ["new", "rule", "generated-rules"],
+    /already exists/,
+  );
+  assert.equal(await readFile(generatedRulesFile, "utf8"), generatedScaffold);
   await writeFile(
-    join(rulesDirectory, "rules.breakcheck"),
+    generatedRulesFile,
     [
       "css:link do: exclude",
       "css:img do: exclude",
@@ -469,7 +484,7 @@ try {
     invocationRoot,
     tempRoot,
     "filtered-comparison",
-    "./rules",
+    "./generated-rules",
   );
   assert.equal(filtered.metadata.totalPages, 4);
   assert.equal(filtered.metadata.pagesWithDifferences, 0);

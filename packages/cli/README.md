@@ -127,6 +127,22 @@ breakcheck init [--url <url>] [--storage-dir <directory>] [--rules <directory>]
 breakcheck init --interactive
 ```
 
+### `new rule`
+
+Creates a new named ruleset directory containing a comments-only
+`rules.breakcheck` scaffold. The name must be a single path-safe segment, and
+an existing rules file is never overwritten.
+
+```bash
+breakcheck new rule my-rules
+breakcheck new rule dynamic --directory rules
+```
+
+The first command creates `./my-rules/rules.breakcheck`; the second creates
+`./rules/dynamic/rules.breakcheck`. Add active DSL rules to the file, then pass
+the generated directory to `compare --rules` or set it as `comparison.rulesDir`
+in project configuration.
+
 ### `snapshot`
 
 Crawls a website and saves its HTML content and structure to a named snapshot.
