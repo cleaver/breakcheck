@@ -10,7 +10,7 @@ import {
 } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { spawn } from "node:child_process";
@@ -268,12 +268,12 @@ async function runComparison(cwd, dataRoot, output, rulesDirectory) {
   return readComparison(dataRoot, output);
 }
 
-async function runView(cwd, comparisonName) {
+async function runView(cwd, comparisonName, extraArgs = []) {
   const port = await getFreePort();
   const { NODE_OPTIONS: _nodeOptions, ...environment } = process.env;
   const viewProcess = spawn(
     process.execPath,
-    [cliEntry, "view", comparisonName, "--port", String(port)],
+    [cliEntry, "view", comparisonName, "--port", String(port), ...extraArgs],
     {
       cwd,
       env: environment,
@@ -294,7 +294,7 @@ async function runView(cwd, comparisonName) {
       viewProcess,
     );
     assert.equal(response.status, 200);
-    assert.match(response.body, /filtered-comparison/);
+    assert.match(response.body, new RegExp(comparisonName));
   } catch (error) {
     throw new Error(`${error.message}\n${output}`, { cause: error });
   } finally {
@@ -515,6 +515,105 @@ try {
   await assert.rejects(() =>
     access(join(tempRoot, "comparisons", "filtered-comparison")),
   );
+
+  const configuredStorage = join(tempRoot, "configured-artifacts");
+  const configuredRules = join(invocationRoot, "configured-rules");
+  await runCli(invocationRoot, [
+    "init",
+    "--config",
+    "breakcheck.config.json",
+    "--url",
+    baseUrl,
+    "--storage-dir",
+    relative(invocationRoot, configuredStorage),
+    "--rules",
+    relative(invocationRoot, configuredRules),
+  ]);
+  await mkdir(configuredRules);
+  await writeFile(
+    join(configuredRules, "rules.breakcheck"),
+    "css:.member do: exclude\n",
+  );
+
+  fixture = startFixture(afterFixture, port, invocationRoot);
+  await waitForHttp(`${baseUrl}/`, fixture).catch((error) => {
+    throw new Error(`${error.message}\n${fixture.fixtureOutput()}`, {
+      cause: error,
+    });
+  });
+  await runCli(invocationRoot, ["snapshot", "--name", "configured-before"]);
+  await runCli(invocationRoot, ["snapshot", "--name", "configured-after"]);
+  const configuredList = await runCli(invocationRoot, ["list-snapshots"]);
+  assert.match(
+    configuredList.stdout + configuredList.stderr,
+    /configured-before/,
+  );
+  const noConfigList = await runCli(invocationRoot, [
+    "list-snapshots",
+    "--no-config",
+  ]);
+  assert.doesNotMatch(
+    noConfigList.stdout + noConfigList.stderr,
+    /configured-before/,
+  );
+  await runCli(invocationRoot, [
+    "compare",
+    "--before",
+    "configured-before",
+    "--after",
+    "configured-after",
+    "--output",
+    "configured-comparison",
+  ]);
+  await assert.doesNotReject(() =>
+    access(join(configuredStorage, "comparisons", "configured-comparison")),
+  );
+  await runView(invocationRoot, "configured-comparison");
+
+  await writeFile(join(invocationRoot, "invalid-config.json"), "not json");
+  await expectCliFailure(
+    invocationRoot,
+    [
+      "clean",
+      "snapshot",
+      "--all",
+      "--force",
+      "--config",
+      "invalid-config.json",
+    ],
+    /not valid JSON/,
+  );
+  await assert.doesNotReject(() =>
+    access(join(configuredStorage, "snapshots", "configured-before")),
+  );
+  await expectCliFailure(
+    invocationRoot,
+    ["init", "--config", "breakcheck.config.json"],
+    /EEXIST|already exists|exists/,
+  );
+
+  await mkdir(join(tempRoot, "snapshots", "legacy-sentinel"), {
+    recursive: true,
+  });
+  await mkdir(join(tempRoot, "comparisons", "legacy-sentinel"), {
+    recursive: true,
+  });
+  await runCli(invocationRoot, ["clean", "snapshot", "--all", "--force"]);
+  await runCli(invocationRoot, ["clean", "comparison", "--all", "--force"]);
+  await assert.rejects(() =>
+    access(join(configuredStorage, "snapshots", "configured-before")),
+  );
+  await assert.rejects(() =>
+    access(join(configuredStorage, "comparisons", "configured-comparison")),
+  );
+  await assert.doesNotReject(() =>
+    access(join(tempRoot, "snapshots", "legacy-sentinel")),
+  );
+  await assert.doesNotReject(() =>
+    access(join(tempRoot, "comparisons", "legacy-sentinel")),
+  );
+  await stopProcess(fixture);
+  fixture = undefined;
 
   console.log("Fixture integration test passed");
 } finally {

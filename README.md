@@ -54,6 +54,58 @@ npm run breakcheck -- --version
 npm run breakcheck -- snapshot --url https://my-website.com --name before
 ```
 
+## Project configuration
+
+Create a versioned project configuration when the same crawl and artifact
+defaults will be used repeatedly:
+
+```bash
+breakcheck init --url https://my-website.com --storage-dir .breakcheck
+```
+
+This writes `breakcheck.config.json` in the current directory. A generated
+file records the current legacy artifact location unless `--storage-dir` is
+provided, so initializing an existing project does not hide its snapshots or
+comparisons. Initialization never moves data, creates a rules directory, or
+overwrites an existing file.
+
+The JSON schema is versioned and intentionally small:
+
+```json
+{
+  "version": 1,
+  "baseUrl": "https://example.com",
+  "storageDir": ".breakcheck",
+  "crawl": {
+    "crawlerType": "cheerio",
+    "maxDepth": 3,
+    "maxConcurrency": 5,
+    "includePatterns": [],
+    "excludePatterns": []
+  },
+  "comparison": { "rulesDir": "./rules" }
+}
+```
+
+Commands discover the nearest `breakcheck.config.json` while walking upward
+from the invocation directory. `--config ./path/to/file.json` selects one
+explicitly, and `--no-config` disables discovery. Both forms work before the
+command name or after it (for example, `breakcheck --config site.json snapshot`
+and `breakcheck snapshot --config site.json`). Command-line values
+override configuration values; `--no-include`, `--no-exclude`, and
+`compare --no-rules` clear configured defaults. Paths in the config file are
+relative to that file, while CLI paths remain relative to the invocation
+directory.
+
+`storageDir` contains Breakcheck's `snapshots/` and `comparisons/` directories.
+It does not relocate Crawlee's temporary datasets or request queues. Changing
+the setting does not migrate existing artifacts; move artifacts deliberately
+after verifying the new configuration.
+
+For a terminal-guided setup, use `breakcheck init --interactive`. Press Enter
+to skip the optional URL, storage, or rules values. Interactive initialization
+requires a terminal; plain `init` is deterministic for CI.
+
 The command examples below use `breakcheck` as shorthand; use `npx breakcheck`
 unless you have added this npm script or deliberately installed the CLI
 globally.
@@ -210,6 +262,18 @@ css:#section-a do: region name:"Section_A"
 
 ## Command Reference
 
+### `init`
+
+Creates `breakcheck.config.json` using the supplied defaults. Use
+`--config <destination-file>` to choose another destination or
+`--interactive` to answer prompts in a terminal. The destination must not
+already exist.
+
+```bash
+breakcheck init [--url <url>] [--storage-dir <directory>] [--rules <directory>]
+breakcheck init --interactive
+```
+
 ### `snapshot`
 
 Crawls a website and saves its HTML content and structure to a named snapshot.
@@ -218,19 +282,23 @@ Crawls a website and saves its HTML content and structure to a named snapshot.
 breakcheck snapshot [options]
 ```
 
-| Option                        | Description                                                           | Default                         |
-| :---------------------------- | :-------------------------------------------------------------------- | :------------------------------ |
-| `-u, --url <url>`             | **(Required)** The base URL to start crawling from.                   |                                 |
-| `-n, --name <name>`           | A unique name for the snapshot.                                       | `snapshot_YYYY-MM-DD_HH-mm-ssZ` |
-| `-d, --depth <number>`        | Maximum crawl depth.                                                  | `3`                             |
-| `-c, --concurrency <number>`  | Number of concurrent requests to make.                                | `5`                             |
-| `-i, --include <patterns...>` | Glob patterns for URLs to include.                                    |                                 |
-| `-e, --exclude <patterns...>` | Glob patterns for URLs to exclude.                                    |                                 |
-| `-t, --type <type>`           | The crawler to use (`cheerio` or `playwright`).                       | `cheerio`                       |
-| `--url-file <path>`           | Crawl exactly the root-relative paths in a file, or `-` for stdin.    |                                 |
-| `-w, --write-urls <path>`     | Generate a plain text file of all crawled URLs at the specified path. |                                 |
-| `--json-logs`                 | Output logs in JSON format (useful for automation).                   |                                 |
-| `--no-json-logs`              | Output logs in pretty format (default, user-friendly).                |                                 |
+| Option                        | Description                                                                 | Default                         |
+| :---------------------------- | :-------------------------------------------------------------------------- | :------------------------------ |
+| `-u, --url <url>`             | Base URL to start crawling from; may come from `baseUrl` in project config. |                                 |
+| `-n, --name <name>`           | A unique name for the snapshot.                                             | `snapshot_YYYY-MM-DD_HH-mm-ssZ` |
+| `-d, --depth <number>`        | Maximum crawl depth.                                                        | `3`                             |
+| `-c, --concurrency <number>`  | Number of concurrent requests to make.                                      | `5`                             |
+| `-i, --include <patterns...>` | Glob patterns for URLs to include.                                          |                                 |
+| `-e, --exclude <patterns...>` | Glob patterns for URLs to exclude.                                          |                                 |
+| `--no-include`                | Clear configured include patterns.                                          |                                 |
+| `--no-exclude`                | Clear configured exclude patterns.                                          |                                 |
+| `-t, --type <type>`           | The crawler to use (`cheerio` or `playwright`).                             | `cheerio`                       |
+| `--url-file <path>`           | Crawl exactly the root-relative paths in a file, or `-` for stdin.          |                                 |
+| `-w, --write-urls <path>`     | Generate a plain text file of all crawled URLs at the specified path.       |                                 |
+| `--json-logs`                 | Output logs in JSON format (useful for automation).                         |                                 |
+| `--no-json-logs`              | Output logs in pretty format (default, user-friendly).                      |                                 |
+| `--config <file>`             | Select a project configuration file.                                        | Nearest discovered file         |
+| `--no-config`                 | Disable project configuration discovery.                                    |                                 |
 
 #### Exact URL manifests
 
@@ -277,8 +345,11 @@ breakcheck compare [options]
 | `-a, --after <name>`      | **(Required)** The name of the "after" snapshot.                                                                |                              |
 | `-o, --output <name>`     | A name for the comparison output directory.                                                                     | `compare_default`            |
 | `-r, --rules <directory>` | Directory containing `rules.breakcheck`; relative paths resolve from the directory where Breakcheck is invoked. | None (unfiltered comparison) |
+| `--no-rules`              | Clear a configured rules directory.                                                                             |                              |
 | `--json-logs`             | Output logs in JSON format (useful for automation).                                                             |                              |
 | `--no-json-logs`          | Output logs in pretty format (default, user-friendly).                                                          |                              |
+| `--config <file>`         | Select a project configuration file.                                                                            |                              |
+| `--no-config`             | Disable project configuration discovery.                                                                        |                              |
 
 ### `clean`
 
@@ -290,13 +361,15 @@ breakcheck clean snapshot [options]
 breakcheck clean comparison [options]
 ```
 
-| Option           | Description                                                          |
-| :--------------- | :------------------------------------------------------------------- |
-| `--name <name>`  | Delete one named snapshot or comparison.                             |
-| `--all`          | Delete all stored artifacts of the selected type.                    |
-| `--force`        | Skip confirmation; required when running without an interactive TTY. |
-| `--json-logs`    | Output logs in JSON format.                                          |
-| `--no-json-logs` | Output logs in pretty format (default).                              |
+| Option            | Description                                                          |
+| :---------------- | :------------------------------------------------------------------- |
+| `--name <name>`   | Delete one named snapshot or comparison.                             |
+| `--all`           | Delete all stored artifacts of the selected type.                    |
+| `--force`         | Skip confirmation; required when running without an interactive TTY. |
+| `--json-logs`     | Output logs in JSON format.                                          |
+| `--no-json-logs`  | Output logs in pretty format (default).                              |
+| `--config <file>` | Select a project configuration file.                                 |
+| `--no-config`     | Disable project configuration discovery.                             |
 
 `--name` and `--all` cannot be combined. If neither is provided in a terminal,
 Breakcheck prompts for a name. Snapshot cleanup never deletes comparisons.
@@ -326,6 +399,8 @@ breakcheck view [comparison-name] [options]
 | `-p, --port <number>` | The port to run the view server on. When omitted, starts at 8080 and uses the next available port. | `8080` (next available) |
 | `--json-logs`         | Output logs in JSON format (useful for automation).                                                |                         |
 | `--no-json-logs`      | Output logs in pretty format (default, user-friendly).                                             |                         |
+| `--config <file>`     | Select a project configuration file.                                                               |                         |
+| `--no-config`         | Disable project configuration discovery.                                                           |                         |
 
 ### `list-snapshots`
 

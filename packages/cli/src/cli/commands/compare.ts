@@ -1,63 +1,99 @@
 import type { ComparisonConfig } from "@cleaver/breakcheck-core";
 import { runComparison } from "@cleaver/breakcheck-core";
 import { InteractiveCommand } from "interactive-commander";
+import path from "node:path";
+import {
+  addConfigOptions,
+  hasCliFlag,
+  hasCliOption,
+  resolveCliProjectConfig,
+} from "../config.js";
 import { configureLogger } from "../utils.js";
 
-export const compareCommand = new InteractiveCommand("compare")
-  .description("Compare two snapshots and save the results to disk")
-  .requiredOption("-b, --before <name>", 'Name of the "before" snapshot')
-  .requiredOption("-a, --after <name>", 'Name of the "after" snapshot')
-  .option(
-    "-o, --output <name>",
-    "Name for the comparison output directory",
-    "compare_default",
-  )
-  .option(
-    "-r, --rules <directory>",
-    "Directory containing rules.breakcheck (relative to the current working directory)",
-  )
-  .option("--json-logs", "Output logs in JSON format")
-  .option("--no-json-logs", "Output logs in pretty format (default)")
-  .action(async (options) => {
-    // Configure logger based on options
-    const logger = configureLogger(options);
+interface CompareCommandOptions {
+  before: string;
+  after: string;
+  output?: string;
+  rules?: string | false;
+  noRules?: boolean;
+  jsonLogs?: boolean;
+  noJsonLogs?: boolean;
+}
 
-    try {
-      const comparisonName =
-        options.output || `compare_${options.before}_vs_${options.after}`;
+export const compareCommand = addConfigOptions(
+  new InteractiveCommand("compare")
+    .description("Compare two snapshots and save the results to disk")
+    .requiredOption("-b, --before <name>", 'Name of the "before" snapshot')
+    .requiredOption("-a, --after <name>", 'Name of the "after" snapshot')
+    .option("-o, --output <name>", "Name for the comparison output directory")
+    .option(
+      "-r, --rules <directory>",
+      "Directory containing rules.breakcheck (relative to the current working directory)",
+    )
+    .option("--no-rules", "Clear configured comparison rules")
+    .option("--json-logs", "Output logs in JSON format")
+    .option("--no-json-logs", "Output logs in pretty format (default)")
+    .action(async (options: CompareCommandOptions) => {
+      // Configure logger based on options
+      const logger = configureLogger(options);
 
-      const config: ComparisonConfig = {
-        beforeSnapshotId: options.before,
-        afterSnapshotId: options.after,
-        comparisonName, // Pass the name to the config
-        ruleset: options.rules,
-      };
+      try {
+        const projectConfig = await resolveCliProjectConfig();
+        const noRules = options.noRules === true || options.rules === false;
+        const hasRules =
+          typeof options.rules === "string" ||
+          hasCliOption(process.argv.slice(2), "--rules");
+        if (
+          noRules &&
+          (hasRules || hasCliFlag(process.argv.slice(2), "--rules"))
+        ) {
+          throw new Error("--rules and --no-rules cannot be used together.");
+        }
+        const comparisonName = options.output || "compare_default";
 
-      logger.info(
-        `🚀 Starting comparison: ${options.before} vs ${options.after}`,
-      );
-      const summary = await runComparison(config); // API call
+        const ruleset = noRules
+          ? undefined
+          : options.rules === undefined || options.rules === false
+            ? projectConfig.rulesDir
+            : path.resolve(process.cwd(), options.rules);
 
-      if (summary.status === "completed") {
-        logger.info("✅ Comparison complete!");
-        logger.info(`   - Results saved to: ${summary.resultsPath}`);
-        logger.info(`   - Total pages compared: ${summary.totalPagesCompared}`);
+        const config: ComparisonConfig = {
+          beforeSnapshotId: options.before,
+          afterSnapshotId: options.after,
+          comparisonName, // Pass the name to the config
+          ruleset,
+        };
+
         logger.info(
-          `   - Pages with differences: ${summary.pagesWithDifferences}`,
+          `🚀 Starting comparison: ${options.before} vs ${options.after}`,
         );
-        logger.info(`   - New URLs: ${summary.newUrls.length}`);
-        logger.info(`   - Removed URLs: ${summary.removedUrls.length}`);
-        logger.info(
-          `   - Overall result: ${summary.overallResult.toUpperCase()}`,
-        );
-      } else {
-        logger.error(
-          { errors: summary.comparisonProcessErrors },
-          "❌ Comparison failed",
-        );
+        const summary = await runComparison(config, {
+          storageDir: projectConfig.storageDir,
+        }); // API call
+
+        if (summary.status === "completed") {
+          logger.info("✅ Comparison complete!");
+          logger.info(`   - Results saved to: ${summary.resultsPath}`);
+          logger.info(
+            `   - Total pages compared: ${summary.totalPagesCompared}`,
+          );
+          logger.info(
+            `   - Pages with differences: ${summary.pagesWithDifferences}`,
+          );
+          logger.info(`   - New URLs: ${summary.newUrls.length}`);
+          logger.info(`   - Removed URLs: ${summary.removedUrls.length}`);
+          logger.info(
+            `   - Overall result: ${summary.overallResult.toUpperCase()}`,
+          );
+        } else {
+          logger.error(
+            { errors: summary.comparisonProcessErrors },
+            "❌ Comparison failed",
+          );
+        }
+      } catch (error) {
+        logger.error({ err: error }, "❌ Error running comparison");
+        process.exit(1);
       }
-    } catch (error) {
-      logger.error({ err: error }, "❌ Error running comparison");
-      process.exit(1);
-    }
-  });
+    }),
+);

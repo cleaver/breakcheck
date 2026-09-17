@@ -35,7 +35,10 @@ import type {
  * Creates a snapshot of a website based on the provided configuration.
  * Orchestrates calls to Crawler and Snapshot Manager.
  */
-async function createSnapshot(config: SnapshotConfig): Promise<SnapshotResult>;
+async function createSnapshot(
+  config: SnapshotConfig,
+  options?: { storageDir?: string },
+): Promise<SnapshotResult>;
 
 /**
  * Runs a comparison between two snapshots using specified rules.
@@ -44,7 +47,38 @@ async function createSnapshot(config: SnapshotConfig): Promise<SnapshotResult>;
  */
 async function runComparison(
   config: ComparisonConfig,
+  options?: { storageDir?: string },
 ): Promise<ComparisonSummary>;
+
+// Project configuration is explicit for library consumers. The CLI performs
+// discovery and passes the resolved storage directory to these operations.
+interface ProjectConfig {
+  version: 1;
+  baseUrl?: string;
+  storageDir?: string;
+  crawl?: {
+    crawlerType?: "cheerio" | "playwright";
+    maxDepth?: number;
+    maxConcurrency?: number;
+    includePatterns?: string[];
+    excludePatterns?: string[];
+  };
+  comparison?: { rulesDir?: string };
+}
+
+interface ResolvedProjectConfig {
+  configPath?: string;
+  storageDir: string;
+  baseUrl?: string;
+  crawl: ProjectConfig["crawl"];
+  rulesDir?: string;
+}
+
+async function resolveProjectConfig(options?: {
+  cwd?: string;
+  configPath?: string;
+  noConfig?: boolean;
+}): Promise<ResolvedProjectConfig>;
 
 // Potentially others: listSnapshots, getSnapshotDetails, validateRules...
 ```

@@ -6,6 +6,8 @@ import { findRootDir } from "../../../lib/root.js";
 import {
   deleteAllStorageEntries,
   deleteStorageEntry,
+  resolveStorageEntry,
+  type StorageContext,
 } from "../../../lib/storage.js";
 import { PageSnapshot } from "../../../types/crawler.js";
 import {
@@ -28,10 +30,20 @@ export class SnapshotRepository {
    * Creates a new SnapshotRepository instance using the project root directory
    * @returns Promise<SnapshotRepository>
    */
-  static async create(): Promise<SnapshotRepository> {
-    const rootDir = await findRootDir();
-    const snapshotsDir = path.join(rootDir, "snapshots");
+  static async create(storageDir?: string): Promise<SnapshotRepository> {
+    const rootDir = storageDir === undefined ? await findRootDir() : storageDir;
+    const snapshotsDir = path.join(
+      path.resolve(storageDir ?? rootDir),
+      "snapshots",
+    );
     return new SnapshotRepository(snapshotsDir);
+  }
+
+  /** Creates a repository from an already-resolved shared storage context. */
+  static createWithStorageContext(
+    storageContext: StorageContext,
+  ): SnapshotRepository {
+    return new SnapshotRepository(storageContext.snapshotsDir);
   }
 
   /**
@@ -65,9 +77,12 @@ export class SnapshotRepository {
    * Returns the number of non-error pages saved
    */
   async saveSnapshot(name: string, data: SnapshotData): Promise<number> {
+    const snapshotDir = resolveStorageEntry(
+      this.snapshotsDir,
+      name,
+      "snapshot",
+    );
     await fs.mkdir(this.snapshotsDir, { recursive: true });
-
-    const snapshotDir = path.join(this.snapshotsDir, name);
 
     try {
       await fs.rm(snapshotDir, { recursive: true, force: true });
@@ -134,7 +149,11 @@ export class SnapshotRepository {
    * Load a snapshot from disk
    */
   async loadSnapshot(name: string) {
-    const snapshotDir = path.join(this.snapshotsDir, name);
+    const snapshotDir = resolveStorageEntry(
+      this.snapshotsDir,
+      name,
+      "snapshot",
+    );
 
     // Load metadata
     const metadataPath = path.join(snapshotDir, "metadata.json");
@@ -164,7 +183,11 @@ export class SnapshotRepository {
     outputPath?: string,
     filter?: (url: string, statusCode: number) => boolean,
   ): Promise<string> {
-    const snapshotDir = path.join(this.snapshotsDir, name);
+    const snapshotDir = resolveStorageEntry(
+      this.snapshotsDir,
+      name,
+      "snapshot",
+    );
 
     // Load index
     const indexPath = path.join(snapshotDir, "index.json");

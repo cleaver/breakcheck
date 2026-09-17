@@ -216,13 +216,13 @@ try {
     [
       "--input-type=module",
       "-e",
-      'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function") process.exit(1);',
+      'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function" || typeof core.resolveProjectConfig !== "function" || typeof core.writeProjectConfig !== "function") process.exit(1);',
     ],
     { cwd: consumerDir },
   );
 
   const typeFixture = `
-import type { Action, SnapshotConfig } from "@cleaver/breakcheck-core";
+import type { Action, ProjectConfig, SnapshotConfig, StorageOptions } from "@cleaver/breakcheck-core";
 
 const valid: Action[] = [
   { action: "include" },
@@ -254,6 +254,9 @@ const exactSnapshot: SnapshotConfig = {
   },
 };
 void exactSnapshot;
+const projectConfig: ProjectConfig = { version: 1, storageDir: ".breakcheck" };
+const storageOptions: StorageOptions = { storageDir: ".breakcheck" };
+void projectConfig; void storageOptions;
 `;
   await writeFile(path.join(consumerDir, "action-types.ts"), typeFixture);
   await writeFile(
@@ -444,6 +447,31 @@ void exactSnapshot;
   );
   await assert.doesNotReject(() =>
     access(path.join(consumerDir, "comparisons/comparison")),
+  );
+
+  await runCli(consumerDir, [
+    "init",
+    "--config",
+    "breakcheck.config.json",
+    "--url",
+    fixtureUrl,
+    "--storage-dir",
+    ".configured",
+  ]);
+  const projectConfig = JSON.parse(
+    await readFile(path.join(consumerDir, "breakcheck.config.json"), "utf8"),
+  );
+  assert.equal(projectConfig.version, 1);
+  assert.equal(projectConfig.storageDir, ".configured");
+  await runCli(consumerDir, ["snapshot", "--name", "configured"]);
+  await assert.doesNotReject(() =>
+    access(path.join(consumerDir, ".configured/snapshots/configured")),
+  );
+  const configuredList = await runCli(consumerDir, ["list-snapshots"]);
+  assert.match(configuredList.stdout + configuredList.stderr, /configured/);
+  await runCli(consumerDir, ["clean", "snapshot", "--all", "--force"]);
+  await assert.rejects(() =>
+    access(path.join(consumerDir, ".configured/snapshots/configured")),
   );
 
   console.log("Fresh-install packaging test passed");

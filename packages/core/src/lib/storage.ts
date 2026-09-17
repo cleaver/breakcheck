@@ -1,5 +1,25 @@
 import { lstat, readdir, rm } from "node:fs/promises";
 import path from "node:path";
+import { findRootDir } from "./root.js";
+
+/** Resolved locations for all Breakcheck-managed artifacts. */
+export interface StorageContext {
+  storageDir: string;
+  snapshotsDir: string;
+  comparisonsDir: string;
+}
+
+/** Resolves an explicit artifact root or the legacy project root. */
+export async function resolveStorageContext(
+  storageDir?: string,
+): Promise<StorageContext> {
+  const resolvedStorageDir = path.resolve(storageDir ?? (await findRootDir()));
+  return {
+    storageDir: resolvedStorageDir,
+    snapshotsDir: path.join(resolvedStorageDir, "snapshots"),
+    comparisonsDir: path.join(resolvedStorageDir, "comparisons"),
+  };
+}
 
 function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
   return (

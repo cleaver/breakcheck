@@ -47,6 +47,12 @@ export interface SnapshotConfig {
   urlListPath?: string;
 }
 
+/** Optional artifact-storage context for public operations. */
+export interface StorageOptions {
+  /** Directory containing the `snapshots/` and `comparisons/` stores. */
+  storageDir?: string;
+}
+
 interface SnapshotJobBase {
   snapshotId: string;
 }

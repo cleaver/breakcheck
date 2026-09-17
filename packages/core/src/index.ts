@@ -12,16 +12,21 @@ export {
 export * from "./core/view/index.js";
 export * from "./core/crawler/url-paths.js";
 export * from "./lib/logger.js";
+export * from "./lib/config.js";
 export { createLogger, logger } from "./lib/logger.js";
 export * from "./types/api.js";
 export type {
   ComparisonConfig,
   SnapshotConfig,
   SnapshotResult,
+  StorageOptions,
 } from "./types/api.js";
+export { resolveStorageContext } from "./lib/storage.js";
+export type { StorageContext } from "./lib/storage.js";
 export * from "./types/compare.js";
 export * from "./types/crawler.js";
 export type { CrawlError } from "./types/crawler.js";
 export * from "./types/rules.js";
 export * from "./types/snapshot.js";
 export type { SnapshotSummary } from "./types/snapshot.js";
+export * from "./types/config.js";

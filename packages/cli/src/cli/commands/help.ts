@@ -1,50 +1,56 @@
 import { InteractiveCommand } from "interactive-commander";
+import { addConfigOptions } from "../config.js";
 import { configureLogger } from "../utils.js";
 
-export const helpCommand = new InteractiveCommand("help")
-  .description("Show detailed help for a specific command")
-  .argument("[command]", "The command to show help for")
-  .option("--json-logs", "Output logs in JSON format")
-  .option("--no-json-logs", "Output logs in pretty format (default)")
-  .action(async (commandName, options) => {
-    // Configure logger based on options
-    const logger = configureLogger(options);
+export const helpCommand = addConfigOptions(
+  new InteractiveCommand("help")
+    .description("Show detailed help for a specific command")
+    .argument("[command]", "The command to show help for")
+    .option("--json-logs", "Output logs in JSON format")
+    .option("--no-json-logs", "Output logs in pretty format (default)")
+    .action(async (commandName, options) => {
+      // Configure logger based on options
+      const logger = configureLogger(options);
 
-    try {
-      if (!commandName) {
-        showGeneralHelp(logger);
-        return;
-      }
+      try {
+        if (!commandName) {
+          showGeneralHelp(logger);
+          return;
+        }
 
-      switch (commandName.toLowerCase()) {
-        case "snapshot":
-          showSnapshotHelp(logger);
-          break;
-        case "compare":
-          showCompareHelp(logger);
-          break;
-        case "clean":
-          showCleanHelp(logger);
-          break;
-        case "view":
-          showViewHelp(logger);
-          break;
-        case "list-snapshots":
-        case "lss":
-          showListSnapshotsHelp(logger);
-          break;
-        default:
-          logger.error(`Unknown command: ${commandName}`);
-          logger.info(
-            "Available commands: snapshot, compare, clean, view, list-snapshots",
-          );
-          process.exit(1);
+        switch (commandName.toLowerCase()) {
+          case "init":
+            showInitHelp(logger);
+            break;
+          case "snapshot":
+            showSnapshotHelp(logger);
+            break;
+          case "compare":
+            showCompareHelp(logger);
+            break;
+          case "clean":
+            showCleanHelp(logger);
+            break;
+          case "view":
+            showViewHelp(logger);
+            break;
+          case "list-snapshots":
+          case "lss":
+            showListSnapshotsHelp(logger);
+            break;
+          default:
+            logger.error(`Unknown command: ${commandName}`);
+            logger.info(
+              "Available commands: init, snapshot, compare, clean, view, list-snapshots",
+            );
+            process.exit(1);
+        }
+      } catch (error) {
+        logger.error({ err: error }, "❌ Error showing help");
+        process.exit(1);
       }
-    } catch (error) {
-      logger.error({ err: error }, "❌ Error showing help");
-      process.exit(1);
-    }
-  });
+    }),
+);
 
 function showGeneralHelp(logger: any) {
   logger.info(
@@ -65,6 +71,7 @@ function showGeneralHelp(logger: any) {
   logger.info("  5. 📜️ View the results: breakcheck view <comparison-name>");
   logger.info("");
   logger.info("Available Commands:");
+  logger.info("  init            Create a project configuration");
   logger.info("  snapshot        Create a snapshot of a website");
   logger.info("  compare         Compare two snapshots and save the results");
   logger.info("  clean           Delete stored snapshots or comparisons");
@@ -81,6 +88,8 @@ function showGeneralHelp(logger: any) {
   logger.info(
     "  --no-json-logs  Output logs in pretty format (default, user-friendly)",
   );
+  logger.info("  --config <file> Select a project configuration file");
+  logger.info("  --no-config     Disable project configuration discovery");
   logger.info("");
   logger.info("Examples:");
   logger.info("  breakcheck help snapshot");
@@ -106,7 +115,7 @@ function showSnapshotHelp(logger: any) {
   logger.info("");
   logger.info("Required Options:");
   logger.info(
-    "  -u, --url <url>             The base URL to start crawling from",
+    "  -u, --url <url>             The base URL (or use baseUrl in project config)",
   );
   logger.info("");
   logger.info("Optional Options:");
@@ -123,6 +132,12 @@ function showSnapshotHelp(logger: any) {
   );
   logger.info(
     "  -e, --exclude <patterns...> Glob patterns for URLs to exclude",
+  );
+  logger.info(
+    "  --no-include                Clear configured include patterns",
+  );
+  logger.info(
+    "  --no-exclude                Clear configured exclude patterns",
   );
   logger.info(
     "  -t, --type <type>           The crawler to use: cheerio or playwright (default: cheerio)",
@@ -174,6 +189,41 @@ function showSnapshotHelp(logger: any) {
   logger.info("");
   logger.info("  # Use JSON logging for automation");
   logger.info("  breakcheck snapshot --url https://my-website.com --json-logs");
+  logger.info("");
+  logger.info(
+    "  --config <file>             Select a project configuration file",
+  );
+  logger.info(
+    "  --no-config                 Disable project configuration discovery",
+  );
+}
+
+function showInitHelp(logger: any) {
+  logger.info("⚙️ INIT COMMAND");
+  logger.info("===============");
+  logger.info("");
+  logger.info(
+    "Create a version-1 breakcheck.config.json without overwriting an existing file.",
+  );
+  logger.info("");
+  logger.info("Usage:");
+  logger.info("  breakcheck init [options]");
+  logger.info("");
+  logger.info("Options:");
+  logger.info("  -u, --url <url>             Default base URL (optional)");
+  logger.info("  --storage-dir <directory>   Artifact directory (optional)");
+  logger.info(
+    "  -r, --rules <directory>     Default rules directory (optional)",
+  );
+  logger.info(
+    "  --config <destination-file> Destination file (default: breakcheck.config.json)",
+  );
+  logger.info(
+    "  --interactive               Prompt for omitted values in a terminal",
+  );
+  logger.info("  -d, --depth <number>        Default maximum crawl depth");
+  logger.info("  -c, --concurrency <number>  Default concurrent requests");
+  logger.info("  -t, --type <type>           Default crawler type");
 }
 
 function showCompareHelp(logger: any) {
@@ -199,6 +249,13 @@ function showCompareHelp(logger: any) {
   );
   logger.info(
     "  -r, --rules <directory>     Directory containing rules.breakcheck, relative to the current working directory (optional; omit for no rules)",
+  );
+  logger.info("  --no-rules                  Clear configured rules");
+  logger.info(
+    "  --config <file>             Select a project configuration file",
+  );
+  logger.info(
+    "  --no-config                 Disable project configuration discovery",
   );
   logger.info("  --json-logs                Output logs in JSON format");
   logger.info(
@@ -259,6 +316,8 @@ function showCleanHelp(logger: any) {
   );
   logger.info("  --json-logs     Output logs in JSON format");
   logger.info("  --no-json-logs  Output logs in pretty format (default)");
+  logger.info("  --config <file> Select a project configuration file");
+  logger.info("  --no-config     Disable project configuration discovery");
   logger.info("");
   logger.info("Provide either --name or --all. They cannot be combined.");
   logger.info(
@@ -294,6 +353,12 @@ function showViewHelp(logger: any) {
   logger.info("  --json-logs                Output logs in JSON format");
   logger.info(
     "  --no-json-logs             Output logs in pretty format (default)",
+  );
+  logger.info(
+    "  --config <file>            Select a project configuration file",
+  );
+  logger.info(
+    "  --no-config                Disable project configuration discovery",
   );
   logger.info("");
   logger.info("Examples:");
@@ -333,6 +398,12 @@ function showListSnapshotsHelp(logger: any) {
   logger.info("  --json-logs                  Output logs in JSON format");
   logger.info(
     "  --no-json-logs               Output logs in pretty format (default)",
+  );
+  logger.info(
+    "  --config <file>              Select a project configuration file",
+  );
+  logger.info(
+    "  --no-config                  Disable project configuration discovery",
   );
   logger.info("");
   logger.info("Output Format:");

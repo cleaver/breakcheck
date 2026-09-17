@@ -3,7 +3,11 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { logger } from "../../lib/logger.js";
-import { findRootDir } from "../../lib/root.js";
+import {
+  resolveStorageContext,
+  resolveStorageEntry,
+} from "../../lib/storage.js";
+import type { StorageOptions } from "../../types/api.js";
 import { createDiffHandler, createIndexHandler } from "./index.handlers.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,11 +16,16 @@ const __dirname = path.dirname(__filename);
 export async function startViewServer(
   comparisonName: string,
   port: number = 8080,
+  options: StorageOptions = {},
 ): Promise<http.Server> {
   const app = express();
 
-  const rootDir = await findRootDir();
-  const comparisonDir = path.join(rootDir, "comparisons", comparisonName);
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const comparisonDir = resolveStorageEntry(
+    storageContext.comparisonsDir,
+    comparisonName,
+    "comparison",
+  );
 
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "..", "..", "views"));

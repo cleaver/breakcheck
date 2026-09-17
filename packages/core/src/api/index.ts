@@ -3,11 +3,13 @@ import { ComparisonRepository } from "../core/compare/classes/ComparisonReposito
 import { RulesEngine } from "../core/rules/RulesEngine.js";
 import { createSnapshot, SnapshotRepository } from "../core/snapshot/index.js";
 import { logger } from "../lib/logger.js";
+import { resolveStorageContext } from "../lib/storage.js";
 import type {
   ComparisonConfig,
   ComparisonSummary,
   SnapshotConfig,
   SnapshotResult,
+  StorageOptions,
 } from "../types/api.js";
 
 /**
@@ -16,8 +18,11 @@ import type {
  */
 export async function createSnapshotFromConfig(
   config: SnapshotConfig,
+  options: StorageOptions = {},
 ): Promise<SnapshotResult> {
-  const snapshotRepository = await SnapshotRepository.create();
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const snapshotRepository =
+    SnapshotRepository.createWithStorageContext(storageContext);
   return createSnapshot(config, snapshotRepository);
 }
 
@@ -42,20 +47,25 @@ export async function createSnapshotFromConfig(
  */
 export async function runComparison(
   config: ComparisonConfig,
+  options: StorageOptions = {},
 ): Promise<ComparisonSummary> {
-  const snapshotRepository = await SnapshotRepository.create();
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const snapshotRepository =
+    SnapshotRepository.createWithStorageContext(storageContext);
   const rulesEngine = await RulesEngine.create(config.ruleset);
-  const comparisonRepository = await ComparisonRepository.create(
-    config.comparisonName,
-    {
-      beforeSnapshotId: config.beforeSnapshotId,
-      afterSnapshotId: config.afterSnapshotId,
-      rulesUsedIdentifier:
-        typeof config.ruleset === "string"
-          ? config.ruleset
-          : config.ruleset?.name,
-    },
-  );
+  const comparisonRepository =
+    await ComparisonRepository.createWithStorageContext(
+      config.comparisonName,
+      {
+        beforeSnapshotId: config.beforeSnapshotId,
+        afterSnapshotId: config.afterSnapshotId,
+        rulesUsedIdentifier:
+          typeof config.ruleset === "string"
+            ? config.ruleset
+            : config.ruleset?.name,
+      },
+      storageContext,
+    );
 
   const diff = await compareSnapshots(
     config,
@@ -87,33 +97,58 @@ export async function runComparison(
 /**
  * Lists all available snapshots with their details
  */
-export async function listSnapshots() {
-  const snapshotRepository = await SnapshotRepository.create();
+export async function listSnapshots(options: StorageOptions = {}) {
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const snapshotRepository =
+    SnapshotRepository.createWithStorageContext(storageContext);
   return snapshotRepository.listSnapshots();
 }
 
 /** Deletes one named snapshot. */
-export async function deleteSnapshot(name: string): Promise<boolean> {
-  const snapshotRepository = await SnapshotRepository.create();
+export async function deleteSnapshot(
+  name: string,
+  options: StorageOptions = {},
+): Promise<boolean> {
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const snapshotRepository =
+    SnapshotRepository.createWithStorageContext(storageContext);
   return snapshotRepository.deleteSnapshot(name);
 }
 
 /** Deletes all snapshots and returns the names that were removed. */
-export async function deleteAllSnapshots(): Promise<string[]> {
-  const snapshotRepository = await SnapshotRepository.create();
+export async function deleteAllSnapshots(
+  options: StorageOptions = {},
+): Promise<string[]> {
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const snapshotRepository =
+    SnapshotRepository.createWithStorageContext(storageContext);
   return snapshotRepository.deleteAllSnapshots();
 }
 
 /** Deletes one named comparison. */
-export async function deleteComparison(name: string): Promise<boolean> {
-  const comparisonRepository = await ComparisonRepository.open();
+export async function deleteComparison(
+  name: string,
+  options: StorageOptions = {},
+): Promise<boolean> {
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const comparisonRepository =
+    ComparisonRepository.openWithStorageContext(storageContext);
   return comparisonRepository.deleteComparison(name);
 }
 
 /** Deletes all comparisons and returns the names that were removed. */
-export async function deleteAllComparisons(): Promise<string[]> {
-  const comparisonRepository = await ComparisonRepository.open();
+export async function deleteAllComparisons(
+  options: StorageOptions = {},
+): Promise<string[]> {
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const comparisonRepository =
+    ComparisonRepository.openWithStorageContext(storageContext);
   return comparisonRepository.deleteAllComparisons();
 }
 
-export { logger, type ComparisonConfig, type SnapshotConfig };
+export {
+  logger,
+  type ComparisonConfig,
+  type SnapshotConfig,
+  type StorageOptions,
+};

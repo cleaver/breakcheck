@@ -5,6 +5,7 @@ import { InteractiveCommand } from "interactive-commander";
 import { compareCommand } from "./cli/commands/compare.js";
 import { cleanCommand } from "./cli/commands/clean.js";
 import { helpCommand } from "./cli/commands/help.js";
+import { initCommand } from "./cli/commands/init.js";
 import { listSnapshotsCommand } from "./cli/commands/list-snapshots.js";
 import { snapshotCommand } from "./cli/commands/snapshot.js";
 import { viewCommand } from "./cli/commands/view.js";
@@ -19,12 +20,18 @@ const program = new InteractiveCommand();
 program
   .name("breakcheck")
   .description("A tool for comparing website states before and after changes")
+  .option(
+    "--config <file>",
+    "Use this configuration file instead of discovering one",
+  )
+  .option("--no-config", "Disable project configuration discovery")
   .version(packageJson.version);
 
 // Add the commands to the program
 program.addCommand(snapshotCommand);
 program.addCommand(compareCommand);
 program.addCommand(cleanCommand);
+program.addCommand(initCommand);
 program.addCommand(listSnapshotsCommand);
 program.addCommand(viewCommand);
 program.addCommand(helpCommand);

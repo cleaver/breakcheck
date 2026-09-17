@@ -20,6 +20,47 @@ Node.js 22 or newer is required.
 
 ---
 
+## Project configuration and storage
+
+The core package does not implicitly read `breakcheck.config.json`; library
+callers choose configuration explicitly. `resolveProjectConfig` loads and
+validates a version-1 JSON file, while `writeProjectConfig` creates one with
+exclusive file creation:
+
+```typescript
+import {
+  resolveProjectConfig,
+  writeProjectConfig,
+} from "@cleaver/breakcheck-core";
+
+const project = await resolveProjectConfig({
+  configPath: "./breakcheck.config.json",
+});
+await writeProjectConfig("./new-breakcheck.config.json", {
+  version: 1,
+  baseUrl: "https://example.com",
+  storageDir: ".breakcheck",
+});
+```
+
+Config paths resolve relative to the config file. `storageDir` is the artifact
+root containing `snapshots/` and `comparisons`; Crawlee's temporary datasets
+and queues are separate. An omitted storage option in the operational API
+keeps the legacy `findRootDir()` behavior. To use another root, pass the same
+`{ storageDir }` option to each operation:
+
+```typescript
+const storage = { storageDir: "/work/site/.breakcheck" };
+await createSnapshotFromConfig(snapshotConfig, storage);
+await listSnapshots(storage);
+await runComparison(comparisonConfig, storage);
+await startViewServer("v1-vs-v2-comparison", 8080, storage);
+```
+
+Changing the storage root does not migrate existing artifacts.
+
+---
+
 ## API Usage
 
 The `@cleaver/breakcheck-core` library exposes a set of simple, asynchronous functions to manage the entire workflow.

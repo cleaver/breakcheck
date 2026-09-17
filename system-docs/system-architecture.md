@@ -22,8 +22,9 @@ I'd like to use existing open source libraries for as much of the tool as possib
 
 ```mermaid
 graph TD
- A[CLI Interface] --> B(API Layer - BreakcheckApi)
- C[Web Interface--Future] --> B
+ A[CLI Interface] --> C[Project Config Loader]
+ C --> B(API Layer - BreakcheckApi)
+ W[Web Interface--Future] --> B
  B --> D[Core Engine Facade / Orchestrator]
 
 subgraph Core Engine Components
@@ -42,6 +43,7 @@ D --> E
  D --> I
 
 F --> J[(File System / Snapshot Storage - LoadedSnapshot, SnapshotIndex)]
+ C --> J
  I --> K[Rules DSL / JSON Configuration]
  G --> L[Rule Application Logic]
  K --> L
@@ -68,10 +70,17 @@ F --> J[(File System / Snapshot Storage - LoadedSnapshot, SnapshotIndex)]
 5.  **Rules Engine Parser**
     - **Tech**: Chevrotain (DSL parser), JSON Schema (validation)
     - **Responsibility**: Parsing the Rules DSL text into a structured format (e.g., JSON) for use by the DOM Processor. _Invoked by the API Layer when rules are provided as text._ The _application_ of parsed rules happens within the DOM Processor.
-6.  **CLI Interface**
+6.  **Project Config Loader**
+    - **Tech**: TypeScript, Node JSON/file-system APIs
+    - **Responsibility**: Validate versioned `breakcheck.config.json`, discover
+      the nearest file from the invocation directory, apply explicit
+      `--config`/`--no-config` selection, resolve config-relative paths, and
+      pass one artifact-storage context to the API. The loader never executes
+      configuration code.
+7.  **CLI Interface**
     - **Tech**: `commander`, `interactive-commander`, `pino` (for logging)
     - **Responsibility**: User interaction, command parsing (e.g., `snapshotCommand`, `compareCommand`, `listSnapshotsCommand`), configuration gathering, **calling the API Layer (`BreakcheckApi`)**, presenting results received from the API Layer.
-7.  **API Layer** (`BreakcheckApi` class)
+8.  **API Layer** (`BreakcheckApi` class)
     - **Tech**: Typescript interfaces/modules (Internal for v2.1)
     - **Responsibility**: Provides the primary interface for clients (CLI, future Web UI). Orchestrates core component interactions (e.g., `createSnapshot` function in `api/snapshot.ts`, `SnapshotManager`, `BreakcheckCrawler`), handles rule parsing invocation, validates inputs, formats outputs (`SnapshotResult`, `ComparisonSummary`), manages errors.
 
@@ -86,20 +95,28 @@ export class BreakcheckApi {
    * Creates a snapshot of a website based on the provided configuration.
    * Orchestrates calls to Crawler and Snapshot Manager.
    */
-  async createSnapshot(config: SnapshotConfig): Promise<SnapshotResult>;
+  async createSnapshot(
+    config: SnapshotConfig,
+    options?: { storageDir?: string },
+  ): Promise<SnapshotResult>;
 
   /**
    * Runs a comparison between two snapshots using specified rules.
    * Orchestrates calls to Snapshot Manager, Rules Engine Parser (if needed),
    * DOM Processor, and Diff Engine.
-   * (Note: Implementation for runComparison is pending as per code)
+   * The implementation resolves one optional artifact-storage context for the workflow.
    */
-  async runComparison(config: ComparisonConfig): Promise<ComparisonSummary>;
+  async runComparison(
+    config: ComparisonConfig,
+    options?: { storageDir?: string },
+  ): Promise<ComparisonSummary>;
 
   /**
    * Lists all available snapshots with their details
    */
-  async listSnapshots(): Promise<SnapshotSummary[]>; // Updated to reflect SnapshotManager.listSnapshots return type
+  async listSnapshots(options?: {
+    storageDir?: string;
+  }): Promise<SnapshotSummary[]>; // Updated to reflect SnapshotManager.listSnapshots return type
 }
 
 // --- Supporting Input/Output Types (from src/types/api.ts, src/types/crawler.ts, src/types/compare.ts, src/core/snapshot/index.ts) ---

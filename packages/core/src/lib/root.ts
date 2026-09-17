@@ -8,7 +8,9 @@ import path from "path";
  *
  * @returns The absolute path to the root directory
  */
-export async function findRootDir(): Promise<string> {
+export async function findRootDir(
+  startDir: string = process.cwd(),
+): Promise<string> {
   const rootPackageJsonPath = await findUp(
     async (directory) => {
       const packageJsonPath = path.join(directory, "package.json");
@@ -22,7 +24,7 @@ export async function findRootDir(): Promise<string> {
         }
       }
     },
-    { type: "file" },
+    { type: "file", cwd: startDir },
   );
 
   return rootPackageJsonPath

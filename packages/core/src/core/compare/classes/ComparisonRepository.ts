@@ -6,6 +6,8 @@ import { findRootDir } from "../../../lib/root.js";
 import {
   deleteAllStorageEntries,
   deleteStorageEntry,
+  resolveStorageEntry,
+  type StorageContext,
 } from "../../../lib/storage.js";
 import {
   ComparisonIndex,
@@ -38,11 +40,30 @@ export class ComparisonRepository {
     return instance;
   }
 
+  /** Creates and initializes a comparison in a shared artifact context. */
+  static async createWithStorageContext(
+    name: string,
+    metadata: ComparisonMetadata,
+    storageContext: StorageContext,
+  ): Promise<ComparisonRepository> {
+    const instance =
+      ComparisonRepository.openWithStorageContext(storageContext);
+    await instance.initialize(name, metadata);
+    return instance;
+  }
+
   /** Opens the comparison store without initializing a named comparison. */
   static async open(comparisonsDir?: string): Promise<ComparisonRepository> {
-    const rootDir = await findRootDir();
-    const defaultComparisonsDir = path.join(rootDir, "comparisons");
-    return new ComparisonRepository(comparisonsDir || defaultComparisonsDir);
+    const resolvedComparisonsDir =
+      comparisonsDir ?? path.join(await findRootDir(), "comparisons");
+    return new ComparisonRepository(resolvedComparisonsDir);
+  }
+
+  /** Opens a comparison store in a shared artifact context. */
+  static openWithStorageContext(
+    storageContext: StorageContext,
+  ): ComparisonRepository {
+    return new ComparisonRepository(storageContext.comparisonsDir);
   }
 
   /**
@@ -52,8 +73,12 @@ export class ComparisonRepository {
     name: string,
     metadata: ComparisonMetadata,
   ): Promise<void> {
+    this.comparisonDir = resolveStorageEntry(
+      this.comparisonsDir,
+      name,
+      "comparison",
+    );
     await fs.mkdir(this.comparisonsDir, { recursive: true });
-    this.comparisonDir = path.join(this.comparisonsDir, name);
     this.diffsDir = path.join(this.comparisonDir, "diffs");
 
     // Clean up previous results

@@ -7,6 +7,7 @@ import {
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { InteractiveCommand } from "interactive-commander";
+import { addConfigOptions, resolveCliProjectConfig } from "../config.js";
 import { configureLogger } from "../utils.js";
 
 export type CleanTarget = "snapshot" | "comparison";
@@ -36,16 +37,23 @@ export interface CleanPrompts {
   promptName: (target: CleanTarget) => Promise<string>;
 }
 
-const cleanOperations: Record<CleanTarget, CleanOperations> = {
-  snapshot: {
-    deleteAll: deleteAllSnapshots,
-    deleteOne: deleteSnapshot,
-  },
-  comparison: {
-    deleteAll: deleteAllComparisons,
-    deleteOne: deleteComparison,
-  },
-};
+function createCleanOperations(
+  storageDir?: string,
+): Record<CleanTarget, CleanOperations> {
+  const options = { storageDir };
+  return {
+    snapshot: {
+      deleteAll: () => deleteAllSnapshots(options),
+      deleteOne: (name) => deleteSnapshot(name, options),
+    },
+    comparison: {
+      deleteAll: () => deleteAllComparisons(options),
+      deleteOne: (name) => deleteComparison(name, options),
+    },
+  };
+}
+
+const cleanOperations = createCleanOperations();
 
 function targetLabel(target: CleanTarget): string {
   return target === "snapshot" ? "snapshot" : "comparison";
@@ -142,43 +150,52 @@ export async function executeClean(
 }
 
 function createCleanSubcommand(target: CleanTarget): InteractiveCommand {
-  return new InteractiveCommand(target)
-    .description(`Delete stored ${targetPluralLabel(target)}`)
-    .option("--name <name>", `Name of the ${targetLabel(target)} to delete`)
-    .option("--all", `Delete all stored ${targetPluralLabel(target)}`)
-    .option("--force", "Skip confirmation; required for non-interactive use")
-    .option("--json-logs", "Output logs in JSON format")
-    .option("--no-json-logs", "Output logs in pretty format (default)")
-    .action(async (options: CleanOptions) => {
-      const logger = configureLogger(options);
+  return addConfigOptions(
+    new InteractiveCommand(target)
+      .description(`Delete stored ${targetPluralLabel(target)}`)
+      .option("--name <name>", `Name of the ${targetLabel(target)} to delete`)
+      .option("--all", `Delete all stored ${targetPluralLabel(target)}`)
+      .option("--force", "Skip confirmation; required for non-interactive use")
+      .option("--json-logs", "Output logs in JSON format")
+      .option("--no-json-logs", "Output logs in pretty format (default)")
+      .action(async (options: CleanOptions) => {
+        const logger = configureLogger(options);
 
-      try {
-        const result = await executeClean(target, options);
-        if (result.cancelled) {
-          logger.info(`Cleaning ${targetPluralLabel(target)} cancelled.`);
-          return;
+        try {
+          const projectConfig = await resolveCliProjectConfig();
+          const result = await executeClean(
+            target,
+            options,
+            createCleanOperations(projectConfig.storageDir)[target],
+          );
+          if (result.cancelled) {
+            logger.info(`Cleaning ${targetPluralLabel(target)} cancelled.`);
+            return;
+          }
+
+          if (result.deletedNames.length === 0) {
+            logger.info(`No ${targetPluralLabel(target)} found.`);
+            return;
+          }
+
+          logger.info(
+            `✅ Deleted ${result.deletedNames.length} ${targetPluralLabel(target)}: ${result.deletedNames.join(", ")}`,
+          );
+        } catch (error) {
+          logger.error(
+            { err: error },
+            `❌ Error cleaning ${targetPluralLabel(target)}`,
+          );
+          process.exit(1);
         }
-
-        if (result.deletedNames.length === 0) {
-          logger.info(`No ${targetPluralLabel(target)} found.`);
-          return;
-        }
-
-        logger.info(
-          `✅ Deleted ${result.deletedNames.length} ${targetPluralLabel(target)}: ${result.deletedNames.join(", ")}`,
-        );
-      } catch (error) {
-        logger.error(
-          { err: error },
-          `❌ Error cleaning ${targetPluralLabel(target)}`,
-        );
-        process.exit(1);
-      }
-    });
+      }),
+  );
 }
 
-export const cleanCommand = new InteractiveCommand("clean").description(
-  "Delete stored snapshots or comparisons",
+export const cleanCommand = addConfigOptions(
+  new InteractiveCommand("clean").description(
+    "Delete stored snapshots or comparisons",
+  ),
 );
 
 cleanCommand.addCommand(createCleanSubcommand("snapshot"));
