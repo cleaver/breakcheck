@@ -26,6 +26,9 @@ export const helpCommand = addConfigOptions(
           case "rule":
             showNewRuleHelp(logger);
             break;
+          case "compile":
+            showCompileHelp(logger);
+            break;
           case "snapshot":
             showSnapshotHelp(logger);
             break;
@@ -45,7 +48,7 @@ export const helpCommand = addConfigOptions(
           default:
             logger.error(`Unknown command: ${commandName}`);
             logger.info(
-              "Available commands: init, new rule, snapshot, compare, clean, view, list-snapshots",
+              "Available commands: init, new rule, compile, snapshot, compare, clean, view, list-snapshots",
             );
             process.exit(1);
         }
@@ -77,6 +80,7 @@ function showGeneralHelp(logger: any) {
   logger.info("Available Commands:");
   logger.info("  init            Create a project configuration");
   logger.info("  new rule        Scaffold a rules.breakcheck file");
+  logger.info("  compile         Compile rules.breakcheck to JSON");
   logger.info("  snapshot        Create a snapshot of a website");
   logger.info("  compare         Compare two snapshots and save the results");
   logger.info("  clean           Delete stored snapshots or comparisons");
@@ -99,6 +103,7 @@ function showGeneralHelp(logger: any) {
   logger.info("Examples:");
   logger.info("  breakcheck help snapshot");
   logger.info("  breakcheck help compare");
+  logger.info("  breakcheck help compile");
   logger.info("  breakcheck help clean");
   logger.info("  breakcheck help view");
   logger.info("  breakcheck help new");
@@ -331,6 +336,28 @@ function showNewRuleHelp(logger: any) {
   logger.info(
     "  breakcheck compare --rules ./my-rules --before before --after after",
   );
+}
+
+function showCompileHelp(logger: any) {
+  logger.info("🧩 COMPILE COMMAND");
+  logger.info("==================");
+  logger.info("");
+  logger.info(
+    "Compiles a rules.breakcheck DSL file to the intermediate JSON format.",
+  );
+  logger.info("");
+  logger.info("Usage:");
+  logger.info("  breakcheck compile <rules-directory>");
+  logger.info("");
+  logger.info("The directory must contain rules.breakcheck.");
+  logger.info(
+    "Relative paths resolve from the directory where breakcheck is run.",
+  );
+  logger.info("JSON is written to stdout with two-space indentation.");
+  logger.info("");
+  logger.info("Examples:");
+  logger.info("  breakcheck compile ./my-rules");
+  logger.info("  breakcheck compile ./my-rules > rules.json");
 }
 
 function showCleanHelp(logger: any) {

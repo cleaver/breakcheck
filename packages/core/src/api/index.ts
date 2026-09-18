@@ -11,6 +11,8 @@ import type {
   SnapshotResult,
   StorageOptions,
 } from "../types/api.js";
+import type { RulesDocument } from "../types/rules.js";
+import { processRulesDsl } from "../core/rules/RulesDsl.js";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.
@@ -91,6 +93,21 @@ export async function runComparison(
     comparisonProcessErrors: [],
     summaryFilePath: diff.summaryFilePath,
     resultsPath: diff.resultsPath,
+  };
+}
+
+/**
+ * Parses and validates a rules.breakcheck directory into the intermediate
+ * JSON document used by the rules engine.
+ */
+export async function compileRulesDsl(
+  rulesDirectory: string,
+): Promise<RulesDocument> {
+  const ruleset = await processRulesDsl(rulesDirectory);
+  await RulesEngine.create(ruleset);
+  return {
+    rules: ruleset.rules,
+    regions: ruleset.regions ?? [],
   };
 }
 

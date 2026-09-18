@@ -8,6 +8,10 @@ This document specifies the JSON format that represents the parsed rules from th
 
 The root of the JSON document is an object containing a list of ordinary rules and, optionally, named regions.
 
+The serialized document intentionally does not contain a ruleset name. The
+runtime `Ruleset` type may carry a `name` for comparison metadata, but
+`breakcheck compile` emits only the portable JSON document described here.
+
 ```json
 {
   "rules": [

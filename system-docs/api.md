@@ -80,6 +80,12 @@ async function resolveProjectConfig(options?: {
   noConfig?: boolean;
 }): Promise<ResolvedProjectConfig>;
 
+async function compileRulesDsl(rulesDirectory: string): Promise<RulesDocument>;
+
+// compileRulesDsl resolves <rulesDirectory>/rules.breakcheck from the
+// invocation directory, validates the parsed rules, and returns the
+// intermediate JSON document without runtime-only Ruleset.name metadata.
+
 // Potentially others: listSnapshots, getSnapshotDetails, validateRules...
 ```
 

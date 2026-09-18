@@ -1,6 +1,6 @@
 # Features for the future:
 
-- [ ] `breakcheck compile` - to compile a DSL to JSON
+- [x] `breakcheck compile` - compile a DSL to JSON
 - [x] `breakcheck clean snapshot|comparison` - delete snapshot|comparison
   - [x] `--name` option for name of snapshot|comparison to delete
   - [x] `--all` to nuke everything

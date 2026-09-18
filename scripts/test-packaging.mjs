@@ -207,6 +207,11 @@ try {
   assert.match(help.stdout, /Usage: breakcheck/);
   const newRuleHelp = await runCli(consumerDir, ["help", "new"]);
   assert.match(newRuleHelp.stdout + newRuleHelp.stderr, /new rule <name>/);
+  const compileHelp = await runCli(consumerDir, ["help", "compile"]);
+  assert.match(
+    compileHelp.stdout + compileHelp.stderr,
+    /breakcheck compile <rules-directory>/,
+  );
   const version = await runCli(consumerDir, ["--version"]);
   const cliPackage = JSON.parse(
     await readFile(path.join(repoRoot, "packages/cli/package.json"), "utf8"),
@@ -218,13 +223,13 @@ try {
     [
       "--input-type=module",
       "-e",
-      'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function" || typeof core.resolveProjectConfig !== "function" || typeof core.writeProjectConfig !== "function") process.exit(1);',
+      'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function" || typeof core.compileRulesDsl !== "function" || typeof core.resolveProjectConfig !== "function" || typeof core.writeProjectConfig !== "function") process.exit(1);',
     ],
     { cwd: consumerDir },
   );
 
   const typeFixture = `
-import type { Action, ProjectConfig, SnapshotConfig, StorageOptions } from "@cleaver/breakcheck-core";
+import type { Action, ProjectConfig, RulesDocument, SnapshotConfig, StorageOptions } from "@cleaver/breakcheck-core";
 
 const valid: Action[] = [
   { action: "include" },
@@ -258,7 +263,8 @@ const exactSnapshot: SnapshotConfig = {
 void exactSnapshot;
 const projectConfig: ProjectConfig = { version: 1, storageDir: ".breakcheck" };
 const storageOptions: StorageOptions = { storageDir: ".breakcheck" };
-void projectConfig; void storageOptions;
+const rulesDocument: RulesDocument = { rules: [], regions: [] };
+void projectConfig; void storageOptions; void rulesDocument;
 `;
   await writeFile(path.join(consumerDir, "action-types.ts"), typeFixture);
   await writeFile(
@@ -361,6 +367,11 @@ void projectConfig; void storageOptions;
     ],
     /Rules file not found/,
   );
+  await expectCliFailure(
+    consumerDir,
+    ["compile", "missing-rules"],
+    /Rules file not found/,
+  );
 
   await runCli(consumerDir, [
     "compare",
@@ -390,6 +401,14 @@ void projectConfig; void storageOptions;
     /already exists/,
   );
   assert.equal(await readFile(generatedRulesFile, "utf8"), generatedScaffold);
+  const compiledScaffold = await runCli(consumerDir, [
+    "compile",
+    rulesDirectory,
+  ]);
+  assert.deepEqual(JSON.parse(compiledScaffold.stdout), {
+    rules: [],
+    regions: [],
+  });
   await runCli(consumerDir, [
     "compare",
     "--before",
@@ -434,6 +453,14 @@ void projectConfig; void storageOptions;
     ),
   );
   assert.equal(comparisonIndex.metadata.pagesWithDifferences, 0);
+  const compiledRules = await runCli(consumerDir, ["compile", rulesDirectory]);
+  const compiledDocument = JSON.parse(compiledRules.stdout);
+  assert.equal(compiledDocument.rules.length, 1);
+  assert.deepEqual(compiledDocument.rules[0], {
+    selector: ".dynamic",
+    actions: [{ action: "exclude", modifiers: {} }],
+  });
+  assert.deepEqual(compiledDocument.regions, []);
 
   const viewPort = await getFreePort();
   const installedCliEntry = path.join(

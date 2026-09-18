@@ -59,6 +59,22 @@ await startViewServer("v1-vs-v2-comparison", 8080, storage);
 
 Changing the storage root does not migrate existing artifacts.
 
+### Compiling a rules DSL
+
+Use `compileRulesDsl` to parse and validate a directory containing
+`rules.breakcheck`. It returns the intermediate `RulesDocument` shape used
+by the rules engine; the runtime-only `Ruleset.name` metadata is not included.
+
+```javascript
+import { compileRulesDsl } from "@cleaver/breakcheck-core";
+
+const document = await compileRulesDsl("./my-rules");
+console.log(JSON.stringify(document, null, 2));
+```
+
+Relative directories resolve from `process.cwd()`. Syntax and engine
+validation errors reject the promise before a document is returned.
+
 ---
 
 ## API Usage

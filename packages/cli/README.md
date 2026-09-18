@@ -143,6 +143,20 @@ The first command creates `./my-rules/rules.breakcheck`; the second creates
 the generated directory to `compare --rules` or set it as `comparison.rulesDir`
 in project configuration.
 
+### `compile`
+
+Compiles a rules directory's `rules.breakcheck` DSL into the intermediate JSON
+format. JSON is written to stdout for inspection or shell redirection.
+
+```bash
+breakcheck compile ./my-rules
+breakcheck compile ./my-rules > rules.json
+```
+
+Relative directories resolve from the directory where Breakcheck is invoked.
+Selectors, regular expressions, modifiers, and named regions are validated
+before JSON is emitted.
+
 ### `snapshot`
 
 Crawls a website and saves its HTML content and structure to a named snapshot.

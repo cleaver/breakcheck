@@ -80,11 +80,17 @@ export interface Region {
 }
 
 /**
- * The root structure of the JSON rules document
+ * The serialized JSON document produced from the rules DSL.
  */
-export interface Ruleset {
-  name: string;
+export interface RulesDocument {
   rules: Rule[];
   /** Named regions are optional for backwards-compatible inline rulesets. */
   regions?: Region[];
+}
+
+/**
+ * A named runtime ruleset used by comparisons.
+ */
+export interface Ruleset extends RulesDocument {
+  name: string;
 }

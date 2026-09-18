@@ -324,6 +324,11 @@ try {
     newRuleHelp.stdout + newRuleHelp.stderr,
     /breakcheck new rule <name>/,
   );
+  const compileHelp = await runCli(invocationRoot, ["help", "compile"]);
+  assert.match(
+    compileHelp.stdout + compileHelp.stderr,
+    /breakcheck compile <rules-directory>/,
+  );
 
   fixture = startFixture(beforeFixture, port, invocationRoot);
   await waitForHttp(`${baseUrl}/`, fixture).catch((error) => {
@@ -448,6 +453,11 @@ try {
     ],
     /Rules file not found/,
   );
+  await expectCliFailure(
+    invocationRoot,
+    ["compile", "./missing-rules"],
+    /Rules file not found/,
+  );
 
   const unfiltered = await runComparison(
     invocationRoot,
@@ -468,6 +478,14 @@ try {
     /already exists/,
   );
   assert.equal(await readFile(generatedRulesFile, "utf8"), generatedScaffold);
+  const compiledScaffold = await runCli(invocationRoot, [
+    "compile",
+    "./generated-rules",
+  ]);
+  assert.deepEqual(JSON.parse(compiledScaffold.stdout), {
+    rules: [],
+    regions: [],
+  });
   await writeFile(
     generatedRulesFile,
     [
@@ -479,6 +497,13 @@ try {
       "",
     ].join("\n"),
   );
+  const compiledRules = await runCli(invocationRoot, [
+    "compile",
+    "./generated-rules",
+  ]);
+  const compiledDocument = JSON.parse(compiledRules.stdout);
+  assert.equal(compiledDocument.rules.length, 5);
+  assert.deepEqual(compiledDocument.regions, []);
 
   const filtered = await runComparison(
     invocationRoot,
