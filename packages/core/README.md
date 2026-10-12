@@ -24,8 +24,8 @@ Node.js 22 or newer is required.
 
 The core package does not implicitly read `breakcheck.config.json`; library
 callers choose configuration explicitly. `resolveProjectConfig` loads and
-validates a version-1 JSON file, while `writeProjectConfig` creates one with
-exclusive file creation:
+validates version-1 and version-2 JSON files, while `writeProjectConfig`
+creates one with exclusive file creation:
 
 ```typescript
 import {
@@ -149,6 +149,41 @@ const result = await createSnapshotFromConfig(snapshotConfig);
 same-origin, and duplicates are removed in first-seen order. An invalid or
 empty manifest fails before crawling. File and stdin reading are CLI concerns;
 the core API receives the already-created array.
+
+### Exact-route regression checks
+
+`runSiteCheck` captures only the supplied routes, verifies crawl coverage, then
+compares them with a stored baseline using the same comparison engine as
+`runComparison`. Added or removed routes count as differences. The core API
+does not start a site; the CLI handles preparation and server lifecycle.
+
+```typescript
+import { runSiteCheck } from "@cleaver/breakcheck-core";
+
+const result = await runSiteCheck(
+  {
+    baseUrl: "http://127.0.0.1:4000",
+    name: "check-local-run-1",
+    baselineSnapshotId: "site-baseline",
+    routes: ["/", "/about"],
+    crawlSettings: {
+      baseUrl: "http://127.0.0.1:4000",
+      crawlerType: "cheerio",
+      maxConcurrency: 5,
+    },
+    ruleset: "./rules",
+  },
+  { storageDir: "./.breakcheck" },
+);
+```
+
+The result status is `passed`, `differences`, or `failed`. The generated after
+snapshot and detailed comparison remain in the configured storage directory.
+`updateSnapshotRoutesFromConfig` is a separate API for explicitly replacing
+selected baseline routes; it stages and validates the new pages before
+committing them and preserves routes outside the selected list. Pass an
+`AbortSignal` in `OperationOptions` to cancel an active crawl; baseline updates
+check cancellation before replacing the stored routes.
 
 ### Configuring Logs
 

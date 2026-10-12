@@ -96,7 +96,11 @@ export async function compareSnapshots(
   return {
     status: "completed",
     overallResult:
-      finalIndex.metadata.pagesWithDifferences > 0 ? "fail" : "pass",
+      finalIndex.metadata.pagesWithDifferences > 0 ||
+      newUrls.length > 0 ||
+      removedUrls.length > 0
+        ? "fail"
+        : "pass",
     beforeSnapshotId: config.beforeSnapshotId,
     afterSnapshotId: config.afterSnapshotId,
     rulesUsedIdentifier,

@@ -27,4 +27,22 @@ await execFileAsync(cliEntry, ["--version"], {
   env: environment,
 });
 
+const failedSnapshot = await execFileAsync(
+  cliEntry,
+  ["snapshot", "--url", "", "--name", "failed-snapshot-status-probe"],
+  {
+    cwd: repoRoot,
+    env: environment,
+  },
+).then(
+  () => undefined,
+  (error) => error,
+);
+assert.ok(failedSnapshot, "A failed snapshot result should exit nonzero");
+assert.equal(failedSnapshot.code, 1);
+assert.match(
+  failedSnapshot.stdout + failedSnapshot.stderr,
+  /Failed to create snapshot/,
+);
+
 console.log("Native CLI bin smoke test passed");

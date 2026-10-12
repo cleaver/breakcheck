@@ -38,11 +38,22 @@ export class BreakcheckCrawler {
     }
   }
 
-  async crawl(): Promise<CrawlResult> {
+  async crawl(signal?: AbortSignal): Promise<CrawlResult> {
+    signal?.throwIfAborted();
+    let teardownPromise: Promise<void> | undefined;
+    const teardown = () => {
+      teardownPromise ??= this.crawler.teardown();
+      void teardownPromise.catch(() => undefined);
+    };
+    const onAbort = () => teardown();
+    signal?.addEventListener("abort", onAbort, { once: true });
+
     try {
       await purgeDefaultStorages();
+      signal?.throwIfAborted();
       this.errors = [];
       await this.crawler.run(this.startUrls);
+      signal?.throwIfAborted();
       // Open the dataset and scan for error items only
       const dataset = await Dataset.open();
       await dataset.forEach((item: any) => {
@@ -78,6 +89,9 @@ export class BreakcheckCrawler {
           error instanceof Error ? error.message : String(error)
         }`,
       );
+    } finally {
+      signal?.removeEventListener("abort", onAbort);
+      if (teardownPromise !== undefined) await teardownPromise;
     }
   }
 }

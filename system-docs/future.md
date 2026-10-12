@@ -15,7 +15,8 @@
   - [ ] `breakcheck init` - to initialize a new project
   - [ ] interactive config files
 - [x] `breakcheck new rule <name>` - scaffold a named `rules.breakcheck` ruleset file.
-- **ability to set a snapshot as baseline** ???? forget what this is
+- [x] Route-scoped baseline updates that preserve unselected routes.
+- [x] `breakcheck check` - prepare/start a configured local site, wait for readiness, snapshot exact routes, compare against a stored baseline, and save a report.
 - [ ] extract the file, directory, compression stuff to util modules
 - [x] extract the mocks, especially in `compare` tests.
 

@@ -27,6 +27,11 @@ _.env._
 .vscode/
 .idea/
 
+
+# Agents
+
+/.planning
+
 # Test coverage reports
 
 coverage/

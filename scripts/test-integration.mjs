@@ -224,16 +224,20 @@ async function runSnapshot(cwd, dataRoot, baseUrl, name, jsonLogs = false) {
 }
 
 async function runInvalidSnapshot(cwd) {
-  const result = await runCli(cwd, [
+  const failedRun = await runCli(cwd, [
     "snapshot",
     "--url",
     "",
     "--name",
     "invalid",
     "--json-logs",
-  ]);
-  const output = `${result.stdout}${result.stderr}`;
-  const records = parseJsonLogs(output);
+  ]).then(
+    () => undefined,
+    (error) => error.cause,
+  );
+  assert.ok(failedRun, "An invalid snapshot result should exit nonzero");
+  assert.equal(failedRun.code, 1);
+  const records = parseJsonLogs(`${failedRun.stdout}${failedRun.stderr}`);
 
   assert.ok(
     records.some(
@@ -252,7 +256,13 @@ async function readComparison(dataRoot, name) {
   );
 }
 
-async function runComparison(cwd, dataRoot, output, rulesDirectory) {
+async function runComparison(
+  cwd,
+  dataRoot,
+  output,
+  rulesDirectory,
+  expectedExitCode = 0,
+) {
   const args = [
     "compare",
     "--before",
@@ -264,7 +274,20 @@ async function runComparison(cwd, dataRoot, output, rulesDirectory) {
   ];
   if (rulesDirectory) args.push("--rules", rulesDirectory);
 
-  await runCli(cwd, args);
+  const result = await runCli(cwd, args).then(
+    (commandResult) => ({
+      exitCode: 0,
+      output: `${commandResult.stdout}${commandResult.stderr}`,
+    }),
+    (error) => ({
+      exitCode: error.cause?.code,
+      output: String(error),
+    }),
+  );
+  assert.equal(result.exitCode, expectedExitCode);
+  if (expectedExitCode !== 0) {
+    assert.match(stripAnsi(result.output), /Overall result: FAIL/);
+  }
   return readComparison(dataRoot, output);
 }
 
@@ -463,6 +486,8 @@ try {
     invocationRoot,
     tempRoot,
     "unfiltered-comparison",
+    undefined,
+    1,
   );
   assert.equal(unfiltered.metadata.totalPages, 4);
   assert.ok(unfiltered.metadata.pagesWithDifferences > 0);

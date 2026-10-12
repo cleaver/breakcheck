@@ -12,13 +12,17 @@ let cliLogger = logger;
 export function configureLogger(options: {
   jsonLogs?: boolean;
   noJsonLogs?: boolean;
+  silent?: boolean;
 }) {
   // Determine if we should use JSON logs
   // --json-logs takes precedence over --no-json-logs
   const useJsonLogs = options.jsonLogs || false;
 
   // Create a new logger instance with the specified configuration
-  cliLogger = configureCoreLogger({ useJsonLogs });
+  cliLogger = configureCoreLogger({
+    useJsonLogs,
+    ...(options.silent ? { level: "silent" } : {}),
+  });
 
   return cliLogger;
 }

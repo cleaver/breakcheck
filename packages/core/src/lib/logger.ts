@@ -2,7 +2,8 @@ import { pino } from "pino";
 import { configureCrawleeLogger } from "./crawlee-logger.js";
 
 // Define valid log levels
-type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
+type LogLevel =
+  "fatal" | "error" | "warn" | "info" | "debug" | "trace" | "silent";
 
 // Determine the log level from the environment variable, defaulting to 'info'
 const logLevel: LogLevel = (process.env.LOG_LEVEL as LogLevel) || "info";

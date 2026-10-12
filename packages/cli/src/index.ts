@@ -3,6 +3,8 @@
 import { createRequire } from "node:module";
 import { InteractiveCommand } from "interactive-commander";
 import { compareCommand } from "./cli/commands/compare.js";
+import { baselineCommand } from "./cli/commands/baseline.js";
+import { checkCommand } from "./cli/commands/check.js";
 import { cleanCommand } from "./cli/commands/clean.js";
 import { compileCommand } from "./cli/commands/compile.js";
 import { helpCommand } from "./cli/commands/help.js";
@@ -31,6 +33,8 @@ program
 
 // Add the commands to the program
 program.addCommand(snapshotCommand);
+program.addCommand(checkCommand);
+program.addCommand(baselineCommand);
 program.addCommand(compareCommand);
 program.addCommand(cleanCommand);
 program.addCommand(compileCommand);

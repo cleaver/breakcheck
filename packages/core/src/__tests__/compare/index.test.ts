@@ -348,7 +348,7 @@ describe("Compare Functions", () => {
       );
 
       expect(result.status).toBe("completed");
-      expect(result.overallResult).toBe("pass");
+      expect(result.overallResult).toBe("fail");
       expect(result.totalPagesCompared).toBe(0);
       expect(result.pagesWithDifferences).toBe(0);
       expect(result.newUrls).toHaveLength(1);

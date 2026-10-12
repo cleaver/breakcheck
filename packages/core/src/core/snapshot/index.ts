@@ -8,6 +8,7 @@ import { SnapshotRepository } from "./classes/SnapshotRepository.js";
 
 export { LoadedSnapshot } from "./classes/LoadedSnapshot.js";
 export { SnapshotRepository } from "./classes/SnapshotRepository.js";
+export { validateSnapshotRoutes } from "./route-coverage.js";
 
 /**
  * Creates a snapshot of a website based on the provided configuration.
@@ -16,6 +17,7 @@ export { SnapshotRepository } from "./classes/SnapshotRepository.js";
 export async function createSnapshot(
   config: SnapshotConfig,
   snapshotRepository: SnapshotRepository,
+  signal?: AbortSignal,
 ): Promise<SnapshotResult> {
   const startTime = Date.now();
   const errors: CrawlError[] = [];
@@ -69,11 +71,13 @@ export async function createSnapshot(
       followLinks: config.urlPaths === undefined,
     });
 
-    const { datasetName, errors: crawlErrors } = await crawler.crawl();
+    const { datasetName, errors: crawlErrors } = await crawler.crawl(signal);
+    signal?.throwIfAborted();
 
     errors.push(...crawlErrors);
 
     const dataset = await Dataset.open(datasetName);
+    signal?.throwIfAborted();
 
     const pageCount = await snapshotRepository.saveSnapshot(config.name, {
       dataset,

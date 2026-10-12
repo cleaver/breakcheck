@@ -32,6 +32,12 @@ export const helpCommand = addConfigOptions(
           case "snapshot":
             showSnapshotHelp(logger);
             break;
+          case "check":
+            showCheckHelp(logger);
+            break;
+          case "baseline":
+            showBaselineHelp(logger);
+            break;
           case "compare":
             showCompareHelp(logger);
             break;
@@ -48,7 +54,7 @@ export const helpCommand = addConfigOptions(
           default:
             logger.error(`Unknown command: ${commandName}`);
             logger.info(
-              "Available commands: init, new rule, compile, snapshot, compare, clean, view, list-snapshots",
+              "Available commands: init, new rule, compile, snapshot, check, baseline update, compare, clean, view, list-snapshots",
             );
             process.exit(1);
         }
@@ -82,6 +88,8 @@ function showGeneralHelp(logger: any) {
   logger.info("  new rule        Scaffold a rules.breakcheck file");
   logger.info("  compile         Compile rules.breakcheck to JSON");
   logger.info("  snapshot        Create a snapshot of a website");
+  logger.info("  check           Check exact routes against a stored baseline");
+  logger.info("  baseline update Update selected routes in the baseline");
   logger.info("  compare         Compare two snapshots and save the results");
   logger.info("  clean           Delete stored snapshots or comparisons");
   logger.info(
@@ -102,6 +110,8 @@ function showGeneralHelp(logger: any) {
   logger.info("");
   logger.info("Examples:");
   logger.info("  breakcheck help snapshot");
+  logger.info("  breakcheck help check");
+  logger.info("  breakcheck help baseline");
   logger.info("  breakcheck help compare");
   logger.info("  breakcheck help compile");
   logger.info("  breakcheck help clean");
@@ -110,6 +120,47 @@ function showGeneralHelp(logger: any) {
   logger.info("");
   logger.info(
     "For more information, visit: https://github.com/your-repo/breakcheck",
+  );
+}
+
+function showCheckHelp(logger: any) {
+  logger.info("✅ CHECK COMMAND");
+  logger.info("================");
+  logger.info("");
+  logger.info(
+    "Build or prepare a local site, start its configured environment, and compare exact routes with the stored baseline.",
+  );
+  logger.info("");
+  logger.info("Usage:");
+  logger.info("  breakcheck check [--url <url>] [--json]");
+  logger.info("");
+  logger.info("Options:");
+  logger.info(
+    "  -u, --url <url>  Use an already-running site and skip setup/start/stop",
+  );
+  logger.info("  --json           Write one machine-readable report to stdout");
+  logger.info("  --config <file>  Select a project configuration file");
+  logger.info("  --no-config      Disable project configuration discovery");
+  logger.info("");
+  logger.info(
+    "Exit codes: 0 no differences, 1 differences, 2 setup/crawl failure.",
+  );
+}
+
+function showBaselineHelp(logger: any) {
+  logger.info("📌 BASELINE COMMAND");
+  logger.info("===================");
+  logger.info("");
+  logger.info(
+    "Update routes in the configured baseline snapshot. A normal check never changes the baseline.",
+  );
+  logger.info("");
+  logger.info("Usage:");
+  logger.info("  breakcheck baseline update --route <path...>");
+  logger.info("  breakcheck baseline update --all");
+  logger.info("");
+  logger.info(
+    "--route updates only the selected routes. --all updates the exact routes in check.routesFile.",
   );
 }
 

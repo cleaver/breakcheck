@@ -2,13 +2,19 @@ import { compareSnapshots } from "../core/compare/index.js";
 import { ComparisonRepository } from "../core/compare/classes/ComparisonRepository.js";
 import { RulesEngine } from "../core/rules/RulesEngine.js";
 import { createSnapshot, SnapshotRepository } from "../core/snapshot/index.js";
+import { runSiteCheck as runSiteCheckWorkflow } from "../core/check/index.js";
+import { updateSnapshotRoutes } from "../core/snapshot/update-routes.js";
 import { logger } from "../lib/logger.js";
 import { resolveStorageContext } from "../lib/storage.js";
 import type {
   ComparisonConfig,
   ComparisonSummary,
+  SiteCheckConfig,
+  SiteCheckResult,
+  SnapshotRouteUpdateResult,
   SnapshotConfig,
   SnapshotResult,
+  OperationOptions,
   StorageOptions,
 } from "../types/api.js";
 import type { RulesDocument } from "../types/rules.js";
@@ -20,12 +26,54 @@ import { processRulesDsl } from "../core/rules/RulesDsl.js";
  */
 export async function createSnapshotFromConfig(
   config: SnapshotConfig,
-  options: StorageOptions = {},
+  options: OperationOptions = {},
 ): Promise<SnapshotResult> {
   const storageContext = await resolveStorageContext(options.storageDir);
   const snapshotRepository =
     SnapshotRepository.createWithStorageContext(storageContext);
-  return createSnapshot(config, snapshotRepository);
+  return createSnapshot(config, snapshotRepository, options.signal);
+}
+
+/** Runs one exact-route regression check against a stored baseline snapshot. */
+export async function runSiteCheck(
+  config: SiteCheckConfig,
+  options: OperationOptions = {},
+): Promise<SiteCheckResult> {
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const snapshotRepository =
+    SnapshotRepository.createWithStorageContext(storageContext);
+  return runSiteCheckWorkflow(
+    config,
+    {
+      snapshotRepository,
+      createSnapshot: (snapshotConfig, signal) =>
+        createSnapshot(snapshotConfig, snapshotRepository, signal),
+      runComparison: (comparisonConfig) =>
+        runComparison(comparisonConfig, {
+          storageDir: storageContext.storageDir,
+        }),
+    },
+    options.signal,
+  );
+}
+
+/** Crawls selected routes and atomically merges them into a stored baseline. */
+export async function updateSnapshotRoutesFromConfig(
+  config: SnapshotConfig,
+  baselineSnapshotId: string,
+  options: OperationOptions = {},
+): Promise<SnapshotRouteUpdateResult> {
+  const storageContext = await resolveStorageContext(options.storageDir);
+  const snapshotRepository =
+    SnapshotRepository.createWithStorageContext(storageContext);
+  return updateSnapshotRoutes(
+    config,
+    baselineSnapshotId,
+    snapshotRepository,
+    (snapshotConfig, signal) =>
+      createSnapshot(snapshotConfig, snapshotRepository, signal),
+    options.signal,
+  );
 }
 
 /**
@@ -166,6 +214,10 @@ export async function deleteAllComparisons(
 export {
   logger,
   type ComparisonConfig,
+  type OperationOptions,
+  type SiteCheckConfig,
+  type SiteCheckResult,
+  type SnapshotRouteUpdateResult,
   type SnapshotConfig,
   type StorageOptions,
 };

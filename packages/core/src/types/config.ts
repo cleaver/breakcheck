@@ -1,7 +1,7 @@
 import type { CrawlerType } from "./api.js";
 
-/** The currently supported project configuration schema version. */
-export type ProjectConfigVersion = 1;
+/** The supported project configuration schema versions. */
+export type ProjectConfigVersion = 1 | 2;
 
 /** Crawl defaults that may be persisted in a project configuration file. */
 export interface ProjectCrawlConfig {
@@ -17,6 +17,28 @@ export interface ProjectComparisonConfig {
   rulesDir?: string;
 }
 
+/** A command passed to Node's process launcher without shell interpretation. */
+export type ProjectCommand = string[];
+
+/** Local site lifecycle settings for `breakcheck check`. */
+export interface ProjectCheckServerConfig {
+  start: ProjectCommand;
+  stop?: ProjectCommand;
+  cwd?: string;
+  env?: Record<string, string>;
+  readyPath?: string;
+  timeoutMs?: number;
+}
+
+/** Settings for a repeatable exact-route regression check. */
+export interface ProjectCheckConfig {
+  routesFile: string;
+  baselineSnapshot: string;
+  prepare?: ProjectCommand[];
+  server?: ProjectCheckServerConfig;
+  reportDir?: string;
+}
+
 /** The JSON shape accepted by `breakcheck.config.json`. */
 export interface ProjectConfig {
   version: ProjectConfigVersion;
@@ -24,6 +46,7 @@ export interface ProjectConfig {
   storageDir?: string;
   crawl?: ProjectCrawlConfig;
   comparison?: ProjectComparisonConfig;
+  check?: ProjectCheckConfig;
 }
 
 /** A validated project configuration together with the file that supplied it. */
@@ -46,4 +69,16 @@ export interface ResolvedProjectConfig {
   baseUrl?: string;
   crawl: ProjectCrawlConfig;
   rulesDir?: string;
+  check?: ResolvedProjectCheckConfig;
+}
+
+/** Check configuration with filesystem paths resolved from the config file. */
+export interface ResolvedProjectCheckConfig extends Omit<
+  ProjectCheckConfig,
+  "routesFile" | "reportDir" | "server"
+> {
+  configDirectory: string;
+  routesFile: string;
+  reportDir: string;
+  server?: Omit<ProjectCheckServerConfig, "cwd"> & { cwd: string };
 }

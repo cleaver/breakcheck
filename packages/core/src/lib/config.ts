@@ -4,10 +4,14 @@ import { findRootDir } from "./root.js";
 import type {
   LoadedProjectConfig,
   ProjectComparisonConfig,
+  ProjectCheckConfig,
+  ProjectCheckServerConfig,
+  ProjectCommand,
   ProjectConfig,
   ProjectConfigLoadOptions,
   ProjectCrawlConfig,
   ResolvedProjectConfig,
+  ResolvedProjectCheckConfig,
 } from "../types/config.js";
 
 export const PROJECT_CONFIG_FILENAME = "breakcheck.config.json";
@@ -124,6 +128,171 @@ function validateStringArray(
   return [...value];
 }
 
+function validateCommand(
+  value: unknown,
+  field: string,
+  sourcePath?: string,
+): ProjectCommand {
+  if (
+    !Array.isArray(value) ||
+    value.length === 0 ||
+    value.some((argument) => typeof argument !== "string") ||
+    typeof value[0] !== "string" ||
+    value[0].trim().length === 0
+  ) {
+    throw invalidConfig(
+      `${field} must be a non-empty array of strings.`,
+      sourcePath,
+    );
+  }
+  const command: string[] = [];
+  for (const argument of value) {
+    if (typeof argument !== "string") {
+      throw invalidConfig(
+        `${field} must be a non-empty array of strings.`,
+        sourcePath,
+      );
+    }
+    command.push(argument);
+  }
+  return command;
+}
+
+function validateCommandList(
+  value: unknown,
+  field: string,
+  sourcePath?: string,
+): ProjectCommand[] {
+  if (!Array.isArray(value)) {
+    throw invalidConfig(
+      `${field} must be an array of command arrays.`,
+      sourcePath,
+    );
+  }
+  return value.map((command, index) =>
+    validateCommand(command, `${field}[${index}]`, sourcePath),
+  );
+}
+
+function validateEnvironment(
+  value: unknown,
+  sourcePath?: string,
+): Record<string, string> {
+  if (!isRecord(value)) {
+    throw invalidConfig(
+      "check.server.env must be an object of strings.",
+      sourcePath,
+    );
+  }
+  const environment: Record<string, string> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key) || typeof entry !== "string") {
+      throw invalidConfig(
+        "check.server.env keys must be environment variable names and values must be strings.",
+        sourcePath,
+      );
+    }
+    environment[key] = entry;
+  }
+  return environment;
+}
+
+function validateCheckServerConfig(
+  value: unknown,
+  sourcePath?: string,
+): ProjectCheckServerConfig {
+  if (!isRecord(value)) {
+    throw invalidConfig("check.server must be an object.", sourcePath);
+  }
+  assertKnownKeys(
+    value,
+    ["start", "stop", "cwd", "env", "readyPath", "timeoutMs"],
+    "check.server",
+    sourcePath,
+  );
+  const readyPath = optionalString(
+    value.readyPath,
+    "check.server.readyPath",
+    sourcePath,
+  );
+  if (
+    readyPath !== undefined &&
+    (!readyPath.startsWith("/") || readyPath.startsWith("//"))
+  ) {
+    throw invalidConfig(
+      "check.server.readyPath must be a root-relative path beginning with one slash.",
+      sourcePath,
+    );
+  }
+  return {
+    start: validateCommand(value.start, "check.server.start", sourcePath),
+    ...(value.stop === undefined
+      ? {}
+      : { stop: validateCommand(value.stop, "check.server.stop", sourcePath) }),
+    ...(value.cwd === undefined
+      ? {}
+      : { cwd: requiredString(value.cwd, "check.server.cwd", sourcePath) }),
+    ...(value.env === undefined
+      ? {}
+      : { env: validateEnvironment(value.env, sourcePath) }),
+    ...(readyPath === undefined ? {} : { readyPath }),
+    ...(value.timeoutMs === undefined
+      ? {}
+      : {
+          timeoutMs: validateInteger(
+            value.timeoutMs,
+            "check.server.timeoutMs",
+            1,
+            sourcePath,
+          ),
+        }),
+  };
+}
+
+function validateCheckConfig(
+  value: unknown,
+  sourcePath?: string,
+): ProjectCheckConfig | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) {
+    throw invalidConfig("check must be an object.", sourcePath);
+  }
+  assertKnownKeys(
+    value,
+    ["routesFile", "baselineSnapshot", "prepare", "server", "reportDir"],
+    "check",
+    sourcePath,
+  );
+  const prepare =
+    value.prepare === undefined
+      ? undefined
+      : validateCommandList(value.prepare, "check.prepare", sourcePath);
+  const server =
+    value.server === undefined
+      ? undefined
+      : validateCheckServerConfig(value.server, sourcePath);
+  const reportDir = optionalString(
+    value.reportDir,
+    "check.reportDir",
+    sourcePath,
+  );
+  return {
+    routesFile: requiredString(
+      value.routesFile,
+      "check.routesFile",
+      sourcePath,
+    ),
+    baselineSnapshot: requiredString(
+      value.baselineSnapshot,
+      "check.baselineSnapshot",
+      sourcePath,
+    ),
+    ...(prepare === undefined ? {} : { prepare }),
+    ...(server === undefined ? {} : { server }),
+    ...(reportDir === undefined ? {} : { reportDir }),
+  };
+}
+
 function validateCrawlConfig(
   value: unknown,
   sourcePath?: string,
@@ -226,21 +395,19 @@ export function validateProjectConfig(
   if (!isRecord(value)) {
     throw invalidConfig("the root value must be an object.", sourcePath);
   }
+  if (value.version !== 1 && value.version !== 2) {
+    throw invalidConfig("version must be 1 or 2.", sourcePath);
+  }
   assertKnownKeys(
     value,
-    ["version", "baseUrl", "storageDir", "crawl", "comparison"],
+    value.version === 1
+      ? ["version", "baseUrl", "storageDir", "crawl", "comparison"]
+      : ["version", "baseUrl", "storageDir", "crawl", "comparison", "check"],
     "the root object",
     sourcePath,
   );
 
-  if (value.version !== PROJECT_CONFIG_VERSION) {
-    throw invalidConfig(
-      `version must be ${PROJECT_CONFIG_VERSION}.`,
-      sourcePath,
-    );
-  }
-
-  const config: ProjectConfig = { version: PROJECT_CONFIG_VERSION };
+  const config: ProjectConfig = { version: value.version };
   if (value.baseUrl !== undefined) {
     config.baseUrl = validateBaseUrl(value.baseUrl, sourcePath);
   }
@@ -257,6 +424,17 @@ export function validateProjectConfig(
 
   const comparison = validateComparisonConfig(value.comparison, sourcePath);
   if (comparison !== undefined) config.comparison = comparison;
+
+  const check = validateCheckConfig(value.check, sourcePath);
+  if (check !== undefined) {
+    if (value.version !== 2) {
+      throw invalidConfig(
+        "check settings require configuration version 2.",
+        sourcePath,
+      );
+    }
+    config.check = check;
+  }
 
   return config;
 }
@@ -349,6 +527,37 @@ export async function resolveProjectConfig(
       ? await findRootDir(cwd)
       : path.resolve(configDirectory, config.storageDir);
 
+  let check: ResolvedProjectCheckConfig | undefined;
+  if (config?.check) {
+    const server = config.check.server;
+    check = {
+      configDirectory,
+      routesFile: path.resolve(configDirectory, config.check.routesFile),
+      baselineSnapshot: config.check.baselineSnapshot,
+      prepare: config.check.prepare,
+      reportDir: path.resolve(
+        configDirectory,
+        config.check.reportDir ?? path.join(storageDir, "reports"),
+      ),
+      ...(server === undefined
+        ? {}
+        : {
+            server: {
+              start: server.start,
+              ...(server.stop === undefined ? {} : { stop: server.stop }),
+              ...(server.env === undefined ? {} : { env: server.env }),
+              ...(server.readyPath === undefined
+                ? {}
+                : { readyPath: server.readyPath }),
+              ...(server.timeoutMs === undefined
+                ? {}
+                : { timeoutMs: server.timeoutMs }),
+              cwd: path.resolve(configDirectory, server.cwd ?? "."),
+            },
+          }),
+    };
+  }
+
   return {
     ...(loaded ? { configPath: loaded.configPath } : {}),
     storageDir: path.resolve(storageDir),
@@ -359,6 +568,7 @@ export async function resolveProjectConfig(
       : {
           rulesDir: path.resolve(configDirectory, config.comparison.rulesDir),
         }),
+    ...(check === undefined ? {} : { check }),
   };
 }
 

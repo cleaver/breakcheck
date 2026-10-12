@@ -47,10 +47,52 @@ export interface SnapshotConfig {
   urlListPath?: string;
 }
 
+/** Configuration for an exact-route regression check against a baseline. */
+export interface SiteCheckConfig {
+  /** Base URL for the site being checked. */
+  baseUrl: string;
+  /** Unique name used for the after snapshot and saved comparison. */
+  name: string;
+  /** Snapshot id containing the checked-in baseline. */
+  baselineSnapshotId: string;
+  /** Exact root-relative routes to request. */
+  routes: string[];
+  /** Crawler settings; URL filters are not used for exact route checks. */
+  crawlSettings: CrawlerConfig;
+  /** Optional rules directory or inline ruleset. */
+  ruleset?: ComparisonConfig["ruleset"];
+}
+
+export type SiteCheckStatus = "passed" | "differences" | "failed";
+
+/** Structured result returned by the public site-check API. */
+export interface SiteCheckResult {
+  status: SiteCheckStatus;
+  baseUrl: string;
+  baselineSnapshotId: string;
+  snapshotId?: string;
+  routes: string[];
+  crawlErrors: CrawlError[];
+  errors: string[];
+  comparison?: ComparisonSummary;
+}
+
+/** Result of updating selected routes in an existing baseline snapshot. */
+export interface SnapshotRouteUpdateResult {
+  snapshotId: string;
+  updatedRoutes: string[];
+  pageCount: number;
+}
+
 /** Optional artifact-storage context for public operations. */
 export interface StorageOptions {
   /** Directory containing the `snapshots/` and `comparisons/` stores. */
   storageDir?: string;
+}
+
+/** Storage settings and cooperative cancellation for long-running operations. */
+export interface OperationOptions extends StorageOptions {
+  signal?: AbortSignal;
 }
 
 interface SnapshotJobBase {

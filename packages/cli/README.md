@@ -228,6 +228,55 @@ breakcheck compare [options]
 | `--config <file>`         | Select a project configuration file.                                                                            |                              |
 | `--no-config`             | Disable project configuration discovery.                                                                        |                              |
 
+Snapshot commands exit with status `1` when snapshot creation fails.
+Comparison commands exit with status `1` when the comparison fails or finds
+differences (`overallResult: "fail"`), which lets CI jobs stop on regressions.
+
+### `check`
+
+Runs a local site regression check using the version-2 `check` section in
+`breakcheck.config.json`. It optionally runs `check.prepare`, starts the
+configured server, waits for `baseUrl` plus `readyPath`, snapshots only the
+exact routes in `check.routesFile`, compares them to `check.baselineSnapshot`
+using `comparison.rulesDir`, saves a report, and shuts down the managed server.
+
+```bash
+breakcheck check
+breakcheck check --url http://127.0.0.1:4000
+breakcheck check --json
+```
+
+`--url` uses an already-running server and skips preparation and lifecycle
+commands. Configure foreground server commands such as `mix phx.server` with a
+`start` array; Breakcheck stops the process group on completion. For a daemon
+or environment manager, configure a paired `stop` command, such as
+`["ddev", "stop"]`. Commands run without a shell, from `server.cwd`, and
+inherit the current environment plus any `server.env` entries. Keep stop
+commands scoped to environments owned by the check.
+
+`--json` writes one JSON result to stdout for CI and agent integrations; build,
+server, and crawler output goes to stderr. Reports are written under
+`check.reportDir`, which defaults to `<storageDir>/reports`. Comparison details
+are also saved under `<storageDir>/comparisons`.
+
+Exit codes are `0` for no differences, `1` for page or route differences, and
+`2` for setup, readiness, crawl, or comparison failures.
+
+### `baseline update`
+
+Updates the configured baseline explicitly. `--route` replaces only the
+selected routes and preserves every other route in the baseline snapshot.
+`--all` replaces the routes listed in `check.routesFile`.
+
+```bash
+breakcheck baseline update --route /about /contact
+breakcheck baseline update --all
+breakcheck baseline update --route /about --url http://127.0.0.1:4000
+```
+
+The update is staged and committed only after all selected routes crawl
+successfully. A regular `check` never writes to the baseline.
+
 ### `clean`
 
 Deletes stored snapshots or comparisons. Deletion is confirmed interactively

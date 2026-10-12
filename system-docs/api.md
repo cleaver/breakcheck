@@ -14,6 +14,12 @@
 - src/api/types.ts: Defines shared TypeScript types for API request configurations (e.g., SnapshotConfig, ComparisonConfig) and response objects (e.g., SnapshotResult, ComparisonSummary).
 - Individual modules (e.g., src/api/snapshot.ts, src/api/compare.ts) contain the logic for specific API operations, orchestrating calls to the src/core/ components.
 
+The public API is a facade over the core workflows. Exact-route checks live in
+`core/check`; route-scoped baseline updates live in `core/snapshot`. Both use
+the shared snapshot route-coverage validator, while `SnapshotRepository` owns
+the on-disk atomic route replacement. Long-running snapshot operations accept
+an optional `AbortSignal` through `OperationOptions`.
+
 **Key Public Functions (Examples):**
 
 `SnapshotConfig` may include an optional `urlPaths` array. When present, the
@@ -29,6 +35,10 @@ import type {
   SnapshotResult,
   ComparisonConfig,
   ComparisonSummary,
+  OperationOptions,
+  SiteCheckConfig,
+  SiteCheckResult,
+  SnapshotRouteUpdateResult,
 } from "@project-types/api";
 
 /**
@@ -53,7 +63,7 @@ async function runComparison(
 // Project configuration is explicit for library consumers. The CLI performs
 // discovery and passes the resolved storage directory to these operations.
 interface ProjectConfig {
-  version: 1;
+  version: 1 | 2;
   baseUrl?: string;
   storageDir?: string;
   crawl?: {
@@ -64,6 +74,20 @@ interface ProjectConfig {
     excludePatterns?: string[];
   };
   comparison?: { rulesDir?: string };
+  check?: {
+    routesFile: string;
+    baselineSnapshot: string;
+    prepare?: string[][];
+    server?: {
+      start: string[];
+      stop?: string[];
+      cwd?: string;
+      env?: Record<string, string>;
+      readyPath?: string;
+      timeoutMs?: number;
+    };
+    reportDir?: string;
+  };
 }
 
 interface ResolvedProjectConfig {
@@ -81,6 +105,17 @@ async function resolveProjectConfig(options?: {
 }): Promise<ResolvedProjectConfig>;
 
 async function compileRulesDsl(rulesDirectory: string): Promise<RulesDocument>;
+
+async function runSiteCheck(
+  config: SiteCheckConfig,
+  options?: OperationOptions,
+): Promise<SiteCheckResult>;
+
+async function updateSnapshotRoutesFromConfig(
+  config: SnapshotConfig,
+  baselineSnapshotId: string,
+  options?: OperationOptions,
+): Promise<SnapshotRouteUpdateResult>;
 
 // compileRulesDsl resolves <rulesDirectory>/rules.breakcheck from the
 // invocation directory, validates the parsed rules, and returns the

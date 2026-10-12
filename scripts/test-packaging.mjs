@@ -69,6 +69,23 @@ async function runCli(consumerDir, args) {
   });
 }
 
+async function runCliWithExitCode(consumerDir, args, expectedExitCode) {
+  const result = await runCli(consumerDir, args).then(
+    (commandResult) => ({
+      exitCode: 0,
+      stdout: commandResult.stdout,
+      stderr: commandResult.stderr,
+    }),
+    (error) => ({
+      exitCode: error.cause?.code,
+      stdout: error.cause?.stdout ?? "",
+      stderr: error.cause?.stderr ?? "",
+    }),
+  );
+  assert.equal(result.exitCode, expectedExitCode);
+  return result;
+}
+
 async function expectCliFailure(consumerDir, args, message) {
   await assert.rejects(
     () => runCli(consumerDir, args),
@@ -373,15 +390,23 @@ void projectConfig; void storageOptions; void rulesDocument;
     /Rules file not found/,
   );
 
-  await runCli(consumerDir, [
-    "compare",
-    "--before",
-    "before",
-    "--after",
-    "after",
-    "--output",
-    "unfiltered-comparison",
-  ]);
+  const unfilteredRun = await runCliWithExitCode(
+    consumerDir,
+    [
+      "compare",
+      "--before",
+      "before",
+      "--after",
+      "after",
+      "--output",
+      "unfiltered-comparison",
+    ],
+    1,
+  );
+  assert.match(
+    `${unfilteredRun.stdout}${unfilteredRun.stderr}`,
+    /Overall result: FAIL/,
+  );
   const unfilteredIndex = JSON.parse(
     await readFile(
       path.join(consumerDir, "comparisons/unfiltered-comparison/index.json"),
@@ -409,17 +434,25 @@ void projectConfig; void storageOptions; void rulesDocument;
     rules: [],
     regions: [],
   });
-  await runCli(consumerDir, [
-    "compare",
-    "--before",
-    "before",
-    "--after",
-    "after",
-    "--rules",
-    rulesDirectory,
-    "--output",
-    "scaffold-comparison",
-  ]);
+  const scaffoldRun = await runCliWithExitCode(
+    consumerDir,
+    [
+      "compare",
+      "--before",
+      "before",
+      "--after",
+      "after",
+      "--rules",
+      rulesDirectory,
+      "--output",
+      "scaffold-comparison",
+    ],
+    1,
+  );
+  assert.match(
+    `${scaffoldRun.stdout}${scaffoldRun.stderr}`,
+    /Overall result: FAIL/,
+  );
   const scaffoldComparison = JSON.parse(
     await readFile(
       path.join(consumerDir, "comparisons/scaffold-comparison/index.json"),

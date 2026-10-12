@@ -102,6 +102,87 @@ It does not relocate Crawlee's temporary datasets or request queues. Changing
 the setting does not migrate existing artifacts; move artifacts deliberately
 after verifying the new configuration.
 
+Version 1 remains the default for projects using snapshots and comparisons.
+For `check`, use version 2 and add a `check` section. Commands in `prepare`,
+`server.start`, and `server.stop` are executable argument arrays; Breakcheck
+does not interpret them through a shell. Configured commands run from
+`server.cwd` (relative to the config file) and inherit the current environment,
+with `server.env` values added or replaced. Treat command settings as executable
+project code, and keep secrets in the environment rather than in the config.
+
+```json
+{
+  "version": 2,
+  "baseUrl": "http://127.0.0.1:4000",
+  "storageDir": ".breakcheck",
+  "comparison": { "rulesDir": "./rules" },
+  "check": {
+    "routesFile": "./breakcheck-routes.txt",
+    "baselineSnapshot": "site-baseline",
+    "prepare": [["mix", "setup"]],
+    "server": {
+      "start": ["mix", "phx.server"],
+      "cwd": ".",
+      "env": { "PORT": "4000" },
+      "readyPath": "/",
+      "timeoutMs": 60000
+    }
+  }
+}
+```
+
+`prepare` is optional and can hold build, dependency setup, or other project
+commands. A foreground server such as `mix phx.server` is stopped when the
+check finishes. A daemon or container manager should also configure `stop`,
+for example `"stop": ["ddev", "stop"]`. Cleanup runs after readiness or crawl
+failures too. Use `check --url <url>` when the site is already running; that
+skips preparation and server lifecycle commands. Do not point `stop` at a
+shared environment that should remain running.
+
+`check.routesFile` is an exact root-relative route manifest, in the same format
+as `snapshot --url-file`. `check.baselineSnapshot` names a snapshot under
+`storageDir/snapshots/`; create the initial baseline with `snapshot --url-file`
+and commit that snapshot. Start the site once, then run:
+
+```bash
+breakcheck snapshot --url http://127.0.0.1:4000 \
+  --url-file ./breakcheck-routes.txt --name site-baseline
+```
+
+`check.reportDir` is optional and defaults to `storageDir/reports`.
+
+```text
+# breakcheck-routes.txt
+/
+/about
+/blog/first-post
+```
+
+Run the check and update the baseline explicitly:
+
+```bash
+breakcheck check
+breakcheck check --json
+breakcheck baseline update --route /about
+breakcheck baseline update --all
+```
+
+`check` saves a timestamped JSON summary and a detailed comparison. It exits
+with `0` when no differences are found, `1` when routes or pages differ, and
+`2` when setup, readiness, crawling, or comparison fails. `baseline update`
+replaces only the selected routes; `--all` updates the routes in the configured
+manifest and preserves other baseline routes. Keep generated check snapshots,
+comparisons, and reports ignored by Git while committing the named baseline.
+For a `.breakcheck` storage directory, this keeps the configured baseline
+snapshot tracked:
+
+```gitignore
+.breakcheck/comparisons/
+.breakcheck/reports/
+.breakcheck/snapshots/check_*/
+.breakcheck/snapshots/baseline_update_*/
+```
+
 For a terminal-guided setup, use `breakcheck init --interactive`. Press Enter
 to skip the optional URL, storage, or rules values. Interactive initialization
 requires a terminal; plain `init` is deterministic for CI.

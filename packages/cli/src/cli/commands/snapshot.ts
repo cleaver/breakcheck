@@ -242,6 +242,7 @@ export const snapshotCommand = addConfigOptions(
               logger.error(`  - ${error.message}`);
             },
           );
+          process.exitCode = 1;
         }
       } catch (error) {
         logger.error({ err: error }, "❌ Error creating snapshot");

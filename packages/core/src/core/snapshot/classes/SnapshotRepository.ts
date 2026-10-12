@@ -1,5 +1,6 @@
 import * as fs from "fs/promises";
 import * as path from "path";
+import { randomUUID } from "node:crypto";
 import { promisify } from "util";
 import * as zlib from "zlib";
 import { findRootDir } from "../../../lib/root.js";
@@ -13,6 +14,7 @@ import { PageSnapshot } from "../../../types/crawler.js";
 import {
   SnapshotData,
   SnapshotIndex,
+  SnapshotMetadata,
   SnapshotSummary,
 } from "../../../types/snapshot.js";
 import { LoadedSnapshot } from "./LoadedSnapshot.js";
@@ -143,6 +145,127 @@ export class SnapshotRepository {
     await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
 
     return pageCount;
+  }
+
+  /** Replaces only the requested routes in an existing snapshot. */
+  async replaceSnapshotRoutes(
+    targetName: string,
+    sourceName: string,
+    routes: readonly string[],
+    signal?: AbortSignal,
+  ): Promise<void> {
+    signal?.throwIfAborted();
+    if (targetName === sourceName) {
+      throw new Error("The source and target snapshots must be different.");
+    }
+    if (routes.length === 0) {
+      throw new Error("At least one route is required for a baseline update.");
+    }
+
+    const targetDir = resolveStorageEntry(
+      this.snapshotsDir,
+      targetName,
+      "snapshot",
+    );
+    const sourceDir = resolveStorageEntry(
+      this.snapshotsDir,
+      sourceName,
+      "snapshot",
+    );
+    const temporaryDir = `${targetDir}.route-update-${randomUUID()}`;
+    const backupDir = `${targetDir}.route-backup-${randomUUID()}`;
+    let backupCreated = false;
+    let committed = false;
+
+    try {
+      const targetIndexPath = path.join(targetDir, "index.json");
+      const sourceIndexPath = path.join(sourceDir, "index.json");
+      const targetIndex = JSON.parse(
+        await fs.readFile(targetIndexPath, "utf8"),
+      ) as SnapshotIndex;
+      const sourceIndex = JSON.parse(
+        await fs.readFile(sourceIndexPath, "utf8"),
+      ) as SnapshotIndex;
+      const sourcePagesDir = path.join(sourceDir, "pages");
+      const targetPagesDir = path.join(temporaryDir, "pages");
+      const uniqueRoutes = [...new Set(routes)];
+
+      for (const route of uniqueRoutes) {
+        if (!route.startsWith("/") || route.startsWith("//")) {
+          throw new Error(`Invalid root-relative route "${route}".`);
+        }
+        const sourcePage = sourceIndex.urls[route];
+        if (!sourcePage) {
+          throw new Error(
+            `The source snapshot does not contain route "${route}".`,
+          );
+        }
+        const filename = `${Buffer.from(route).toString("base64url")}.json.gz`;
+        if (sourcePage.filename !== filename) {
+          throw new Error(
+            `The source snapshot has an invalid page entry for "${route}".`,
+          );
+        }
+      }
+
+      await fs.cp(targetDir, temporaryDir, {
+        recursive: true,
+        errorOnExist: true,
+      });
+      for (const route of uniqueRoutes) {
+        const sourcePage = sourceIndex.urls[route];
+        if (!sourcePage) {
+          throw new Error(
+            `The source snapshot does not contain route "${route}".`,
+          );
+        }
+        const filename = sourcePage.filename;
+        await fs.copyFile(
+          path.join(sourcePagesDir, filename),
+          path.join(targetPagesDir, filename),
+        );
+        targetIndex.urls[route] = { ...sourcePage };
+      }
+
+      const now = new Date().toISOString();
+      targetIndex.metadata = {
+        ...targetIndex.metadata,
+        baseUrl: sourceIndex.metadata.baseUrl,
+        timestamp: now,
+        totalPages: Object.keys(targetIndex.urls).length,
+      };
+      const sourceMetadata = JSON.parse(
+        await fs.readFile(path.join(sourceDir, "metadata.json"), "utf8"),
+      ) as SnapshotMetadata;
+      await fs.writeFile(
+        path.join(temporaryDir, "metadata.json"),
+        JSON.stringify({ ...sourceMetadata, timestamp: now }, null, 2),
+      );
+      await fs.writeFile(
+        path.join(temporaryDir, "index.json"),
+        JSON.stringify(targetIndex, null, 2),
+      );
+
+      signal?.throwIfAborted();
+      await fs.rename(targetDir, backupDir);
+      backupCreated = true;
+      try {
+        signal?.throwIfAborted();
+        await fs.rename(temporaryDir, targetDir);
+        committed = true;
+      } catch (error) {
+        await fs.rename(backupDir, targetDir);
+        backupCreated = false;
+        throw error;
+      }
+      await fs.rm(backupDir, { recursive: true, force: true });
+      backupCreated = false;
+    } finally {
+      await fs.rm(temporaryDir, { recursive: true, force: true });
+      if (backupCreated && !committed) {
+        await fs.rename(backupDir, targetDir);
+      }
+    }
   }
 
   /**

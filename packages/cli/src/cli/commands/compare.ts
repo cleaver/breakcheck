@@ -85,11 +85,15 @@ export const compareCommand = addConfigOptions(
           logger.info(
             `   - Overall result: ${summary.overallResult.toUpperCase()}`,
           );
+          if (summary.overallResult === "fail") {
+            process.exitCode = 1;
+          }
         } else {
           logger.error(
             { errors: summary.comparisonProcessErrors },
             "❌ Comparison failed",
           );
+          process.exitCode = 1;
         }
       } catch (error) {
         logger.error({ err: error }, "❌ Error running comparison");
