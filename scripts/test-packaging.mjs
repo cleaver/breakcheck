@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createServer, get as httpGet } from "node:http";
 import {
   access,
+  cp,
   mkdir,
   mkdtemp,
   readFile,
@@ -17,6 +18,7 @@ import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
+const commandLog = [];
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -26,14 +28,19 @@ const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 
 async function run(command, args, options = {}) {
   try {
-    return await execFileAsync(command, args, {
+    const result = await execFileAsync(command, args, {
       cwd: repoRoot,
       maxBuffer: 10 * 1024 * 1024,
       ...options,
     });
+    commandLog.push(
+      `$ ${command} ${args.join(" ")}\n${result.stdout}${result.stderr}`,
+    );
+    return result;
   } catch (error) {
     const stdout = error.stdout || "";
     const stderr = error.stderr || "";
+    commandLog.push(`$ ${command} ${args.join(" ")}\n${stdout}${stderr}`);
     throw new Error(
       `${command} ${args.join(" ")} failed with code ${error.code ?? "unknown"}\n${stdout}\n${stderr}`,
       { cause: error },
@@ -168,6 +175,7 @@ const temporaryRoot = await mkdtemp(
 const tarballDirectory = path.join(temporaryRoot, "tarballs");
 const fixtureServer = createServer();
 let fixtureState = "before";
+let consumerDirectory;
 
 try {
   await mkdir(tarballDirectory, { recursive: true });
@@ -198,6 +206,7 @@ try {
   }
 
   const consumerDir = path.join(temporaryRoot, "consumer");
+  consumerDirectory = consumerDir;
   await mkdir(consumerDir, { recursive: true });
   await run(npmCommand, ["init", "-y"], { cwd: consumerDir });
   await run(
@@ -240,13 +249,13 @@ try {
     [
       "--input-type=module",
       "-e",
-      'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function" || typeof core.compileRulesDsl !== "function" || typeof core.resolveProjectConfig !== "function" || typeof core.writeProjectConfig !== "function") process.exit(1);',
+      'const core = await import("@cleaver/breakcheck-core"); if (typeof core.runComparison !== "function" || typeof core.runSiteCheck !== "function" || typeof core.updateSnapshotRoutesFromConfig !== "function" || typeof core.compileRulesDsl !== "function" || typeof core.resolveProjectConfig !== "function" || typeof core.writeProjectConfig !== "function") process.exit(1);',
     ],
     { cwd: consumerDir },
   );
 
   const typeFixture = `
-import type { Action, ProjectConfig, RulesDocument, SnapshotConfig, StorageOptions } from "@cleaver/breakcheck-core";
+import type { Action, OperationOptions, ProjectConfig, RulesDocument, SiteCheckConfig, SiteCheckResult, SnapshotConfig, SnapshotRouteUpdateResult, StorageOptions } from "@cleaver/breakcheck-core";
 
 const valid: Action[] = [
   { action: "include" },
@@ -280,8 +289,12 @@ const exactSnapshot: SnapshotConfig = {
 void exactSnapshot;
 const projectConfig: ProjectConfig = { version: 1, storageDir: ".breakcheck" };
 const storageOptions: StorageOptions = { storageDir: ".breakcheck" };
+const operationOptions: OperationOptions = { storageDir: ".breakcheck", signal: new AbortController().signal };
+const siteCheckConfig: SiteCheckConfig = { baseUrl: "https://example.com", name: "check", baselineSnapshotId: "before", routes: ["/"], crawlSettings: { baseUrl: "https://example.com", crawlerType: "cheerio" } };
+const siteCheckResult: SiteCheckResult = { status: "failed", baseUrl: "https://example.com", baselineSnapshotId: "before", routes: ["/"], crawlErrors: [], errors: ["failed"] };
+const routeUpdateResult: SnapshotRouteUpdateResult = { snapshotId: "before", updatedRoutes: ["/"], pageCount: 1 };
 const rulesDocument: RulesDocument = { rules: [], regions: [] };
-void projectConfig; void storageOptions; void rulesDocument;
+void projectConfig; void storageOptions; void operationOptions; void siteCheckConfig; void siteCheckResult; void routeUpdateResult; void rulesDocument;
 `;
   await writeFile(path.join(consumerDir, "action-types.ts"), typeFixture);
   await writeFile(
@@ -495,6 +508,116 @@ void projectConfig; void storageOptions; void rulesDocument;
   });
   assert.deepEqual(compiledDocument.regions, []);
 
+  const checkRoutesFile = path.join(consumerDir, "check-routes.txt");
+  await writeFile(checkRoutesFile, "/\n");
+  await writeFile(
+    path.join(consumerDir, "check.config.json"),
+    JSON.stringify({
+      version: 2,
+      baseUrl: fixtureUrl,
+      storageDir: ".",
+      check: {
+        routesFile: "./check-routes.txt",
+        baselineSnapshot: "before",
+        reportDir: "./check-reports",
+      },
+    }),
+  );
+  const checkArgs = [
+    "check",
+    "--url",
+    fixtureUrl,
+    "--config",
+    "check.config.json",
+    "--json",
+  ];
+  const differentCheck = await runCliWithExitCode(consumerDir, checkArgs, 1);
+  assert.equal(differentCheck.stdout.trim().split(/\r?\n/).length, 1);
+  assert.equal(JSON.parse(differentCheck.stdout).status, "differences");
+
+  const routeBytesBeforeUpdate = await readFile(
+    path.join(
+      consumerDir,
+      "snapshots/before/pages",
+      JSON.parse(
+        await readFile(
+          path.join(consumerDir, "snapshots/before/index.json"),
+          "utf8",
+        ),
+      ).urls["/"].filename,
+    ),
+  );
+  const updatedBaseline = await runCliWithExitCode(
+    consumerDir,
+    [
+      "baseline",
+      "update",
+      "--route",
+      "/",
+      "--url",
+      fixtureUrl,
+      "--config",
+      "check.config.json",
+      "--json",
+    ],
+    0,
+  );
+  assert.equal(updatedBaseline.stdout.trim().split(/\r?\n/).length, 1);
+  assert.equal(JSON.parse(updatedBaseline.stdout).status, "updated");
+  const baselineIndexAfterUpdate = JSON.parse(
+    await readFile(
+      path.join(consumerDir, "snapshots/before/index.json"),
+      "utf8",
+    ),
+  );
+  const routeBytesAfterUpdate = await readFile(
+    path.join(
+      consumerDir,
+      "snapshots/before/pages",
+      baselineIndexAfterUpdate.urls["/"].filename,
+    ),
+  );
+  assert.notDeepEqual(routeBytesAfterUpdate, routeBytesBeforeUpdate);
+  assert.equal(
+    (await runCliWithExitCode(consumerDir, checkArgs, 0)).exitCode,
+    0,
+  );
+
+  const baselineIndexBeforeFailure = await readFile(
+    path.join(consumerDir, "snapshots/before/index.json"),
+  );
+  await writeFile(checkRoutesFile, "/missing\n");
+  const failedCheck = await runCliWithExitCode(consumerDir, checkArgs, 2);
+  assert.equal(failedCheck.stdout.trim().split(/\r?\n/).length, 1);
+  assert.equal(JSON.parse(failedCheck.stdout).status, "failed");
+  const failedUpdate = await runCliWithExitCode(
+    consumerDir,
+    [
+      "baseline",
+      "update",
+      "--route",
+      "/missing",
+      "--url",
+      fixtureUrl,
+      "--config",
+      "check.config.json",
+      "--json",
+    ],
+    2,
+  );
+  assert.equal(failedUpdate.stdout.trim().split(/\r?\n/).length, 1);
+  assert.equal(JSON.parse(failedUpdate.stdout).status, "failed");
+  assert.deepEqual(
+    await readFile(path.join(consumerDir, "snapshots/before/index.json")),
+    baselineIndexBeforeFailure,
+  );
+  assert.equal(
+    (await readdir(path.join(consumerDir, "snapshots"))).some((name) =>
+      name.startsWith("baseline_update_"),
+    ),
+    false,
+  );
+
   const viewPort = await getFreePort();
   const installedCliEntry = path.join(
     consumerDir,
@@ -568,6 +691,40 @@ void projectConfig; void storageOptions; void rulesDocument;
   );
 
   console.log("Fresh-install packaging test passed");
+} catch (error) {
+  const diagnosticsDirectory = process.env.BREAKCHECK_DIAGNOSTICS_DIR;
+  if (diagnosticsDirectory) {
+    const destination = path.join(diagnosticsDirectory, "packaging");
+    await mkdir(destination, { recursive: true });
+    await writeFile(
+      path.join(destination, "failure.txt"),
+      error instanceof Error ? (error.stack ?? error.message) : String(error),
+    );
+    await writeFile(
+      path.join(destination, "commands.log"),
+      commandLog.join("\n\n"),
+    );
+    if (consumerDirectory) {
+      for (const name of ["snapshots", "comparisons", "check-reports"]) {
+        try {
+          await cp(
+            path.join(consumerDirectory, name),
+            path.join(destination, name),
+            { recursive: true },
+          );
+        } catch (copyError) {
+          if (!(
+            copyError instanceof Error &&
+            "code" in copyError &&
+            copyError.code === "ENOENT"
+          )) {
+            throw copyError;
+          }
+        }
+      }
+    }
+  }
+  throw error;
 } finally {
   if (fixtureServer.listening) fixtureServer.close();
   await rm(temporaryRoot, { recursive: true, force: true });

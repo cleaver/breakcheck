@@ -39,6 +39,8 @@ jobs:
     name: Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      BREAKCHECK_DIAGNOSTICS_DIR: ${{ runner.temp }}/breakcheck-diagnostics-${{ matrix.node-version }}
     strategy:
       fail-fast: false
       matrix:
@@ -62,14 +64,40 @@ jobs:
       - name: Build packages
         run: npm run build
 
-      - name: Run native CLI bin smoke test
-        run: npm run test:cli-bin
+      - name: Typecheck production and test sources
+        run: npm run typecheck
 
-      - name: Run unit tests
+      - name: Run native CLI bin smoke test
+        run: npm run test:cli-bin:built
+
+      - name: Run unit tests with coverage on Node 22
+        if: matrix.node-version == '22.x'
+        run: npm run test:coverage
+
+      - name: Run unit tests on Node 24
+        if: matrix.node-version == '24.x'
         run: npm test
 
       - name: Run fixture integration tests
-        run: npm run test:integration
+        run: npm run test:integration:built
 
       - name: Run fresh-install packaging tests
-        run: npm run test:packaging
+        run: npm run test:packaging:built
+
+      - name: Upload coverage reports
+        if: always() && matrix.node-version == '22.x'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ matrix.node-version }}
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: diagnostics-${{ matrix.node-version }}
+          path: ${{ runner.temp }}/breakcheck-diagnostics-${{ matrix.node-version }}/
+          if-no-files-found: ignore
+          retention-days: 7

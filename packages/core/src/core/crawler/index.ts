@@ -9,21 +9,30 @@ import type {
 import { createCheerioCrawler } from "./implementations/cheerio.js";
 import { createPlaywrightCrawler } from "./implementations/playwright.js";
 
+interface CrawlerRuntime {
+  run(startUrls: string[]): Promise<unknown>;
+  teardown(): Promise<void>;
+}
+
 export class BreakcheckCrawler {
   private config: CrawlerConfig;
-  private crawler: CrawlerInstance;
+  private crawler: CrawlerRuntime;
   private errors: CrawlError[] = [];
   private readonly startUrls: string[];
   private readonly followLinks: boolean;
 
   constructor(
     config: CrawlerConfig,
-    options: { startUrls?: string[]; followLinks?: boolean } = {},
+    options: {
+      startUrls?: string[];
+      followLinks?: boolean;
+      crawler?: CrawlerRuntime;
+    } = {},
   ) {
     this.config = config;
     this.startUrls = options.startUrls ?? [config.baseUrl];
     this.followLinks = options.followLinks ?? true;
-    this.crawler = this.createCrawler();
+    this.crawler = options.crawler ?? this.createCrawler();
   }
 
   private createCrawler(): CrawlerInstance {

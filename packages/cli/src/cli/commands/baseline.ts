@@ -19,6 +19,13 @@ interface BaselineUpdateOptions {
   noJsonLogs?: boolean;
 }
 
+export interface BaselineUpdateReport {
+  status: "updated" | "failed";
+  baselineSnapshotId?: string;
+  updatedRoutes: string[];
+  errors: string[];
+}
+
 function messageOf(error: unknown): string {
   if (error instanceof AggregateError) {
     return [...error.errors].map(messageOf).join("; ");
@@ -69,22 +76,21 @@ async function readConfiguredRoutes(
   return manifest.paths;
 }
 
-async function executeBaselineUpdate(
+export async function executeBaselineUpdate(
   options: BaselineUpdateOptions,
   args: readonly string[] = process.argv.slice(2),
   cwd: string = process.cwd(),
-): Promise<void> {
+): Promise<BaselineUpdateReport> {
   const logger = configureLogger({
     jsonLogs: options.jsonLogs,
     noJsonLogs: options.noJsonLogs,
     silent: options.json,
   });
-  const result: {
-    status: "updated" | "failed";
-    baselineSnapshotId?: string;
-    updatedRoutes: string[];
-    errors: string[];
-  } = { status: "failed", updatedRoutes: [], errors: [] };
+  const result: BaselineUpdateReport = {
+    status: "failed",
+    updatedRoutes: [],
+    errors: [],
+  };
 
   try {
     if (options.all && options.route !== undefined) {
@@ -163,6 +169,7 @@ async function executeBaselineUpdate(
   }
 
   process.exitCode = result.status === "updated" ? 0 : 2;
+  return result;
 }
 
 export const baselineUpdateCommand = addConfigOptions(

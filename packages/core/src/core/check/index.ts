@@ -46,9 +46,7 @@ export async function runSiteCheck(
     throw new Error(manifest.issues.map((issue) => issue.message).join("; "));
   }
 
-  const baseline = await operations.snapshotRepository.loadSnapshot(
-    config.baselineSnapshotId,
-  );
+  await operations.snapshotRepository.loadSnapshot(config.baselineSnapshotId);
   signal?.throwIfAborted();
   const snapshotResult = await operations.createSnapshot(
     {
@@ -107,11 +105,6 @@ export async function runSiteCheck(
     };
   }
 
-  const commonRoutes = manifest.paths.filter(
-    (route) =>
-      baseline.index.urls[route] !== undefined &&
-      afterSnapshot.index.urls[route] !== undefined,
-  );
   let comparison: ComparisonSummary;
   try {
     comparison = await operations.runComparison({
@@ -119,7 +112,7 @@ export async function runSiteCheck(
       afterSnapshotId: snapshotResult.snapshotId,
       comparisonName: config.name,
       ruleset: config.ruleset,
-      urls: commonRoutes,
+      urls: manifest.paths,
     });
   } catch (error) {
     return {

@@ -56,12 +56,22 @@ export async function compareSnapshots(
   const beforeUrls = Object.keys(beforeSnapshot.index.urls);
   const afterUrls = new Set(Object.keys(afterSnapshot.index.urls));
   const urlsToCompare = config.urls || beforeUrls;
+  const requestedUrls =
+    config.urls === undefined ? undefined : new Set(config.urls);
   const rulesUsedIdentifier =
     typeof config.ruleset === "string" ? config.ruleset : config.ruleset?.name;
 
   // Find new and removed URLs
-  const newUrls = [...afterUrls].filter((url) => !beforeUrls.includes(url));
-  const removedUrls = beforeUrls.filter((url) => !afterUrls.has(url));
+  const newUrls = [...afterUrls].filter(
+    (url) =>
+      !beforeUrls.includes(url) &&
+      (requestedUrls === undefined || requestedUrls.has(url)),
+  );
+  const removedUrls = beforeUrls.filter(
+    (url) =>
+      !afterUrls.has(url) &&
+      (requestedUrls === undefined || requestedUrls.has(url)),
+  );
 
   let pagesWithErrors = 0;
 
@@ -69,6 +79,7 @@ export async function compareSnapshots(
   for (const url of urlsToCompare) {
     if (!afterUrls.has(url)) continue; // Skip URLs not in the "after" snapshot
 
+    if (!beforeSnapshot.index.urls[url]) continue; // New URLs are reported above
     const beforePage = await beforeSnapshot.getPage(url);
     const afterPage = await afterSnapshot.getPage(url);
     if (!beforePage || !afterPage) {

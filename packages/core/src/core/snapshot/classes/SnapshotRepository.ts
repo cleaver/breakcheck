@@ -21,11 +21,21 @@ import { LoadedSnapshot } from "./LoadedSnapshot.js";
 
 const gzip = promisify(zlib.gzip);
 
+type SnapshotFileOperations = Pick<
+  typeof fs,
+  "cp" | "copyFile" | "readFile" | "writeFile" | "rename" | "rm"
+>;
+
 export class SnapshotRepository {
   private readonly snapshotsDir: string;
+  private readonly fileOperations: SnapshotFileOperations;
 
-  private constructor(snapshotsDir: string) {
+  private constructor(
+    snapshotsDir: string,
+    fileOperations: SnapshotFileOperations = fs,
+  ) {
     this.snapshotsDir = snapshotsDir;
+    this.fileOperations = fileOperations;
   }
 
   /**
@@ -55,8 +65,9 @@ export class SnapshotRepository {
    */
   static async createWithCustomDir(
     snapshotsDir: string,
+    fileOperations: Partial<SnapshotFileOperations> = {},
   ): Promise<SnapshotRepository> {
-    return new SnapshotRepository(snapshotsDir);
+    return new SnapshotRepository(snapshotsDir, { ...fs, ...fileOperations });
   }
 
   /**
@@ -181,10 +192,10 @@ export class SnapshotRepository {
       const targetIndexPath = path.join(targetDir, "index.json");
       const sourceIndexPath = path.join(sourceDir, "index.json");
       const targetIndex = JSON.parse(
-        await fs.readFile(targetIndexPath, "utf8"),
+        await this.fileOperations.readFile(targetIndexPath, "utf8"),
       ) as SnapshotIndex;
       const sourceIndex = JSON.parse(
-        await fs.readFile(sourceIndexPath, "utf8"),
+        await this.fileOperations.readFile(sourceIndexPath, "utf8"),
       ) as SnapshotIndex;
       const sourcePagesDir = path.join(sourceDir, "pages");
       const targetPagesDir = path.join(temporaryDir, "pages");
@@ -208,7 +219,7 @@ export class SnapshotRepository {
         }
       }
 
-      await fs.cp(targetDir, temporaryDir, {
+      await this.fileOperations.cp(targetDir, temporaryDir, {
         recursive: true,
         errorOnExist: true,
       });
@@ -220,7 +231,7 @@ export class SnapshotRepository {
           );
         }
         const filename = sourcePage.filename;
-        await fs.copyFile(
+        await this.fileOperations.copyFile(
           path.join(sourcePagesDir, filename),
           path.join(targetPagesDir, filename),
         );
@@ -235,35 +246,41 @@ export class SnapshotRepository {
         totalPages: Object.keys(targetIndex.urls).length,
       };
       const sourceMetadata = JSON.parse(
-        await fs.readFile(path.join(sourceDir, "metadata.json"), "utf8"),
+        await this.fileOperations.readFile(
+          path.join(sourceDir, "metadata.json"),
+          "utf8",
+        ),
       ) as SnapshotMetadata;
-      await fs.writeFile(
+      await this.fileOperations.writeFile(
         path.join(temporaryDir, "metadata.json"),
         JSON.stringify({ ...sourceMetadata, timestamp: now }, null, 2),
       );
-      await fs.writeFile(
+      await this.fileOperations.writeFile(
         path.join(temporaryDir, "index.json"),
         JSON.stringify(targetIndex, null, 2),
       );
 
       signal?.throwIfAborted();
-      await fs.rename(targetDir, backupDir);
+      await this.fileOperations.rename(targetDir, backupDir);
       backupCreated = true;
       try {
         signal?.throwIfAborted();
-        await fs.rename(temporaryDir, targetDir);
+        await this.fileOperations.rename(temporaryDir, targetDir);
         committed = true;
       } catch (error) {
-        await fs.rename(backupDir, targetDir);
+        await this.fileOperations.rename(backupDir, targetDir);
         backupCreated = false;
         throw error;
       }
-      await fs.rm(backupDir, { recursive: true, force: true });
+      await this.fileOperations.rm(backupDir, { recursive: true, force: true });
       backupCreated = false;
     } finally {
-      await fs.rm(temporaryDir, { recursive: true, force: true });
+      await this.fileOperations.rm(temporaryDir, {
+        recursive: true,
+        force: true,
+      });
       if (backupCreated && !committed) {
-        await fs.rename(backupDir, targetDir);
+        await this.fileOperations.rename(backupDir, targetDir);
       }
     }
   }

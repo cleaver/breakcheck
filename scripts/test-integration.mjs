@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import {
   access,
+  cp,
   mkdir,
   mkdtemp,
+  readdir,
   readFile,
   rm,
   writeFile,
@@ -26,6 +28,7 @@ const afterFixture = join(
   repoRoot,
   "packages/cli/src/__test_server__/server-after.js",
 );
+const commandLog = [];
 
 async function getFreePort() {
   const server = createServer();
@@ -105,17 +108,41 @@ async function runCli(cwd, args) {
   const { NODE_OPTIONS: _nodeOptions, ...environment } = process.env;
 
   try {
-    return await execFileAsync(process.execPath, [cliEntry, ...args], {
+    const result = await execFileAsync(process.execPath, [cliEntry, ...args], {
       cwd,
       env: environment,
       maxBuffer: 10 * 1024 * 1024,
     });
+    commandLog.push(
+      `$ breakcheck ${args.join(" ")}\n${result.stdout}${result.stderr}`,
+    );
+    return result;
   } catch (error) {
+    commandLog.push(
+      `$ breakcheck ${args.join(" ")}\n${error.stdout ?? ""}${error.stderr ?? error.message}`,
+    );
     throw new Error(
       `CLI failed: breakcheck ${args.join(" ")}\n${error.stdout ?? ""}\n${error.stderr ?? error.message}`,
       { cause: error },
     );
   }
+}
+
+async function runCliWithExitCode(cwd, args, expectedExitCode) {
+  const result = await runCli(cwd, args).then(
+    (commandResult) => ({
+      exitCode: 0,
+      stdout: commandResult.stdout,
+      stderr: commandResult.stderr,
+    }),
+    (error) => ({
+      exitCode: error.cause?.code,
+      stdout: error.cause?.stdout ?? "",
+      stderr: error.cause?.stderr ?? "",
+    }),
+  );
+  assert.equal(result.exitCode, expectedExitCode);
+  return result;
 }
 
 async function runCliWithInput(cwd, args, input) {
@@ -460,6 +487,110 @@ try {
   );
 
   await runInvalidSnapshot(invocationRoot);
+
+  const checkRoutes = join(invocationRoot, "check-routes.txt");
+  await writeFile(checkRoutes, "/blog\n");
+  await writeFile(
+    join(invocationRoot, "check.config.json"),
+    JSON.stringify({
+      version: 2,
+      baseUrl,
+      storageDir: relative(invocationRoot, tempRoot),
+      check: {
+        routesFile: "./check-routes.txt",
+        baselineSnapshot: "before",
+        reportDir: "./check-reports",
+      },
+    }),
+  );
+  const checkArgs = [
+    "check",
+    "--url",
+    baseUrl,
+    "--json",
+    "--config",
+    "check.config.json",
+  ];
+  const checkDifference = await runCliWithExitCode(
+    invocationRoot,
+    checkArgs,
+    1,
+  );
+  assert.equal(checkDifference.stdout.trim().split(/\r?\n/).length, 1);
+  assert.equal(JSON.parse(checkDifference.stdout).status, "differences");
+
+  const untouchedPageBeforeUpdate = JSON.parse(
+    await readFile(join(tempRoot, "snapshots/before/index.json"), "utf8"),
+  ).urls["/about"].filename;
+  const untouchedPageBytesBefore = await readFile(
+    join(tempRoot, "snapshots/before/pages", untouchedPageBeforeUpdate),
+  );
+  const baselineUpdate = await runCliWithExitCode(
+    invocationRoot,
+    [
+      "baseline",
+      "update",
+      "--route",
+      "/blog",
+      "--url",
+      baseUrl,
+      "--json",
+      "--config",
+      "check.config.json",
+    ],
+    0,
+  );
+  assert.equal(baselineUpdate.stdout.trim().split(/\r?\n/).length, 1);
+  assert.equal(JSON.parse(baselineUpdate.stdout).status, "updated");
+  const untouchedPageAfterUpdate = JSON.parse(
+    await readFile(join(tempRoot, "snapshots/before/index.json"), "utf8"),
+  ).urls["/about"].filename;
+  assert.equal(untouchedPageAfterUpdate, untouchedPageBeforeUpdate);
+  assert.deepEqual(
+    await readFile(
+      join(tempRoot, "snapshots/before/pages", untouchedPageAfterUpdate),
+    ),
+    untouchedPageBytesBefore,
+  );
+  assert.equal(
+    (await runCliWithExitCode(invocationRoot, checkArgs, 0)).exitCode,
+    0,
+  );
+
+  const baselineIndexBeforeFailure = await readFile(
+    join(tempRoot, "snapshots/before/index.json"),
+  );
+  await writeFile(checkRoutes, "/missing\n");
+  const failedCheck = await runCliWithExitCode(invocationRoot, checkArgs, 2);
+  assert.equal(failedCheck.stdout.trim().split(/\r?\n/).length, 1);
+  assert.equal(JSON.parse(failedCheck.stdout).status, "failed");
+  const failedUpdate = await runCliWithExitCode(
+    invocationRoot,
+    [
+      "baseline",
+      "update",
+      "--route",
+      "/missing",
+      "--url",
+      baseUrl,
+      "--json",
+      "--config",
+      "check.config.json",
+    ],
+    2,
+  );
+  assert.equal(failedUpdate.stdout.trim().split(/\r?\n/).length, 1);
+  assert.equal(JSON.parse(failedUpdate.stdout).status, "failed");
+  assert.deepEqual(
+    await readFile(join(tempRoot, "snapshots/before/index.json")),
+    baselineIndexBeforeFailure,
+  );
+  const snapshotNames = await readdir(join(tempRoot, "snapshots"));
+  assert.equal(
+    snapshotNames.some((name) => name.startsWith("baseline_update_")),
+    false,
+  );
+
   await stopProcess(fixture);
   fixture = undefined;
 
@@ -681,6 +812,33 @@ try {
   fixture = undefined;
 
   console.log("Fixture integration test passed");
+} catch (error) {
+  const diagnosticsDirectory = process.env.BREAKCHECK_DIAGNOSTICS_DIR;
+  if (diagnosticsDirectory) {
+    const destination = join(diagnosticsDirectory, "integration");
+    await mkdir(destination, { recursive: true });
+    await writeFile(
+      join(destination, "failure.txt"),
+      error instanceof Error ? (error.stack ?? error.message) : String(error),
+    );
+    await writeFile(join(destination, "commands.log"), commandLog.join("\n\n"));
+    for (const name of ["snapshots", "comparisons", "check-reports"]) {
+      try {
+        await cp(join(tempRoot, name), join(destination, name), {
+          recursive: true,
+        });
+      } catch (copyError) {
+        if (!(
+          copyError instanceof Error &&
+          "code" in copyError &&
+          copyError.code === "ENOENT"
+        )) {
+          throw copyError;
+        }
+      }
+    }
+  }
+  throw error;
 } finally {
   if (fixture) await stopProcess(fixture);
   await rm(tempRoot, { recursive: true, force: true });

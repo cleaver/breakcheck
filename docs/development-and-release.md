@@ -33,11 +33,24 @@ The main development commands are:
 | Command                    | Purpose                                                                                                                                                                |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm test`                 | Run the unit and component test suite once.                                                                                                                            |
+| `npm run test:coverage`    | Run unit tests and enforce global plus focused coverage thresholds over all production TypeScript in `packages/*/src`.                                                 |
+| `npm run typecheck`        | Typecheck production sources and core/CLI test sources without emitting files. Run after a build so workspace declarations are current.                                |
 | `npm run test:watch`       | Run Vitest in watch mode while developing.                                                                                                                             |
-| `npm run test:coverage`    | Run the tests with V8 coverage.                                                                                                                                        |
 | `npm run test:cli-bin`     | Build the CLI and invoke its compiled executable with native Node.                                                                                                     |
 | `npm run test:integration` | Build the project, start the before/after fixture servers, run snapshots and comparisons, and verify the viewer.                                                       |
 | `npm run test:packaging`   | Pack the core and CLI workspaces, install them in a temporary consumer with no `tsx`, and exercise the installed CLI, core import, snapshots, comparisons, and viewer. |
+
+Coverage includes source files even when no test imports them. It excludes test
+files, fixture servers, declarations, and generated output. The current global
+floors are 62% statements, 68% branches, 75% functions, and 62% lines. The check,
+route validation, baseline update, and site lifecycle modules also have focused
+90% line and 80% branch floors. Integration and packaging checks remain separate
+end-to-end checks and do not contribute to the Vitest coverage totals.
+
+The CLI smoke, integration, and packaging scripts also have `:built` variants
+(`test:cli-bin:built`, `test:integration:built`, and `test:packaging:built`). CI
+uses these after one build per Node matrix job; the regular scripts keep building
+for standalone local runs.
 
 The integration test owns the fixture-server lifecycle. It starts the
 before-version server, takes a snapshot, replaces it with the after-version
@@ -66,15 +79,21 @@ Before opening a pull request, run the high-value checks used by CI:
 ```bash
 npm ci
 npm run build
+npm run typecheck
+npm run test:coverage
 npm run test:cli-bin
-npm test
 npm run test:integration
 npm run test:packaging
 npm audit
 ```
 
-CI runs this validation on Node.js 22 and 24 for pushes to `main` and pull
-requests targeting `main`.
+CI runs build, typecheck, CLI smoke, integration, and packaging checks on Node.js
+22 and 24 for pushes to `main` and pull requests targeting `main`. Node 22 also
+runs the coverage suite and uploads its HTML and JSON reports. A failed integration
+or packaging run retains command output, snapshots, comparisons, and check reports
+when `BREAKCHECK_DIAGNOSTICS_DIR` is set; CI uploads these diagnostics from each
+Node version on failure. To retain them locally, set that variable to a directory
+before running `npm run test:integration` or `npm run test:packaging`.
 
 The repository also provides optional [just](https://github.com/casey/just)
 recipes for the release workflow. `just` is not an npm dependency; the npm
@@ -180,6 +199,7 @@ git checkout main
 git pull --ff-only
 npm ci
 npm run build
+npm run typecheck
 npm test
 npm run test:coverage
 npm run test:cli-bin

@@ -9,8 +9,39 @@ export default defineConfig({
     environment: "node",
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
-      exclude: [...coverageConfigDefaults.exclude, "**/__test_server__/**"],
+      reporter: ["text", "json", "json-summary", "html"],
+      reportOnFailure: true,
+      include: ["packages/*/src/**/*.ts"],
+      thresholds: {
+        statements: 62,
+        branches: 68,
+        functions: 75,
+        lines: 62,
+        "packages/core/src/core/check/**/*.ts": {
+          lines: 90,
+          branches: 80,
+        },
+        "packages/core/src/core/snapshot/route-coverage.ts": {
+          lines: 90,
+          branches: 80,
+        },
+        "packages/core/src/core/snapshot/update-routes.ts": {
+          lines: 90,
+          branches: 80,
+        },
+        "packages/cli/src/cli/site-environment.ts": {
+          lines: 90,
+          branches: 80,
+        },
+      },
+      exclude: [
+        ...coverageConfigDefaults.exclude,
+        "packages/*/src/**/*.test.ts",
+        "packages/*/src/**/*.d.ts",
+        "packages/*/src/__tests__/**",
+        "packages/*/src/__test_server__/**",
+        "packages/*/src/**/dist/**",
+      ],
     },
     include: ["packages/**/*.test.ts"],
   },

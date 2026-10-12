@@ -155,7 +155,9 @@ the core API receives the already-created array.
 `runSiteCheck` captures only the supplied routes, verifies crawl coverage, then
 compares them with a stored baseline using the same comparison engine as
 `runComparison`. Added or removed routes count as differences. The core API
-does not start a site; the CLI handles preparation and server lifecycle.
+does not start a site; the CLI handles preparation and server lifecycle. The
+route list scopes page comparisons and added/removed route results, so snapshot
+changes outside the manifest do not affect a route-scoped check.
 
 ```typescript
 import { runSiteCheck } from "@cleaver/breakcheck-core";

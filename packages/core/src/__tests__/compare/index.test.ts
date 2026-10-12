@@ -405,6 +405,78 @@ describe("Compare Functions", () => {
       expect(result.removedUrls).toHaveLength(0);
     });
 
+    it("limits new and removed URL results to the requested routes", async () => {
+      const beforeUrls = {
+        "https://example.com/checked": {
+          filename: "checked.html",
+          statusCode: 200,
+        },
+        "https://example.com/removed-outside": {
+          filename: "removed.html",
+          statusCode: 200,
+        },
+      };
+      const afterUrls = {
+        "https://example.com/checked": {
+          filename: "checked.html",
+          statusCode: 200,
+        },
+        "https://example.com/new-outside": {
+          filename: "new.html",
+          statusCode: 200,
+        },
+      };
+      const setup = await createSetup(
+        beforeUrls,
+        afterUrls,
+        "<html><body>stable</body></html>",
+        "<html><body>stable</body></html>",
+      );
+
+      const result = await compareSnapshots(
+        {
+          ...setup.comparisonParams,
+          urls: ["https://example.com/checked"],
+        },
+        setup.snapshotRepository,
+        setup.comparisonRepository,
+        setup.rulesEngine,
+      );
+
+      expect(result.overallResult).toBe("pass");
+      expect(result.newUrls).toEqual([]);
+      expect(result.removedUrls).toEqual([]);
+      expect(result.pagesWithErrors).toBe(0);
+    });
+
+    it("reports an added route inside the requested URL scope", async () => {
+      const setup = await createSetup(
+        {},
+        {
+          "https://example.com/new": {
+            filename: "new.html",
+            statusCode: 200,
+          },
+        },
+        "<html></html>",
+        "<html></html>",
+      );
+
+      const result = await compareSnapshots(
+        {
+          ...setup.comparisonParams,
+          urls: ["https://example.com/new"],
+        },
+        setup.snapshotRepository,
+        setup.comparisonRepository,
+        setup.rulesEngine,
+      );
+
+      expect(result.overallResult).toBe("fail");
+      expect(result.newUrls).toEqual(["https://example.com/new"]);
+      expect(result.pagesWithErrors).toBe(0);
+    });
+
     it("should return no differences for identical snapshots", async () => {
       const beforeUrls = {
         "https://example.com": {

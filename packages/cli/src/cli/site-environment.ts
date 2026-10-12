@@ -126,12 +126,17 @@ function sendSignal(handle: LaunchedProcess, signal: NodeJS.Signals): void {
   }
 }
 
-async function stopForegroundProcess(handle: LaunchedProcess): Promise<void> {
+async function stopForegroundProcess(
+  handle: LaunchedProcess,
+  gracePeriodMs = 5_000,
+): Promise<void> {
   if (handle.getResult() !== undefined) return;
   sendSignal(handle, "SIGTERM");
   const graceful = await Promise.race([
     handle.closed.then(() => true),
-    new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5_000)),
+    new Promise<boolean>((resolve) =>
+      setTimeout(() => resolve(false), gracePeriodMs),
+    ),
   ]);
   if (graceful) return;
 
@@ -186,7 +191,11 @@ export async function withCheckEnvironment<T>(
   baseUrl: string,
   useExistingServer: boolean,
   operation: (signal: AbortSignal) => Promise<T>,
-  options: { signal?: AbortSignal; signals?: SignalEventSource } = {},
+  options: {
+    signal?: AbortSignal;
+    signals?: SignalEventSource;
+    stopGracePeriodMs?: number;
+  } = {},
 ): Promise<T> {
   const server = check.server;
   const cwd = server?.cwd ?? check.configDirectory;
@@ -247,7 +256,7 @@ export async function withCheckEnvironment<T>(
   let cleanupError: unknown;
   if (processHandle !== undefined) {
     try {
-      await stopForegroundProcess(processHandle);
+      await stopForegroundProcess(processHandle, options.stopGracePeriodMs);
     } catch (error) {
       cleanupError = error;
     }
