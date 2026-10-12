@@ -1,6 +1,8 @@
 # Breakcheck
 
-**A command-line tool for comparing website states to detect unintended content and structural changes after upgrades, deployments, or migrations.**
+Breakcheck provides **approval testing** for websites: compare a current crawl with a known-good baseline, review the differences, and update the baseline when the changes are accepted.
+
+In agentic development, this gives coding agents a repeatable regression feedback loop as they make changes.
 
 [![CI](https://github.com/cleaver/breakcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/cleaver/breakcheck/actions/workflows/ci.yml)
 
