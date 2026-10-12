@@ -262,6 +262,9 @@ are also saved under `<storageDir>/comparisons`.
 Exit codes are `0` for no differences, `1` for page or route differences, and
 `2` for setup, readiness, crawl, or comparison failures.
 
+For a task-focused guide to using Breakcheck as feedback during coding-agent
+work, see [Agent guide](agent-guide.md).
+
 ### `baseline update`
 
 Updates the configured baseline explicitly. `--route` replaces only the

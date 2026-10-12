@@ -205,6 +205,12 @@ try {
     );
   }
 
+  const cliFiles = await tarballContents(cliTarball);
+  assert.ok(
+    cliFiles.includes("package/agent-guide.md"),
+    "Missing package/agent-guide.md from CLI tarball",
+  );
+
   const consumerDir = path.join(temporaryRoot, "consumer");
   consumerDirectory = consumerDir;
   await mkdir(consumerDir, { recursive: true });
@@ -227,6 +233,14 @@ try {
   );
   await assert.rejects(() =>
     access(path.join(consumerDir, "node_modules", "breakcheck-core")),
+  );
+  const installedAgentGuide = path.join(
+    consumerDir,
+    "node_modules/@cleaver/breakcheck/agent-guide.md",
+  );
+  assert.match(
+    await readFile(installedAgentGuide, "utf8"),
+    /breakcheck check --json/,
   );
 
   const help = await runCli(consumerDir, ["--help"]);

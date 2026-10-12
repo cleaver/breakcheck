@@ -17,7 +17,8 @@
   "homepage": "https://github.com/cleaver/breakcheck",
   "bugs": "https://github.com/cleaver/breakcheck/issues",
   "files": [
-    "dist"
+    "dist",
+    "agent-guide.md"
   ],
   "bin": {
     "breakcheck": "dist/index.js"
