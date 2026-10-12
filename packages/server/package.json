@@ -12,7 +12,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@cleaver/breakcheck-core": "^0.2.5",
-    "express": "^4.22.2"
+    "@cleaver/breakcheck-core": "^0.3.0",
+    "express": "^5.3.0"
   }
 }

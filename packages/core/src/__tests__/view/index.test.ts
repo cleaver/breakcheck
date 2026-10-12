@@ -12,32 +12,33 @@ import {
 } from "vitest";
 
 // Mock fs/promises before importing the module
-vi.mock("fs/promises", () => ({
-  default: {
-    readFile: vi.fn(async (path: string | Buffer | URL) => {
-      if (typeof path === "string") {
-        if (path.includes("package.json")) {
-          return JSON.stringify({
-            workspaces: ["packages/*"],
-            name: "breakcheck-monorepo",
-          });
-        }
-        if (path.includes("index.json")) {
-          return JSON.stringify({
-            urls: {
-              "/page1": { filename: "page1.json.gz", hasDifferences: true },
-              "/page2": { filename: "page2.json.gz", hasDifferences: false },
-            },
-          });
-        }
-        if (path.includes("diffs/page1.json.gz")) {
-          return Buffer.from("compressed data");
-        }
+vi.mock("fs/promises", () => {
+  const access = vi.fn(async () => undefined);
+  const readFile = vi.fn(async (path: string | Buffer | URL) => {
+    if (typeof path === "string") {
+      if (path.includes("package.json")) {
+        return JSON.stringify({
+          workspaces: ["packages/*"],
+          name: "breakcheck-monorepo",
+        });
       }
-      throw new Error(`fs.readFile mock not implemented for ${path}`);
-    }),
-  },
-}));
+      if (path.includes("index.json")) {
+        return JSON.stringify({
+          urls: {
+            "/page1": { filename: "page1.json.gz", hasDifferences: true },
+            "/page2": { filename: "page2.json.gz", hasDifferences: false },
+          },
+        });
+      }
+      if (path.includes("diffs/page1.json.gz")) {
+        return Buffer.from("compressed data");
+      }
+    }
+    throw new Error(`fs.readFile mock not implemented for ${path}`);
+  });
+
+  return { access, readFile, default: { access, readFile } };
+});
 
 vi.mock("zlib", () => ({
   gunzip: vi.fn((_buffer, callback) => {

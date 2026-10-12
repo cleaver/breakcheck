@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import type { Element } from "domhandler";
 import { Action, REGION_NAME_PATTERN, Ruleset } from "../../types/rules.js";
 import { processRulesDsl } from "./RulesDsl.js";
 
@@ -245,7 +246,7 @@ export class RulesEngine {
 
   private applyAction(
     $: cheerio.CheerioAPI,
-    element: cheerio.Element,
+    element: Element,
     action: CompiledAction,
   ): void {
     const selected = $(element);
@@ -280,7 +281,7 @@ export class RulesEngine {
 
   private rewriteTextNodes(
     $: cheerio.CheerioAPI,
-    element: cheerio.Element,
+    element: Element,
     regex: RegExp,
     replace: string,
   ): void {

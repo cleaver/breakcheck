@@ -28,7 +28,16 @@ export async function comparePage(
   const afterContent = beautify(after.content, beautifyOptions);
 
   const patch = createPatch(url, beforeContent, afterContent);
-  const differences: LineDiff[] = diffLines(beforeContent, afterContent);
+  const differences: LineDiff[] = diffLines(beforeContent, afterContent).map(
+    (change) => {
+      const { added, removed, ...unchangedFields } = change;
+      return {
+        ...unchangedFields,
+        ...(added ? { added } : {}),
+        ...(removed ? { removed } : {}),
+      };
+    },
+  );
   const hasDifferences = differences.some((diff) => diff.added || diff.removed);
   return { url, differences, hasDifferences, patch };
 }

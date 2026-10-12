@@ -39,8 +39,6 @@ jobs:
     name: Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      BREAKCHECK_DIAGNOSTICS_DIR: ${{ runner.temp }}/breakcheck-diagnostics-${{ matrix.node-version }}
     strategy:
       fail-fast: false
       matrix:
@@ -57,6 +55,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+
+      - name: Set diagnostics directory
+        run: echo "BREAKCHECK_DIAGNOSTICS_DIR=$RUNNER_TEMP/breakcheck-diagnostics-${{ matrix.node-version }}" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm ci

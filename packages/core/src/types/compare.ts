@@ -4,9 +4,12 @@ import { Change } from "diff";
 
 /**
  * Represents a single difference found between two page snapshots
- * This is equivalent to the Change type from the diff package
+ * This retains the optional change flags exposed by earlier diff releases.
  */
-export type LineDiff = Change;
+export type LineDiff = Omit<Change, "added" | "removed"> & {
+  added?: boolean;
+  removed?: boolean;
+};
 
 /**
  * Represents the complete diff result for a single page
